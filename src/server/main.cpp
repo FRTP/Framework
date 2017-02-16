@@ -1,6 +1,7 @@
+#include <stdexcept>
+#include <iostream>
 #include "cdaemon.h"
-#include "cparser.h"
-#include "exception.hpp"
+#include "cparser.hpp"
 
 int main(int argc, char** argv) {
 	try {
@@ -8,10 +9,11 @@ int main(int argc, char** argv) {
 		parser.parse();
 
 		CDaemon daemon(parser); 
-		int ret = daemon.start();
+		if(daemon.start() != 0) 
+			std::cerr << "[EE]: Unable to start daemon" << std::endl;
 	}
-	catch(IException* e) {
-		e->what();
+	catch(std::exception e) {
+		std::cerr << e.what() << std::endl;
 	}
 
 	return 0;
