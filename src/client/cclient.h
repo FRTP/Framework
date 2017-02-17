@@ -6,9 +6,11 @@
 #include <boost/bind.hpp>
 #include <fstream>
 
+using namespace boost::asio;
+
 class CClient {
 	private:
-		tcp::socket m_socket;
+		ip::tcp::socket m_socket;
 		std::string m_server;
 		int m_port;
 	public:
@@ -17,9 +19,9 @@ class CClient {
 			GET_FILE_LIST
 		};
 
-		CClient(boost::asio::io_service& io_service);
+		CClient(io_service& io_service, char* server, int port);
 		const char* get_file_list();
-		char* get_file(char* filename, const char* newfile);
+		int get_file(char* filename, const char* newfile);
 };
 
 #endif //CLIENT_H
