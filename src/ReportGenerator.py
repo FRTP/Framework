@@ -49,7 +49,9 @@ def generate_report(input_data, functors, path):
     # write functor values
     shift_down = 0
     for functor in functors:
-        the_canvas = draw_text(the_canvas, '{} : {}'.format(functor.get_name(), functor.apply(input_data)),
+        name = functor.get_name()
+        value = functor.apply(input_data)
+        the_canvas = draw_text(the_canvas, '{} : {}'.format(name, value),
                                50, 250 - shift_down)
         shift_down += 20
 
