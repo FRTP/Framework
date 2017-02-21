@@ -10,7 +10,7 @@ class CParser {
 		std::string m_logname;
 		std::string m_configname;
 	public:
-		CParser(int argc, char** argv) : m_logname("/var/log/frtp.log"), m_configname("~/.config/frtp/main.conf") {
+		CParser(int argc, char** argv) : m_logname("/var/frtp/frtp.log"), m_configname("~/.config/frtp/main.conf") {
 			m_args.reserve(argc);
 			for(int i = 1; i < argc; ++i)
 				m_args.push_back(argv[i]);

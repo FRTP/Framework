@@ -24,11 +24,11 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 
 void CTCPConnection::handle_read_command(boost::shared_ptr<CLog> log, boost::shared_ptr<std::array<int, 2>> command, 
 		const boost::system::error_code& ec) {
-	log->write("[II]: New client accepted; reading command...");
 	if(!ec) {
+		log->write("[II]: New client accepted; reading command...");
 		if((*command)[0] == CServer::ECommand::GET_FILE) {
 			if((*command)[1] < 0) {
-				log->write("[EE]: Invalid buffer size");
+				log->write("[EE] handle_read_command: Invalid buffer size");
 				return;
 			}
 			boost::shared_ptr<std::string> filename(new std::string);
@@ -37,17 +37,9 @@ void CTCPConnection::handle_read_command(boost::shared_ptr<CLog> log, boost::sha
 				boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(), log, filename,
 				boost::asio::placeholders::error));
 		}
-		else if((*command)[0] == CServer::ECommand::GET_FILE_LIST) {
-			std::string files = "";
-			for(fs::recursive_directory_iterator it("/var/frtp/data/"), end; it != end; ++it)
-				files += it->path().filename().string() + "\n";
-			boost::asio::async_write(m_socket, boost::asio::buffer(&files[0], files.size()), 
-				boost::bind(&CTCPConnection::handle_write_response, shared_from_this(), log,
-				boost::asio::placeholders::error));
-		}
 	}
 	else
-		log->write("[EE]: " + ec.message());
+		log->write("[EE]: handle_read_command: " + ec.message());
 }
 
 void CTCPConnection::handle_read_filename(boost::shared_ptr<CLog>& log, boost::shared_ptr<std::string> filename, 
@@ -56,9 +48,11 @@ void CTCPConnection::handle_read_filename(boost::shared_ptr<CLog>& log, boost::s
 		log->write("[EE]: " + ec.message());
 		return;
 	}
-	std::ifstream file(*filename, std::ios::binary);
+
+	std::string s_filename("/var/frtp/data/" + *filename);
+	std::ifstream file(s_filename, std::ios::binary);
 	if(!file) {
-		log->write("[EE]: Unable to open file " + *filename);
+		log->write("[EE]: Unable to open file " + s_filename + ": " + strerror(errno));
 		return;
 	}
 	file.seekg(0, file.end);
@@ -72,7 +66,7 @@ void CTCPConnection::handle_read_filename(boost::shared_ptr<CLog>& log, boost::s
 				boost::asio::placeholders::error));
 	}
 	else
-		log->write("[EE]: Unable to read file " + *filename);
+		log->write("[EE]: Unable to read file " + s_filename);
 	file.close();
 }
 
