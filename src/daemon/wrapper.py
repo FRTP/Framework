@@ -9,8 +9,6 @@ class CClient(object):
         self.obj = self.lib.create_instance(ctypes.c_char_p(str(server).encode('utf-8')), port)
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
-    def __del__(self):
-        self.lib.clear(self.obj)
     def get_file_list(self):
         return self.lib.get_file_list(self.obj)
     def get_file(self, filename, newfilename, delimit=';', quotech='|'):
