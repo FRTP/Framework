@@ -10,8 +10,7 @@ extern "C" {
 	}
 
 	const char* get_file_list(CClient* obj) {
-		if(!obj)
-			return NULL;
+		if(!obj) return NULL;
 		return obj->get_file_list();
 	}
 
@@ -22,6 +21,6 @@ extern "C" {
 	}
 
 	void clear(CClient* obj) {
-		delete obj;
+		if(obj) delete obj;
 	}
 }
