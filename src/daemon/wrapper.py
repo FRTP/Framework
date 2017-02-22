@@ -7,8 +7,8 @@ class CClient(object):
     def __init__(self, server, port, working_dir, lib_path):
         self.working_dir = working_dir
         self.lib = ctypes.cdll.LoadLibrary(lib_path)
-        self.obj = self.lib.create_instance(
-                ctypes.c_char_p(str(server).encode('utf-8')), port)
+        srv_str = ctypes.c_char_p(str(server).encode('utf-8'))
+        self.obj = self.lib.create_instance(srv_str, port)
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
 
@@ -17,9 +17,9 @@ class CClient(object):
 
     def get_file(self, filename, newfilename, delimit=';', quotech='|'):
         if not os.path.exists(newfilename):
-            self.lib.get_file(self.obj, 
-                    ctypes.c_char_p(str(filename).encode('utf-8')),
-                    ctypes.c_char_p(str(newfilename).encode('utf-8')))
+            filename_s = ctypes.c_char_p(str(filename).encode('utf-8'))
+            newfilename_s = ctypes.c_char(str(newfilename).encode('utf-8'))
+            self.lib.get_file(self.obj, filename_s, newfilename_s)
         csvfile = open(newfilename, 'rb')
         return csv.reader(csvfile, delimiter=delimit, quotechar=quotech)
 
@@ -27,6 +27,5 @@ class CClient(object):
         if not os.path.exists(self.working_dir + name):
             os.makedirs(self.working_dir + name)
         filename = name + "/" + date + ".csv"
-        return self.get_file(filename, self.working_dir + filename, delimit, 
+        return self.get_file(filename, self.working_dir + filename, delimit,
                 quotech)
-
