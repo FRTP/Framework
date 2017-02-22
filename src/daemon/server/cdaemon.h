@@ -25,7 +25,7 @@ using namespace boost::asio;
 class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 	private:
 		ip::tcp::socket m_socket;
-		CTCPConnection(boost::asio::io_service& io_service) : m_socket(io_service) {}
+		explicit CTCPConnection(boost::asio::io_service& io_service) : m_socket(io_service) {}
 	public:
 		typedef boost::shared_ptr<CTCPConnection> conn_ptr;
 		void handle_read_command(boost::shared_ptr<CLog> log, boost::shared_ptr<std::array<int, 2>> command, 
@@ -60,7 +60,7 @@ class CDaemon {
 	private:
 		boost::shared_ptr<CLog> m_log;
 	public:
-		CDaemon(const CParser& parser);
+		explicit CDaemon(const CParser& parser);
 		int start();
 };
 

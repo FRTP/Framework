@@ -8,7 +8,7 @@ class CLog {
 	private:
 		std::ofstream m_log;
 	public:
-		CLog(const std::string& logname) : m_log(logname) {}
+		explicit CLog(const std::string& logname) : m_log(logname) {}
 		~CLog()  {
 			m_log.close();
 		}
