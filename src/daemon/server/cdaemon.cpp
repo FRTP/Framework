@@ -94,8 +94,9 @@ CDaemon::CDaemon(const CParser& parser) {
 
 	/*
 	std::string config_name = parser.configname();
-	if(!_load_config(config_name))
+	if (!_load_config(config_name)) {
 		m_log->write("[EE]: Config file " + config_name + " not found.");
+	}
 	*/
 }
 
