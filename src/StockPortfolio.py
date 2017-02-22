@@ -3,7 +3,27 @@
 import numpy as np
 
 
+# Stock portfolio.
+# @brief
+#   Provides the interface to perform stocks manipulations.
+
+
 class StockPortfolio:
+
+    # @param stocks_names - <list>
+    #   All stocks that considered by portfolio.
+    #
+    # @param stocks_count - <numpy array>
+    #   The number of each stock we currently have.
+    #
+    # @param stocks_prices - <numpy array>
+    #   The current price of each stock.
+    #
+    # @param balance - <float>
+    #   Amount of money we currently have ( may be negative ).
+    #
+    # @var coefficients ... todo
+    #   ...
 
     def __init__(self, stocks_names, stocks_count, stocks_prices, balance):
         self.names = stocks_names
@@ -18,16 +38,16 @@ class StockPortfolio:
 
     # Buy stocks
     # @brief
-    #   Buy stocks and get updated StockPortfolio
+    #   Buy stocks and get updated StockPortfolio.
     #
     # @param given_names - list
     #   Names of stocks to buy. Size must be equal to given_count size.
     # @param given_count - numpy array
-    #   Count of stocks to buy. Size must be equal to given_stocks size.
+    #   Count of stocks to buy. Size must be equal to given_names size.
     # @throws Exception
     #   if len(given_names) != len(given_count)
     # @returns
-    #   new instance of updated StockPortfolio if succeeded
+    #   New instance of updated StockPortfolio if succeeded.
 
     def buy(self, given_names, given_count):
         new_count = self.count
@@ -46,8 +66,22 @@ class StockPortfolio:
                               stocks_prices=self.prices,
                               balance=new_balance)
 
+    # @brief
+    #   Sell stocks and get updated StockPortfolio
+    # @param given_names - <list>
+    #   Names of stocks to buy. Size must be equal to given_count size.
+    # @param given_count - <numpy array>
+    #   Count of stocks to buy. Size must be equal to given_names size.
+
     def sell(self, given_names, given_count):
         return self.buy(given_names, -given_count)
+
+    # @brief
+    #   Getting count of a particular stock we have.
+    # @param stock_name
+    #   The name of a stock we want.
+    # @returns
+    #   The amount of a particular stock we currently have.
 
     def get_stock_count(self, stock_name):
         return self.count[self.names.index(stock_name)]
