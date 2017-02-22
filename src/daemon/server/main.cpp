@@ -9,8 +9,9 @@ int main(int argc, char** argv) {
 		parser.parse();
 
 		CDaemon daemon(parser); 
-		if(daemon.start() != 0) 
+		if (daemon.start() != 0) {
 			std::cerr << "[EE]: Unable to start daemon" << std::endl;
+		}
 	}
 	catch(std::exception e) {
 		std::cerr << e.what() << std::endl;

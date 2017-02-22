@@ -1,20 +1,21 @@
 #ifndef CDAEMON_H
 #define CDAEMON_H
 
-#include <string>
-#include <memory>
-#include <fstream>
 #include <array>
-#include <boost/filesystem.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/signal_set.hpp>
-#include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/read.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/asio/write.hpp>
+#include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
+#include <fstream>
+#include <memory>
+#include <string>
+
 #include "clog.hpp"
 #include "cparser.hpp"
 

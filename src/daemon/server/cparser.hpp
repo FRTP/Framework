@@ -1,8 +1,8 @@
 #ifndef CPARSER_HPP
 #define CPARSER_HPP
 
-#include <vector>
 #include <string>
+#include <vector>
 
 class CParser {
 	private:
@@ -18,10 +18,12 @@ class CParser {
 
 		void parse() {
 			for(size_t i = 0; i < m_args.size(); ++i) {
-				if((m_args[i] == "--log" || m_args[i] == "-l") && (i + 1) < m_args.size())
+				if ((m_args[i] == "--log" || m_args[i] == "-l") && (i + 1) < m_args.size()) {
 					m_logname = m_args[++i];
-				else if((m_args[i] == "--config" || m_args[i] == "-c") && (i + 1) < m_args.size())
+				}
+				else if ((m_args[i] == "--config" || m_args[i] == "-c") && (i + 1) < m_args.size()) {
 					m_configname = m_args[++i];
+				}
 			}
 		}
 		
