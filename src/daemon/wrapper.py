@@ -28,4 +28,4 @@ class CClient(object):
             os.makedirs(self.working_dir + name)
         filename = name + "/" + date + ".csv"
         return self.get_file(filename, self.working_dir + filename, delimit,
-                quotech)
+                             quotech)
