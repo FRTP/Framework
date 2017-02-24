@@ -54,7 +54,8 @@ class StockPortfolio:
         new_balance = self.current_balance
 
         if len(given_names) != len(given_count):
-            raise Exception('given_names and given_count must have the same size')
+            raise Exception('given_names and given_count '
+                            'must have the same size')
 
         for i in range(len(given_names)):
             index = self.names.index(given_names[i])
@@ -85,4 +86,3 @@ class StockPortfolio:
 
     def get_stock_count(self, stock_name):
         return self.count[self.names.index(stock_name)]
-
