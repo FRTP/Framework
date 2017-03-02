@@ -4,8 +4,14 @@ import numpy as np
 
 
 class StockPortfolio:
+
     def __init__(self, stock_count):
         self.count = stock_count
+
+
+    def get_stock_count(self, all_stocks_names, stock_name):
+        index = all_stocks_names.index(stock_name)
+        return self.count[index]
 
 # Environment.
 # @brief
@@ -13,24 +19,6 @@ class StockPortfolio:
 
 
 class Environment:
-
-    # PARAMS
-    #
-    # @param historical_data
-    #   Historical data about prices on stocks in following format:
-    #   [(name, historical_prices, ( ... ), ... ], where :
-    #   - name is stock name
-    #   - historical_prices is np.array of history of cost of the stock.
-    #
-    # @param initial_stocks_count - <numpy array>
-    #   The number of each stock we currently have.
-    #
-    # @param current_stocks_prices - <numpy array>
-    #   The current price of each stock.
-    #
-    # @param initial_balance - <float>
-    #   Amount of money we currently have ( may be negative ).
-    #
 
     # VARIABLES
     #
@@ -50,6 +38,23 @@ class Environment:
     # @var portfolio_sequence <StockPortfolio list>
     #   Our trading history.
 
+    # @params
+    #
+    # @param historical_data
+    #   Historical data about prices on stocks in following format:
+    #   [(name, historical_prices, ( ... ), ... ], where :
+    #   - name is stock name
+    #   - historical_prices is np.array of history of cost of the stock.
+    #
+    # @param initial_stocks_count - <numpy array>
+    #   The number of each stock we currently have.
+    #
+    # @param current_stocks_prices - <numpy array>
+    #   The current price of each stock.
+    #
+    # @param initial_balance - <float>
+    #   Amount of money we currently have ( may be negative ).
+    #
     def __init__(self, historical_data, initial_stocks_count,
                  current_stocks_prices, initial_balance):
         self.names = [name for (name, _) in historical_data]
@@ -87,18 +92,17 @@ class Environment:
 
     def buy(self, given_names, given_count):
         new_stocks_count = self.portfolio_sequence[-1].count
-        new_balance = self.current_balance
 
         if len(given_names) != len(given_count):
             raise Exception('given_names and given_count '
                             'must have the same size')
-        if given_names.empty():
+        if not given_names:
             raise Exception("given_names mustn't be empty")
 
         for i in range(len(given_names)):
             current_stock_index = self.names.index(given_names[i])
             new_stocks_count[current_stock_index] += given_count[i]
-            new_balance -= self.prices[current_stock_index] * given_count[i]
+            self.current_balance -= self.prices[current_stock_index] * given_count[i]
 
         new_portfolio = StockPortfolio(new_stocks_count)
         self.portfolio_sequence.append(new_portfolio)
@@ -126,8 +130,11 @@ class Environment:
         needed_index = self.names.index(stock_name)
         return self.portfolio_sequence[-1].count[needed_index]
 
-    # @brief
-    #   Get index of a stock_name
-    #   corresponding to portfolio's count index
-    def stock_index(self, stock_name):
-        return self.names.index(stock_name)
+    def get_stocks_names(self):
+        return self.names
+
+    def get_current_balance(self):
+        return self.current_balance
+
+    def get_current_portfolio(self):
+        return self.portfolio_sequence[-1]
