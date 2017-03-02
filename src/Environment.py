@@ -8,7 +8,6 @@ class StockPortfolio:
     def __init__(self, stock_count):
         self.count = stock_count
 
-
     def get_stock_count(self, all_stocks_names, stock_name):
         index = all_stocks_names.index(stock_name)
         return self.count[index]
@@ -102,7 +101,8 @@ class Environment:
         for i in range(len(given_names)):
             current_stock_index = self.names.index(given_names[i])
             new_stocks_count[current_stock_index] += given_count[i]
-            self.current_balance -= self.prices[current_stock_index] * given_count[i]
+            self.current_balance -= \
+                self.prices[current_stock_index] * given_count[i]
 
         new_portfolio = StockPortfolio(new_stocks_count)
         self.portfolio_sequence.append(new_portfolio)

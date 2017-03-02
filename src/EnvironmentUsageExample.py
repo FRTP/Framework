@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import numpy as np
-from Environment import Environment, StockPortfolio
+from Environment import Environment
 
 
 # Generate some initials for environment
