@@ -54,6 +54,10 @@ void CTCPConnection::handle_read_filename(boost::shared_ptr<CLog>& log, boost::s
 	std::ifstream file(s_filename, std::ios::binary);
 	if (!file) {
 		log->write("[EE]: Unable to open file " + s_filename + ": " + strerror(errno));
+		int error_buf[1] = { CServer::EError::NO_FILE };
+		boost::asio::async_write(m_socket, boost::asio::buffer(error_buf), 
+				boost::bind(&CTCPConnection::handle_write_response, shared_from_this(), log,
+				boost::asio::placeholders::error));
 		return;
 	}
 	file.seekg(0, file.end);
@@ -74,7 +78,7 @@ void CTCPConnection::handle_read_filename(boost::shared_ptr<CLog>& log, boost::s
 
 void CTCPConnection::handle_write_response(boost::shared_ptr<CLog>& log, const boost::system::error_code& ec) {
 	if (!ec) { 
-		log->write("[II]: Data transmitted successfully");
+		log->write("[II]: Response transmitted successfully");
 	}
 	else {
 		log->write("[EE]: " + ec.message());

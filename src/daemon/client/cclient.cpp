@@ -16,27 +16,14 @@ CClient::~CClient() {
 	m_socket.close();
 }
 
-const char* CClient::get_file_list() {
-	if (m_socket.is_open()) {
-		boost::system::error_code error;
-		int msg[2] = { ECommand::GET_FILE_LIST, 0 };
-		write(m_socket, buffer(msg), error);
-		if (error) {
-			return NULL;
-		}
-		streambuf receive_buffer;
-		read(m_socket, receive_buffer, transfer_all(), error);
-		if (error && error != error::eof) {
-			return NULL;
-		}
-		else {
-			const char* data = buffer_cast<const char*>(receive_buffer.data());
-			return data;
-		}
+std::string CClient::_get_text_error(EServerError error) const {
+	std::string res = "";
+	switch(error) {
+		case EServerError::NO_FILE:
+			res = "No such file on server";
+			break;
 	}
-	else {
-		return NULL;
-	}
+	return res;
 }
 
 int CClient::get_file(char* filename, const char* newfilename) {
@@ -59,10 +46,17 @@ int CClient::get_file(char* filename, const char* newfilename) {
 			return EError::READ_ERROR;
 		}
 		else {
-			const char* data = buffer_cast<const char*>(receive_buffer.data());
-			std::ofstream out(newfilename, std::ios::binary);
-			out << data;
-			out.close();
+			if (receive_buffer.size() == 1) {
+				const int* error = buffer_cast<const int*>(receive_buffer.data());
+				std::cerr << "An error occurred: " << _get_text_error(static_cast<EServerError>(*error))
+				          << std::endl;
+			}
+			else {
+				const char* data = buffer_cast<const char*>(receive_buffer.data());
+				std::ofstream out(newfilename, std::ios::binary);
+				out << data;
+				out.close();
+			}
 			return 0;
 		}
 	}

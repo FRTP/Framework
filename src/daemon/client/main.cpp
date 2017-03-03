@@ -9,13 +9,6 @@ extern "C" {
 		return client;
 	}
 
-	const char* get_file_list(CClient* obj) {
-		if (!obj) {
-			return NULL;
-		}
-		return obj->get_file_list();
-	}
-
 	int get_file(CClient* obj, char* filename, const char* newfile) {
 		if (!obj) {
 			return -4;

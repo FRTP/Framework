@@ -41,7 +41,9 @@ class CServer {
 	public:
 		enum ECommand {
 			GET_FILE,
-			GET_FILE_LIST
+		};
+		enum EError {
+			NO_FILE
 		};
 	private:
 		static const int PORT = 34567;
