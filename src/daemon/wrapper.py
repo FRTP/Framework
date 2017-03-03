@@ -28,6 +28,5 @@ class CClient(object):
         delta = datetime.timedelta(days=1)
         while counter <= date_to:
             filename = name + "/" + delta.strftime("%Y%m%d") + ".csv"
-            self.get_file(filename, self.working_dir + filename, delimit,
-                          quotech)
+            self.get_file(filename, self.working_dir + filename)
             counter += delta
