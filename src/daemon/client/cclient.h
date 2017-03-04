@@ -6,6 +6,10 @@
 #include <boost/bind.hpp>
 #include <iostream>
 #include <fstream>
+#include <memory>
+
+#include "ccommand.h"
+#include "ccontext.hpp"
 
 using namespace boost::asio;
 
@@ -14,25 +18,14 @@ class CClient {
 		enum EServerError {
 			NO_FILE
 		};
-		enum ECommand {
-			GET_FILE,
-		};
-		enum  EError {
-			WRITE_ERROR,
-			READ_ERROR, 
-			SOCKET_ERROR
-		};
 
 	private:
-		ip::tcp::socket m_socket;
-		std::string m_server;
-		int m_port;
+		std::shared_ptr<CContext> m_context;
 		std::string _get_text_error(EServerError error) const;
-
 	public:
 		CClient(io_service& io_service, char* server, int port);
-		~CClient();
-		int get_file(char* filename, const char* newfile);
+		~CClient() {}
+		void invoke(ICommand* cmd);
 };
 
 #endif //CLIENT_H
