@@ -1,6 +1,6 @@
 CC = g++
-CFLAGS += -c -std=c++11 -Wall -Wextra -Werror
-LFLAGS += -lboost_system -lboost_thread -lpthread
+override CFLAGS += -c -std=c++11 -Wall -Wextra -Werror
+override LFLAGS += -lboost_system -lboost_thread -lpthread
 SERVERLFLAGS += -lcrypto
 
 all: daemon
