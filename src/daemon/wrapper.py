@@ -1,6 +1,6 @@
 import ctypes
 import os.path
-import csv
+import datetime
 
 
 class CClient(object):
@@ -15,17 +15,18 @@ class CClient(object):
     def get_file_list(self):
         return self.lib.get_file_list(self.obj)
 
-    def get_file(self, filename, newfilename, delimit=';', quotech='|'):
+    def get_file(self, filename, newfilename):
         if not os.path.exists(newfilename):
             filename_s = ctypes.c_char_p(str(filename).encode('utf-8'))
             newfilename_s = ctypes.c_char(str(newfilename).encode('utf-8'))
             self.lib.get_file(self.obj, filename_s, newfilename_s)
-        csvfile = open(newfilename, 'rb')
-        return csv.reader(csvfile, delimiter=delimit, quotechar=quotech)
 
-    def get_info(self, name, date, delimit=';', quotech='|'):
+    def get_info(self, name, date_from, date_to):
         if not os.path.exists(self.working_dir + name):
             os.makedirs(self.working_dir + name)
-        filename = name + "/" + date + ".csv"
-        return self.get_file(filename, self.working_dir + filename, delimit,
-                             quotech)
+        counter = date_from
+        delta = datetime.timedelta(days=1)
+        while counter <= date_to:
+            filename = name + "/" + delta.strftime("%Y%m%d") + ".csv"
+            self.get_file(filename, self.working_dir + filename)
+            counter += delta
