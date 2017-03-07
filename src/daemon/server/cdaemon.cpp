@@ -116,7 +116,7 @@ ip::tcp::socket& CTCPConnection::socket() {
 	return m_socket;
 }
 
-CDaemon::CDaemon(const CParser& parser) {
+CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
 	m_log = boost::shared_ptr<CLog>(new CLog(parser.logname()));
 
 	/*
@@ -128,11 +128,10 @@ CDaemon::CDaemon(const CParser& parser) {
 }
 
 int CDaemon::start() {
-	boost::asio::io_service io_service;
-	CServer server(io_service, m_log);
-	boost::asio::signal_set signals(io_service, SIGINT, SIGTERM);
-	signals.async_wait(boost::bind(&boost::asio::io_service::stop, &io_service));
-	io_service.notify_fork(boost::asio::io_service::fork_prepare);
+	CServer server(*(m_io_service.get()), m_log);
+	boost::asio::signal_set signals(*(m_io_service.get()), SIGINT, SIGTERM);
+	signals.async_wait(boost::bind(&io_service::stop, m_io_service));
+	m_io_service->notify_fork(io_service::fork_prepare);
 
 	if (pid_t pid = fork()) {
 		if (pid > 0) {
@@ -165,9 +164,9 @@ int CDaemon::start() {
 		return 1;
 	}
 
-	io_service.notify_fork(boost::asio::io_service::fork_child);
+	m_io_service->notify_fork(io_service::fork_child);
 	m_log->write("[II]: Daemon started.");
-	io_service.run();
+	m_io_service->run();
 	m_log->write("[II]: Daemon stopped.");
 
 	return 0;

@@ -63,6 +63,7 @@ class CServer {
 class CDaemon {
 	private:
 		boost::shared_ptr<CLog> m_log;
+		boost::shared_ptr<io_service> m_io_service;
 	public:
 		explicit CDaemon(const CParser& parser);
 		int start();
