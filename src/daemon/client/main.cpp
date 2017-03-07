@@ -12,7 +12,7 @@ void transtale_socket_problem_error(const ExSocketProblem&);
 BOOST_PYTHON_MODULE(libfrtpsrv)
 {
 	class_<CClient>("LibClient", init<std::string, int>(args("server", "port")))
-		.def("create_context", &CClient::create_context, return_value_policy<reference_existing_object>())
+		.def("create_context", &CClient::create_context, return_value_policy<manage_new_object>())
 		.def("connect", &CClient::connect, args("context"))
 		.staticmethod("connect")
 		.def("invoke", &CClient::invoke, args("context", "command"))
@@ -21,10 +21,11 @@ BOOST_PYTHON_MODULE(libfrtpsrv)
 		.staticmethod("get_hash")
 	;
 	class_<CCommandFactory, boost::noncopyable>("LibCommandFactory", no_init)
-		.def("create_command", &CCommandFactory::create, args("cmd_id", "args"), return_value_policy<reference_existing_object>())
+		.def("create_command", &CCommandFactory::create, args("cmd_id", "args"), return_value_policy<manage_new_object>())
 		.staticmethod("create_command")
 	;
 	class_<CContext, boost::noncopyable>("LibContext", no_init);
+	class_<ICommand, boost::noncopyable>("LibCommand", no_init);
 
 	register_exception_translator<ExError>(translate_error);
 	register_exception_translator<ExInvalidArgs>(transtale_invalid_args_error);
