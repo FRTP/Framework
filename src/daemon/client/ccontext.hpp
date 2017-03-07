@@ -4,6 +4,7 @@
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
 
 using namespace boost::asio;
 
@@ -20,8 +21,8 @@ class CContext {
 		int m_port;
 		ip::tcp::socket m_socket;
 	public:
-		CContext(const std::string& server, int port, io_service& io_service) 
-			: m_server(server), m_port(port), m_socket(io_service) {}
+		CContext(const std::string& server, int port, boost::shared_ptr<io_service> io_service)
+			: m_server(server), m_port(port), m_socket(*(io_service.get())) {}
 		void connect(boost::system::error_code& error) {
 			m_socket.connect(ip::tcp::endpoint(ip::address::from_string(m_server.c_str()), m_port), error);
 		}
