@@ -13,14 +13,16 @@ function usage {
 	echo "Options:"
 	echo -e "-s \t build with tests"
 	echo -e "-d \t build debug version"
+	echo -e "-j \t determine the number of parallel jobs"
 	echo -e "-h \t show this help"
 	exit 1
 }
 
 TARGET=""
 ADDITIONAL_CFLAGS=""
+JOBS=2
 
-while getopts "t:sdh" opt;
+while getopts "t:j:sdh" opt;
 do
 	case $opt in
 		t)
@@ -32,6 +34,11 @@ do
 					|| [ $OPTARG = "client" ] || [ $OPTARG = "clean" ] \
 					|| [ $OPTARG = "all" ]; then
 						TARGET="$OPTARG"
+						if [ $TARGET = "client" ] || [ $TARGET = "daemon" ] || [ $TARGET = "all" ]; then
+							PYTHON_PATH="$(find /usr/include -name pyconfig.h -printf "%h\n" | head -1)/"
+							echo Using python directory $PYTHON_PATH
+							ADDITIONAL_CFLAGS="-I$PYTHON_PATH"
+						fi
 					else
 						echo Unknown target, aborting
 						exit 127
@@ -39,12 +46,15 @@ do
 					;;
 			esac
 			;;
+		j)
+			JOBS=$OPTARG
+			;;
 		s)
 			echo Testing is not implemented yet
 			exit 127
 			;;
 		d)
-			ADDITIONAL_CFLAGS+=-g
+			ADDITIONAL_CFLAGS="-g $ADDITIONAL_CFLAGS"
 			echo Building debug version
 			;;
 		h) 
@@ -56,4 +66,5 @@ do
 	esac
 done
 
-make $TARGET CFLAGS=$ADDITIONAL_CFLAGS
+
+make -j$JOBS $TARGET CFLAGS="$ADDITIONAL_CFLAGS"

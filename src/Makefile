@@ -1,7 +1,8 @@
-CC = g++
-override CFLAGS += -c -std=c++11 -Wall -Wextra -Werror
-override LFLAGS += -lboost_system -lboost_thread -lpthread
-SERVERLFLAGS += -lcrypto
+CC=g++
+override CFLAGS+=-c -std=c++11 -Wall -Wextra -Werror
+override LFLAGS+=-lpthread -lboost_system -lboost_thread
+SERVERLFLAGS+=-lcrypto
+CLIENTLFLAGS+=-lboost_python
 
 all: daemon
 
@@ -15,13 +16,13 @@ cdaemon.o: daemon/server/cdaemon.cpp daemon/server/cdaemon.h
 	$(CC) $(CFLAGS) daemon/server/cdaemon.cpp -o cdaemon.o
 
 client: clientmain.o client.o ccommand.o
-	$(CC) -shared clientmain.o client.o ccommand.o -o libfrtpsrv.so $(LFLAGS)
+	$(CC) -shared clientmain.o client.o ccommand.o -o libfrtpsrv.so $(LFLAGS) $(CLIENTLFLAGS)
 clientmain.o: daemon/client/main.cpp
-	$(CC) $(CFLAGS) -fpic daemon/client/main.cpp -o clientmain.o
+	$(CC) $(CFLAGS) -fPIC daemon/client/main.cpp -o clientmain.o
 client.o: daemon/client/cclient.cpp daemon/client/cclient.h
-	$(CC) $(CFLAGS) -fpic daemon/client/cclient.cpp -o client.o
+	$(CC) $(CFLAGS) -fPIC daemon/client/cclient.cpp -o client.o
 ccommand.o: daemon/client/ccommand.cpp daemon/client/ccommand.h
-	$(CC) $(CFLAGS) -fpic daemon/client/ccommand.cpp -o ccommand.o
+	$(CC) $(CFLAGS) -fPIC daemon/client/ccommand.cpp -o ccommand.o
 
 clean:
 	rm *.o frtpdaemon libfrtpsrv.so
