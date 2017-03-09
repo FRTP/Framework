@@ -69,6 +69,10 @@ void CTCPConnection::handle_read_filename(boost::shared_ptr<CLog>& log, boost::s
 	}
 
 	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ *filename }));
+	if (!datatype_instance->success()) {
+		log->write("[EE]: Ivalid argument list for data type instance");
+		return;
+	}
 	std::vector<char> data_buf;
 	EError ret = datatype_instance->get_data(data_buf, log);
 	delete datatype_instance;

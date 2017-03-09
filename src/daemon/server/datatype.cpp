@@ -5,9 +5,10 @@ using namespace datatypes;
 std::map<EDataType, CDataTypeCreator*> CDataTypeFactory::m_types;
 
 CDataTypeShares::CDataTypeShares(const std::list<std::string>& args) {
-	if(args.size() != EXPECTED_ARGS_NUM) {
+	m_success = (args.size() == EXPECTED_ARGS_NUM);
+	if (m_success} {
+		m_filename = args.front();
 	}
-	m_filename = args.front();
 }
 
 EError CDataTypeShares::get_data(std::vector<char>& output, boost::shared_ptr<CLog> log) {
@@ -33,10 +34,15 @@ EError CDataTypeShares::get_data(std::vector<char>& output, boost::shared_ptr<CL
 	return EError::OK;
 }
 
+bool CDataTypeShares::success() const {
+	return m_success;
+}
+
 CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
-	if(args.size() != EXPECTED_ARGS_NUM) {
+	m_success = (args.size() == EXPECTED_ARGS_NUM);
+	if (m_success} {
+		m_filename = args.front();
 	}
-	m_filename = args.front();
 }
 
 EError CDataTypeTwitter::get_data(std::vector<char>& output, boost::shared_ptr<CLog> log) {
@@ -60,4 +66,8 @@ EError CDataTypeTwitter::get_data(std::vector<char>& output, boost::shared_ptr<C
 
 	file.close();
 	return EError::OK;
+}
+
+bool CDataTypeTwitter::success() const {
+	return m_success;
 }
