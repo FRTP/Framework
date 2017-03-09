@@ -8,17 +8,21 @@ void translate_error(const ExError&);
 void transtale_invalid_args_error(const ExInvalidArgs&);
 void transtale_connection_problem_error(const ExConnectionProblem&);
 void transtale_socket_problem_error(const ExSocketProblem&);
+void translate_unknown_data_type_error(const ExUnknownDataType&);
+void translate_no_file_error(const ExNoFile&);
 
 BOOST_PYTHON_MODULE(libfrtpsrv)
 {
-	class_<CClient>("LibClient", init<std::string, int>(args("server", "port")))
+	class_<CClient>("LibClient", init<std::string, int, std::string>(args("server", "port", "workingdir")))
 		.def("create_context", &CClient::create_context, return_value_policy<manage_new_object>())
 		.def("connect", &CClient::connect, args("context"))
 		.staticmethod("connect")
-		.def("invoke", &CClient::invoke, args("context", "command"))
+		.def("invoke", &CClient::invoke, args("context", "command", "datatype"))
 		.staticmethod("invoke")
 		.def("get_hash", &CClient::get_hash)
 		.staticmethod("get_hash")
+		.def("check_integrity", &CClient::check_integrity, args("context", "server", "client", "datatype"))
+		.staticmethod("check_integrity")
 	;
 	class_<CCommandFactory, boost::noncopyable>("LibCommandFactory", no_init)
 		.def("create_command", &CCommandFactory::create, args("cmd_id", "args"), return_value_policy<manage_new_object>())
@@ -31,6 +35,8 @@ BOOST_PYTHON_MODULE(libfrtpsrv)
 	register_exception_translator<ExInvalidArgs>(transtale_invalid_args_error);
 	register_exception_translator<ExConnectionProblem>(transtale_connection_problem_error);
 	register_exception_translator<ExSocketProblem>(transtale_socket_problem_error);
+	register_exception_translator<ExUnknownDataType>(translate_unknown_data_type_error);
+	register_exception_translator<ExNoFile>(translate_no_file_error);
 }
 
 void translate_error(const ExError& e) {
@@ -46,5 +52,13 @@ void transtale_connection_problem_error(const ExConnectionProblem& e) {
 }
 
 void transtale_socket_problem_error(const ExSocketProblem& e) {
+	PyErr_SetString(PyExc_RuntimeError, e.what());
+}
+
+void translate_unknown_data_type_error(const ExUnknownDataType& e) {
+	PyErr_SetString(PyExc_RuntimeError, e.what());
+}
+
+void translate_no_file_error(const ExNoFile& e) {
 	PyErr_SetString(PyExc_RuntimeError, e.what());
 }

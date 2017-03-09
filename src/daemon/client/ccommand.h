@@ -2,6 +2,7 @@
 #define CCOMMAND_H
 
 #include <boost/asio.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/python.hpp>
 #include <fstream>
 #include <map>
@@ -10,54 +11,49 @@
 
 #include "ccontext.hpp"
 #include "exception.hpp"
+#include "utility.hpp"
 
+namespace fs = boost::filesystem;
 using namespace boost::asio;
-
-enum ECommand {
-	GET_FILE,
-	GET_MD5
-};
+using namespace utility;
 
 class ICommand {
 	public:
 		virtual ECommand type() const = 0;
-		virtual void invoke(CContext* context, int& error) = 0;
+		virtual EError invoke(CContext* context, EDataType datatype) = 0;
 		virtual ~ICommand() {}
 };
 
 class CCmdGetFile : public ICommand {
 	private:
+		static constexpr EXPECTED_ARGS_NUM = 3;
 		std::string m_filename;
 		std::string m_newfilename;
 		streambuf m_buffer;
+		bool m_force_update;
 	public:
 		explicit CCmdGetFile(const std::list<std::string>& args);
 		virtual ECommand type() const;
-		virtual void invoke(CContext* context, int& error);
+		virtual EError invoke(CContext* context, EDataType datatype)
 		~CCmdGetFile() {}
 };
 
 class CCmdGetMD5 : public ICommand {
 	private:
+		static constexpr EXPECTED_ARGS_NUM = 1;
 		std::string m_filename;
 		const unsigned char* m_hash;
 		int m_hash_size;
 	public:
 		explicit CCmdGetMD5(const std::list<std::string>& args);
 		virtual ECommand type() const;
-		virtual void invoke(CContext* context, int& error);
+		virtual EError invoke(CContext* context, EDataType datatype)
 		const unsigned char* hash(int& size);
 		~CCmdGetMD5() {}
 };
 
-class IAbstractCommandCreator {
-	public:
-		virtual ICommand* create(const std::list<std::string>& args) const = 0;
-		virtual ~IAbstractCommandCreator() {}
-};
-
 template<class T>
-class CCommandCreator : public IAbstractCommandCreator {
+class CCommandCreator {
 	public:
 		virtual ICommand* create(const std::list<std::string>& args) const {
 			return new T(args);
@@ -67,18 +63,18 @@ class CCommandCreator : public IAbstractCommandCreator {
 
 class CCommandFactory {
 	private:
-		typedef std::map<std::string, IAbstractCommandCreator*>::iterator factory_iter;
-		static std::map<std::string, IAbstractCommandCreator*> m_factory;
+		typedef std::map<std::string, CCommandCreator*> factory_map;
+		factory_map m_factory;
 	public:
 		template<class T>
 		static void add(const std::string& id) {
-			factory_iter it = m_factory.find(id);
+			auto it = m_factory.find(id);
 			if (it == m_factory.end()) {
 				m_factory[id] = new CCommandCreator<T>();
 			}
 		}
 		static ICommand* create(const std::string& id, boost::python::list args) {
-			factory_iter it = m_factory.find(id);
+			auto it = m_factory.find(id);
 			if (it != m_factory.end()) {
 				std::list<std::string> arguments;
 				for (int i = 0; i < len(args); ++i) {
@@ -89,7 +85,7 @@ class CCommandFactory {
 			return 0;
 		}
 		~CCommandFactory() {
-			for (factory_iter it = m_factory.begin(); it != m_factory.end(); ++it) {
+			for (auto it = m_factory.begin(); it != m_factory.end(); ++it) {
 				if (it->second) {
 					delete it->second;
 				}
