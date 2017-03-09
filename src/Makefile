@@ -9,11 +9,13 @@ all: daemon
 daemon: server client
 
 server: servermain.o cdaemon.o
-	$(CC) servermain.o cdaemon.o -o frtpdaemon $(LFLAGS) $(SERVERLFLAGS)
+	$(CC) servermain.o cdaemon.o datatype.o -o frtpdaemon $(LFLAGS) $(SERVERLFLAGS)
 servermain.o: daemon/server/main.cpp
 	$(CC) $(CFLAGS) daemon/server/main.cpp -o servermain.o
 cdaemon.o: daemon/server/cdaemon.cpp daemon/server/cdaemon.h
 	$(CC) $(CFLAGS) daemon/server/cdaemon.cpp -o cdaemon.o
+datatype.o: daemon/server/datatype.cpp daemon/server/datatype.h
+	$(CC) $(CFLAGS) daemon/server/datatype.cpp -o datatype.o
 
 client: clientmain.o client.o ccommand.o
 	$(CC) -shared clientmain.o client.o ccommand.o -o libfrtpsrv.so $(LFLAGS) $(CLIENTLFLAGS)
