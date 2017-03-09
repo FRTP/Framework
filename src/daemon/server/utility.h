@@ -7,9 +7,9 @@ namespace utility {
 		GET_MD5
 	};
 	enum EError {
+		OK,
 		READ_ERROR,
-		OPEN_ERROR,
-		OK
+		OPEN_ERROR
 	};
 };
 

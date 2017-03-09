@@ -2,6 +2,8 @@
 
 using namespace datatypes;
 
+std::map<EDataType, CDataTypeCreator*> CDataTypeFactory::m_types;
+
 CDataTypeShares::CDataTypeShares(const std::list<std::string>& args) {
 	if(args.size() != EXPECTED_ARGS_NUM) {
 	}
