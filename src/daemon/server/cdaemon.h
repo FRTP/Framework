@@ -14,6 +14,7 @@
 #include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <memory>
+#include <openssl/md5.h>
 #include <string>
 
 #include "clog.hpp"
@@ -31,7 +32,7 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 		void handle_read_command(boost::shared_ptr<CLog> log, boost::shared_ptr<std::array<int, 2>> command, 
 				const boost::system::error_code& ec);
 		void handle_read_filename(boost::shared_ptr<CLog>& log, boost::shared_ptr<std::string> filename, 
-				const boost::system::error_code& ec);
+				int command, const boost::system::error_code& ec);
 		void handle_write_response(boost::shared_ptr<CLog>& log, const boost::system::error_code& ec);
 		static conn_ptr create(boost::asio::io_service& io_service);
 		ip::tcp::socket& socket();
@@ -41,7 +42,10 @@ class CServer {
 	public:
 		enum ECommand {
 			GET_FILE,
-			GET_FILE_LIST
+			GET_MD5
+		};
+		enum EError {
+			NO_FILE
 		};
 	private:
 		static const int PORT = 34567;
@@ -53,7 +57,7 @@ class CServer {
 		void _start_accept();
 		void _handle_accept(CTCPConnection::conn_ptr connection, const boost::system::error_code& ec);
 	public:
-		CServer(boost::asio::io_service& io_service, const boost::shared_ptr<CLog>& log);
+		CServer(io_service& io_service, const boost::shared_ptr<CLog>& log);
 };
 
 class CDaemon {
