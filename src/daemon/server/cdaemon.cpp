@@ -3,6 +3,10 @@
 CServer::CServer(boost::asio::io_service& io_service, const boost::shared_ptr<CLog>& log)
 	: m_acceptor(io_service, ip::tcp::endpoint(ip::tcp::v4(), PORT)) {
 	m_log = log;
+
+	CDataTypeFactory::register_type<CDataTypeShares>(EDataType::SHARES);
+	CDataTypeFactory::register_type<CDataTypeTwitter>(EDataType::TWITTER);
+
 	_start_accept();	
 }
 
@@ -14,39 +18,42 @@ void CServer::_start_accept() {
 
 void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::system::error_code& ec) {
 	if (!ec) {
-		boost::shared_ptr<std::array<int, 2>> command(new std::array<int, 2>);
+		boost::shared_ptr<std::array<int, 3>> command(new boost::array<int, 3>);
 		boost::asio::async_read(connection->socket(), boost::asio::buffer(*command), 
-				boost::bind(&CTCPConnection::handle_read_command, connection, m_log, command, 
-				boost::asio::placeholders::error));
+					boost::bind(&CTCPConnection::handle_read_command, connection, m_log, command,
+					boost::asio::placeholders::error));
 		_start_accept();
 	}
 }
 
-void CTCPConnection::handle_read_command(boost::shared_ptr<CLog> log, boost::shared_ptr<std::array<int, 2>> command, 
-		const boost::system::error_code& ec) {
+void CTCPConnection::handle_read_command(boost::shared_ptr<CLog> log, boost::shared_ptr<std::array<int, 3>> command,
+					 const boost::system::error_code& ec) {
+	log->write("[II]: New client accepted; reading command...");
+	ECommand srv_cmd = static_cast<ECommand>((*command)[0]);
+	int filename_size = (*command)[1];
+	int datatype = (*command)[2];
+
 	if (!ec) {
-		log->write("[II]: New client accepted; reading command...");
-		if (static_cast<CServer::ECommand>((*command)[0]) == CServer::ECommand::GET_FILE) {
-			if ((*command)[1] < 0) {
+		if (srv_cmd == ECommand::GET_FILE ||
+		    srv_cmd == ECommand::GET_MD5) {
+			std::string s_cmd = (srv_cmd == ECommand::GET_FILE) ? "GET_FILE" : "GET_MD5";
+			log->write("[II]: Trying to process " + s_cmd + " command");
+
+			if (filename_size < 0) {
 				log->write("[EE] handle_read_command: Invalid buffer size");
 				return;
 			}
-			boost::shared_ptr<std::string> filename(new std::string);
-			filename->resize((*command)[1]);
-			boost::asio::async_read(m_socket, boost::asio::buffer(&(*filename)[0], filename->size()), 
-				boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(), log, filename,
-				static_cast<int>(CServer::ECommand::GET_FILE), boost::asio::placeholders::error));
-		}
-		else if (static_cast<CServer::ECommand>((*command)[0]) == CServer::ECommand::GET_MD5) {
-			if ((*command)[1] < 0) {
-				log->write("[EE] handle_read_command: Invalid buffer size");
+			if (datatype < 0 || datatype > static_cast<int>(EDataType::MAX_VAL)) {
+				log->write("[EE] handle_read_command: Invalid data type");
 				return;
 			}
+
+			EDataType e_datatype = static_cast<EDataType>(datatype);
 			boost::shared_ptr<std::string> filename(new std::string);
-			filename->resize((*command)[1]);
-			boost::asio::async_read(m_socket, boost::asio::buffer(&(*filename)[0], filename->size()),
-				boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(), log, filename,
-				static_cast<int>(CServer::ECommand::GET_MD5), boost::asio::placeholders::error));
+			filename->resize(filename_size);
+			boost::asio::async_read(m_socket, boost::asio::buffer(&(*filename)[0], filename_size),
+						boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(),
+						log, filename, srv_cmd, e_datatype, boost::asio::placeholders::error));
 		}
 	}
 	else {
@@ -55,48 +62,39 @@ void CTCPConnection::handle_read_command(boost::shared_ptr<CLog> log, boost::sha
 }
 
 void CTCPConnection::handle_read_filename(boost::shared_ptr<CLog>& log, boost::shared_ptr<std::string> filename, 
-		int command, const boost::system::error_code& ec) {
+					  ECommand command, EDataType datatype, const boost::system::error_code& ec) {
 	if (ec) {
 		log->write("[EE]: " + ec.message());
 		return;
 	}
 
-	std::string s_filename("/var/frtp/data/" + *filename);
-	std::ifstream file(s_filename, std::ios::binary);
-	if (!file) {
-		log->write("[EE]: Unable to open file " + s_filename + ": " + strerror(errno));
-		int error_buf[1] = { CServer::EError::NO_FILE };
-		boost::asio::async_write(m_socket, boost::asio::buffer(error_buf), 
-				boost::bind(&CTCPConnection::handle_write_response, shared_from_this(), log,
-				boost::asio::placeholders::error));
+	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ *filename }));
+	std::vector<char> data_buf;
+	EError ret = datatype_instance->get_data(data_buf, log);
+	delete datatype_instance;
+
+	if (ret != EError::OK) {
+		int error_buf[1] = { static_cast<int>(ret) };
+		boost::asio::async_write(m_socket, boost::asio::buffer(error_buf),
+					 boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
+					 log, boost::asio::placeholders::error));
 		return;
 	}
 
-	file.seekg(0, file.end);
-	int size = file.tellg();
-	file.seekg(0, file.beg);
-	std::vector<char> buffer(size);
-
-	if (!file.read(buffer.data(), size)) {
-		log->write("[EE]: Unable to read file " + s_filename);
-		file.close();
-		return;
+	switch (command) {
+		case ECommand::GET_FILE:
+			boost::asio::async_write(m_socket, boost::asio::buffer(data_buf),
+						 boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
+						 log, boost::asio::placeholders::error));
+			break;
+		case ECommand::GET_MD5:
+			unsigned char md5sum[MD5_DIGEST_LENGTH];
+			MD5((unsigned char*)data_buf.data(), size, md5sum);
+			boost::asio::async_write(m_socket, boost::asio::buffer(md5sum),
+						 boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
+						 log, boost::asio::placeholders::error));
+			break;
 	}
-
-	if (static_cast<CServer::ECommand>(command) == CServer::ECommand::GET_FILE) {
-		boost::asio::async_write(m_socket, boost::asio::buffer(buffer), 
-				boost::bind(&CTCPConnection::handle_write_response, shared_from_this(), log,
-				boost::asio::placeholders::error));
-	}
-	else if (static_cast<CServer::ECommand>(command) == CServer::ECommand::GET_MD5) {
-		unsigned char md5sum[MD5_DIGEST_LENGTH];
-		MD5((unsigned char*)buffer.data(), size, md5sum);
-		boost::asio::async_write(m_socket, boost::asio::buffer(buffer),
-				boost::bind(&CTCPConnection::handle_write_response, shared_from_this(), log,
-				boost::asio::placeholders::error));
-	}
-
-	file.close();
 }
 
 void CTCPConnection::handle_write_response(boost::shared_ptr<CLog>& log, const boost::system::error_code& ec) {
@@ -118,13 +116,6 @@ ip::tcp::socket& CTCPConnection::socket() {
 
 CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
 	m_log = boost::shared_ptr<CLog>(new CLog(parser.logname()));
-
-	/*
-	std::string config_name = parser.configname();
-	if (!_load_config(config_name)) {
-		m_log->write("[EE]: Config file " + config_name + " not found.");
-	}
-	*/
 }
 
 int CDaemon::start() {
