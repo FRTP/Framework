@@ -1,56 +1,79 @@
 import os.path
 import datetime
+from enum import Enum
 import hashlib
 from libfrtpsrv import *
-
-
-class ExNoFile(Exception):
-    def __init__(self):
-        Exception.__init__(self)
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 
 class ExInvalidMD5(Exception):
     def __init__(self):
         Exception.__init__(self)
 
+DATA_TYPES = {'SHARES':0, 'TWITTER':1}
+
+class IConverter(object):
+    __metaclass__ = ABCMeta
+    @abstractmethod
+    def get_filenames(self):
+        pass
+
+
+class CConvertFromDate(IConverter):
+    def __init__(self, date_from, date_to, data_type, subdirs):
+        self.filelist = []
+        if data_type == 'SHARES':
+            counter = date_from
+            delta = datetime.timedelta(days=1)
+            while counter <= date_to:
+                self.filelist.append(subdirs + "/" +
+                                     counter.strftime("%Y%m%d") + ".csv")
+                counter += delta
+
+    def get_filenames(self):
+        return self.filelist
+
+
+class CNoConversion(IConverter):
+    def __init__(self, filename):
+        self.filelist = [filename]
+
+    def get_filenames(self):
+        return self.filelist
+
 
 class CClient(object):
-    def __init__(self, srv_address, srv_port, working_dir, lib_path):
-        self.client = LibClient(server=srv_address, port=srv_port)
+    def __init__(self, srv_address, srv_port, working_dir):
+        self.client = LibClient(server=srv_address, port=srv_port,
+                                workingdir=working_dir)
         self.context = self.client.create_context()
         LibClient.connect(context=self.context)
-        self.working_dir = working_dir
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
 
-    def get_file(self, filename, newfilename, force=False):
-        if not os.path.exists(newfilename) and not force:
-            cmd = LibCommandFactory.create_command(cmd_id="GetFile",
-                                                   args=[filename, newfilename])
-            LibClient.invoke(context=self.context, command=cmd)
+    def get_file(self, filename, newfilename, data_type, force=False):
+        cmd = LibCommandFactory.create_command(cmd_id="GetFile",
+                                               args=[filename, newfilename,
+                                               str(force)])
+        return LibClient.invoke(context=self.context, command=cmd,
+                                datatype=DATA_TYPES[data_type])
 
-    def get_md5(self, filepath):
+    def get_md5(self, srv_filename, data_type):
         cmd = LibCommandFactory.create_command(cmd_id="GetMD5",
-                                               args=[filepath])
-        LibClient.invoke(context=self.context, command=cmd)
+                                               args=[srv_filename])
+        LibClient.invoke(context=self.context, command=cmd,
+                         datatype=DATA_TYPES[data_type])
         return CClient.get_hash(cmd)
 
-    def check_integrity(self, filepath):
-        if not os.path.exists(filepath):
-            raise ExNoFile()
-        cur_md5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
-        server_md5 = get_md5(filepath)
-        return cur_md5 == server_md5
+    def check_integrity(self, srv_filename, cli_filename, data_type):
+        return LibClient.check_integrity(context=self.context,
+                                         server=srv_filename,
+                                         client=cli_filename,
+                                         datatype=DATA_TYPES[data_type])
 
-    def get_info(self, name, date_from, date_to, check=True, force=False):
-        if not os.path.exists(self.working_dir + name):
-            os.makedirs(self.working_dir + name)
-        counter = date_from
-        delta = datetime.timedelta(days=1)
-        while counter <= date_to:
-            filename = name + "/" + counter.strftime("%Y%m%d") + ".csv"
-            ret = self.get_file(filename, self.working_dir + filename, force)
+    def get_info(self, converter, check=True, force=False):
+        for filename in converter.get_filenames():
+            ret = self.get_file(filename, filename, force)
             if ret == 0 and check:
-                if not self.check_integrity(self.working_dir + filename):
+                if not self.check_integrity(filename):
                     raise ExInvalidMD5()
-            counter += delta
