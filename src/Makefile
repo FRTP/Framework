@@ -1,7 +1,7 @@
 CC=g++
 override CFLAGS+=-c -std=c++11 -Wall -Wextra -Werror
-override LFLAGS+=-lpthread -lboost_system -lboost_thread
-SERVERLFLAGS+=-lcrypto
+override LFLAGS+=-lpthread -lboost_system -lboost_thread -lcrypto
+SERVERLFLAGS+=
 CLIENTLFLAGS+=-lboost_python
 
 all: daemon
