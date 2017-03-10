@@ -4,15 +4,21 @@
 #include <string>
 
 namespace utility {
+	typedef boost::array<unsigned char, MD5_DIGEST_LENGTH> md5sum
+	typedef boost::shared_ptr<md5sum> md5sum_ptr;
+
 	enum ECommand {
 		GET_FILE,
-		GET_MD5
+		GET_MD5,
+		UPLOAD_FILE
 	};
 
 	enum EError {
 		OK,
 		READ_ERROR,
 		OPEN_ERROR,
+		WRITE_ERROR,
+		SOCKET_ERROR
 		UNKNOWN_ERROR,
 		MAX_VAL = UNKNOWN_ERROR
 	};
@@ -26,14 +32,20 @@ namespace utility {
 	std::string get_text_error(EError error) {
 		std::string res = "";
 		switch (error) {
+			case EError::OK:
+				res = "No errors";
+				break;
 			case EError::READ_ERROR:
 				res = "Unable to read file";
 				break;
 			case EError::OPEN_ERROR:
 				res = "Unable to open file";
 				break;
-			case EError::OK:
-				res = "No errors";
+			case EError::WRITE_ERROR:
+				res = "Unable to write file";
+				break;
+			case EError::SOCKET_ERROR:
+				res = "Socket error";
 				break;
 			case EError::UNKNOWN_ERROR:
 				res = "Unknown error";
@@ -51,10 +63,10 @@ namespace utility {
 		}
 	}
 
-	unsigned char* calculate_md5(const std::string& full_path, int size) {
-		unsigned char* md5sum = new unsigned char(MD5_DIGEST_LENGTH);
+	md5sum_ptr calculate_md5(const std::string& full_path) {
+		md5sum_ptr md5(new md5sum);
 		//TODO: read file here
-		MD5((unsigned char*)data_buf.data(), size, md5sum);
+		MD5((unsigned char*)data_buf.data(), size, md5);
 		return md5sum;
 	}
 

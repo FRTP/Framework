@@ -6,16 +6,12 @@
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include "../utility.hpp"
+
 using namespace boost::asio;
+using namespace utility;
 
 class CContext {
-	public:
-		enum EError {
-			OK,
-			WRITE_ERROR,
-			READ_ERROR, 
-			SOCKET_ERROR
-		};
 	private:
 		std::string m_server;
 		int m_port;
@@ -30,9 +26,9 @@ class CContext {
 			return m_socket.is_open();
 		}
 		template<class T>
-		EError socket_write(T msg, int buf_size) {
+		EError socket_write(T msg) {
 			boost::system::error_code error;
-			write(m_socket, buffer(msg, buf_size), error);
+			write(m_socket, buffer(msg), error);
 			if (error) {
 				return EError::WRITE_ERROR;
 			}
