@@ -45,7 +45,7 @@ class CNoConversion(IConverter):
 class CClient(object):
     def __init__(self, srv_address, srv_port, working_dir):
         self.client = lib.LibClient(server=srv_address, port=srv_port,
-                                    workingdir= working_dir)
+                                    workingdir=working_dir)
         self.context = self.client.create_context()
         lib.LibClient.connect(context=self.context)
         if not os.path.exists(working_dir):
@@ -57,7 +57,7 @@ class CClient(object):
                                                    args=l_arg)
         return lib.LibClient.invoke(context=self.context, command=cmd,
                                     datatype=DATA_TYPES[data_type])
-    
+
     def upload_file(self, filename, data_type):
         cmd = lib.LibCommandFactory.create_command(cmd_id="UploadFile",
                                                    args=[filename])
