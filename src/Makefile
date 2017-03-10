@@ -1,7 +1,7 @@
 CC=g++
 override CFLAGS+=-c -std=c++11 -Wall -Wextra -Werror
 override LFLAGS+=-lpthread -lboost_system -lboost_thread -lcrypto
-SERVERLFLAGS+=
+PRESERVERLFLAGS+=-lboost_log
 CLIENTLFLAGS+=-lboost_python
 
 all: daemon
@@ -9,13 +9,13 @@ all: daemon
 daemon: server client
 
 server: servermain.o cdaemon.o datatype.o
-	$(CC) servermain.o cdaemon.o datatype.o -o frtpdaemon $(LFLAGS) $(SERVERLFLAGS)
+	$(CC) servermain.o cdaemon.o datatype.o -o frtpdaemon $(PRESERVERLFLAGS) $(LFLAGS)
 servermain.o: daemon/server/main.cpp
 	$(CC) $(CFLAGS) daemon/server/main.cpp -o servermain.o
 cdaemon.o: daemon/server/cdaemon.cpp daemon/server/cdaemon.h
-	$(CC) $(CFLAGS) daemon/server/cdaemon.cpp -o cdaemon.o
+	$(CC) $(CFLAGS) -DBOOST_LOG_DYN_LINK daemon/server/cdaemon.cpp -o cdaemon.o
 datatype.o: daemon/datatype.cpp daemon/datatype.h
-	$(CC) $(CFLAGS) daemon/datatype.cpp -o datatype.o
+	$(CC) $(CFLAGS) -DBOOST_LOG_DYN_LINK daemon/datatype.cpp -o datatype.o
 
 client: clientmain.o client.o ccommand.o datatype.o
 	$(CC) -shared clientmain.o client.o ccommand.o datatype.o -o libfrtpsrv.so $(LFLAGS) $(CLIENTLFLAGS)

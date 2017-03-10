@@ -22,7 +22,7 @@ namespace datatypes {
 
 	class IDataType {
 		public:
-			virtual EError get_data(std::vector<char>& output, boost::shared_prt<CLog> log) const = 0;
+			virtual EError get_data(std::vector<char>& output) const = 0;
 			virtual EError write_data(const std::vector<char>& input) const = 0;
 			virtual bool success() const = 0;
 			virtual ~IDataType() {}
@@ -36,7 +36,7 @@ namespace datatypes {
 			bool m_success;
 		public:
 			CDataTypeShares();
-			virtual EError get_data(std::vector<char>& output, boost::shared_ptr<CLog> log) const;
+			virtual EError get_data(std::vector<char>& output) const;
 			virtual EError write_data(const std::vector<char>& input) const;
 			virtual bool success() const;
 			virtual ~CDataTypeShares() {}
@@ -50,7 +50,7 @@ namespace datatypes {
 			bool m_success;
 		public:
 			CDataTypeTwitter(const std::list<std::string>& args);
-			virtual EError get_data(std::vector<char>& output, boost::shared_ptr<CLog> log) const;
+			virtual EError get_data(std::vector<char>& output) const;
 			virtual EError write_data(const std::vector<char>& input) const;
 			virtual bool success() const;
 			virtual ~CDataTypeTwitter() {}
