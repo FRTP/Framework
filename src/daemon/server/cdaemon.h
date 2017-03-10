@@ -13,14 +13,15 @@
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <openssl/md5.h>
 #include <string>
 
-#include "datatype.h"
+#include "../datatype.h"
 #include "clog.hpp"
 #include "cparser.hpp"
-#include "utility.h"
+#include "../utility.hpp"
 
 namespace fs = boost::filesystem;
 using namespace boost::asio;
@@ -30,13 +31,16 @@ using namespace utility;
 class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 	private:
 		ip::tcp::socket m_socket;
+		streambuf m_readbuf;
+		streambuf m_writebuf;
 		explicit CTCPConnection(boost::asio::io_service& io_service) : m_socket(io_service) {}
 	public:
 		typedef boost::shared_ptr<CTCPConnection> conn_ptr;
-		void handle_read_command(boost::shared_ptr<CLog> log, boost::shared_ptr<std::array<int, 3>> command,
-					 const boost::system::error_code& ec);
-		void handle_read_filename(boost::shared_ptr<CLog>& log, boost::shared_ptr<std::string> filename, 
-					  ECommand, Datatypes::EDataType datatype, const boost::system::error_code& ec);
+		void handle_read_command(boost::shared_ptr<CLog> log, const boost::system::error_code& ec);
+		void handle_read_filename(boost::shared_ptr<CLog>& log, ECommand command, EDataType datatype,
+					  const boost::system::error_code& ec);
+		void handle_transfer_file(const std::string& filename, IDataType* datatype_instance,
+					  const boost::sytem::error_code& ec);
 		void handle_write_response(boost::shared_ptr<CLog>& log, const boost::system::error_code& ec);
 		static conn_ptr create(boost::asio::io_service& io_service);
 		ip::tcp::socket& socket();

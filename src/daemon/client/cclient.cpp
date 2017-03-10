@@ -7,6 +7,7 @@ CClient::CClient(const std::string& server, int port, const std::string& working
 
 	CCommandFactory::add<CCmdGetFile>("GetFile");
 	CCommandFactory::add<CCmdGetMD5>("GetMD5");
+	CCommandFactory::add<CCmdUploadFile>("UploadFile");
 
 	CSettings::set_working_dir(working_dir);
 }

@@ -8,10 +8,12 @@
 #include <map>
 #include <list>
 #include <string>
+#include <vector>
 
 #include "ccontext.hpp"
+#include "../datatype.h"
 #include "exception.hpp"
-#include "utility.hpp"
+#include "../utility.hpp"
 
 namespace fs = boost::filesystem;
 using namespace boost::asio;
@@ -47,9 +49,20 @@ class CCmdGetMD5 : public ICommand {
 	public:
 		explicit CCmdGetMD5(const std::list<std::string>& args);
 		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype)
+		virtual EError invoke(CContext* context, EDataType datatype);
 		const unsigned char* hash(int& size);
 		~CCmdGetMD5() {}
+};
+
+class CCmdUploadFile : public ICommand {
+	private:
+		static constexpr EXPECTED_ARGS_NUM = 1;
+		std::string m_filename;
+	public:
+		explicit CCmdUploadFile(const std::list<std::string>& args);
+		virtual ECommand type() const;
+		virtual EError invoke(CContext* context, EDataType datatype);
+		~CCmdUploadFile() {}
 };
 
 template<class T>
