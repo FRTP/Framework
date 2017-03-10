@@ -57,6 +57,12 @@ class CClient(object):
                                                str(force)])
         return LibClient.invoke(context=self.context, command=cmd,
                                 datatype=DATA_TYPES[data_type])
+    
+    def upload_file(self, filename, data_type):
+        cmd = LibCommandFactory.create_command(cmd_id="UploadFile",
+                                               args=[filename])
+        return LibClient.invoke(connect=self.context, command=cmd,
+                                datatype=DATA_TYPES[data_type])
 
     def get_md5(self, srv_filename, data_type):
         cmd = LibCommandFactory.create_command(cmd_id="GetMD5",
