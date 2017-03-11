@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
+#include <iostream>
 
 #include "../utility.hpp"
 
@@ -16,6 +17,7 @@ class CContext {
 		std::string m_server;
 		int m_port;
 		ip::tcp::socket m_socket;
+		streambuf m_writebuf;
 	public:
 		CContext(const std::string& server, int port, boost::shared_ptr<io_service> io_service)
 			: m_server(server), m_port(port), m_socket(*(io_service.get())) {}
@@ -28,7 +30,10 @@ class CContext {
 		template<class T>
 		EError socket_write(T msg) {
 			boost::system::error_code error;
-			write(m_socket, buffer(msg), error);
+			std::ofstream out(&m_writebuf);
+			out << msg << std::endl;
+			write(m_socket, m_writebuf, error);
+			m_writebuf.consume(m_writebuf.size());
 			if (error) {
 				return EError::WRITE_ERROR;
 			}
@@ -36,7 +41,7 @@ class CContext {
 		}
 		EError socket_read(streambuf& buffer) {
 			boost::system::error_code error;
-			read(m_socket, buffer, transfer_all(), error);
+			read_until(m_socket, buffer, '\n', error);
 			if (error && error != error::eof) {
 				return EError::READ_ERROR;
 			}
