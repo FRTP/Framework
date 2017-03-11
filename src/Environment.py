@@ -148,12 +148,12 @@ class Environment:
             raise Exception("given_names mustn't be empty")
 
         for i in range(len(given_names)):
-            current_stock_index = self.names.tolist().index(given_names[i])
-            current_coef = self.balancing_coefficients[current_stock_index]
-            new_stocks_count[current_stock_index] += \
+            current_stock_idx = self.names.tolist().index(given_names[i])
+            current_coef = self.balancing_coefficients[current_stock_idx]
+            new_stocks_count[current_stock_idx] += \
                 given_count[i] * current_coef
             self.current_balance -= \
-                self.prices[current_stock_index] * given_count[i] * current_coef
+                self.prices[current_stock_idx] * given_count[i] * current_coef
 
         new_portfolio = StockPortfolio(new_stocks_count, purchase_date)
         self.portfolio_sequence.append(new_portfolio)

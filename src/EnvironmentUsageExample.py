@@ -25,7 +25,8 @@ print()
 
 # Create environment with some initials
 our_environment = Environment(historical_data, initial_stocks_count,
-                              current_stocks_prices, "1994-11-05T14:12:30", initial_balance)
+                              current_stocks_prices, "1994-11-05T14:12:30",
+                              initial_balance)
 
 
 # Print all stocks we currently have according to the environment
@@ -42,14 +43,15 @@ def print_stocks_we_have(env):
 print_stocks_we_have(our_environment)
 
 # Buy some stocks.
-our_environment.buy(["Sberbank", "Gazprom"], np.array([18, 10]), "1994-11-05T13:15:30")
+our_environment.buy(["Sberbank", "Gazprom"], np.array([18, 10]),
+                    "1994-11-05T13:15:30")
 
 # Print all stocks
 print_stocks_we_have(our_environment)
 
 # Sell some stocks.
-our_environment.sell(["Gazprom", "Rostelecom"], np.array([7, 6]), "1994-11-05T14:15:30")
+our_environment.sell(["Gazprom", "Rostelecom"], np.array([7, 6]),
+                     "1994-11-05T14:15:30")
 
 # Print all stocks
 print_stocks_we_have(our_environment)
-
