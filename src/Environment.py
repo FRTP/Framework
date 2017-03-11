@@ -5,7 +5,6 @@ import numpy as np
 
 
 class StockPortfolio:
-
     # @throws ValueError
     #   If current_date has wrong format (not StockPortfolio.TIME_FORMAT)
     #
@@ -14,17 +13,7 @@ class StockPortfolio:
     #
     def __init__(self, stock_count, current_date):
         self.count = stock_count
-
-        if type(current_date) == str:
-            try:
-                self.date = datetime.strptime(current_date,
-                                              StockPortfolio.TIME_FORMAT)
-            except ValueError:
-                raise ValueError(StockPortfolio.ERR_MSG_WRONG_TIME_FORMAT)
-        elif type(current_date) == datetime:
-            self.date = current_date
-        else:
-            raise TypeError(StockPortfolio.ERR_MSG_WRONG_TIME_TYPE)
+        self.date = StockPortfolio.to_datetime(current_date)
 
     # @brief
     # @param all_stocks_names <np array of 'str'>
@@ -37,6 +26,21 @@ class StockPortfolio:
     ERR_MSG_WRONG_TIME_FORMAT = "Wrong input format. Needed following:" + \
                                 TIME_FORMAT
     ERR_MSG_WRONG_TIME_TYPE = "Wrong input. Needed 'str' or 'datetime'"
+
+    @staticmethod
+    def to_datetime(given_date):
+        if type(given_date) == str:
+            try:
+                given_date = datetime.strptime(given_date,
+                                               StockPortfolio.TIME_FORMAT)
+            except ValueError:
+                raise ValueError(StockPortfolio.ERR_MSG_WRONG_TIME_FORMAT)
+
+        elif type(given_date) != datetime:
+            raise TypeError(StockPortfolio.ERR_MSG_WRONG_TIME_TYPE)
+
+        return given_date
+
 
 # Environment.
 # @brief
@@ -231,22 +235,45 @@ class Environment:
     #
     @staticmethod
     def get_price_by_date(hist_data, needed_stock, needed_date):
-        if type(needed_date) == str:
-            try:
-                needed_date = datetime.strptime(needed_date,
-                                                StockPortfolio.TIME_FORMAT)
-            except ValueError:
-                raise ValueError(StockPortfolio.ERR_MSG_WRONG_TIME_FORMAT)
-        elif type(needed_date) != datetime:
-            raise TypeError(StockPortfolio.ERR_MSG_WRONG_TIME_TYPE)
+        needed_date = StockPortfolio.to_datetime(needed_date)
+        idx = Environment.__find__row__by__date__(hist_data, needed_date)
+
+        if idx is not None:
+            return hist_data[needed_stock][idx]
+        else:
+            return None
+
+    @staticmethod
+    def __find__row__by__date__(hist_data, given_date):
+        if type(given_date) != datetime:
+            raise TypeError("given_date must be <datetime> type.")
 
         for i in range(len(hist_data)):
-            cur_date = datetime.strptime(hist_data[:, 0],
+            cur_date = datetime.strptime(hist_data[:, 0][i],
                                          StockPortfolio.TIME_FORMAT)
-            if cur_date == needed_date:
-                return hist_data[needed_stock][i]
-            else:
-                return None
+            if cur_date == given_date:
+                return i
+        return None
+
+    @staticmethod
+    def get_train_period(hist_data, start_date=None, length=0, ratio=0.):
+        if length == 0 and ratio == 0:
+            return None
+
+        if start_date is None:
+            first_idx = 0
+        else:
+            start_date = StockPortfolio.to_datetime(start_date)
+            first_idx = Environment.__find__row__by__date__(hist_data,
+                                                            start_date)
+            if first_idx is None:
+                raise ValueError("No such start_date in hist_data.")
+
+        if length == 0:
+            length = len(hist_data) * ratio
+        last_idx = min(len(hist_data), first_idx + length)
+
+        return hist_data[first_idx:last_idx]
 
     def get_stocks_names(self):
         return self.names
