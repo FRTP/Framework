@@ -249,8 +249,7 @@ class Environment:
             raise TypeError("given_date must be <datetime> type.")
 
         for i in range(len(hist_data)):
-            cur_date = datetime.strptime(hist_data[:, 0][i],
-                                         StockPortfolio.TIME_FORMAT)
+            cur_date = StockPortfolio.to_datetime(hist_data[:, 0][i])
             if cur_date == given_date:
                 return i
         return None
