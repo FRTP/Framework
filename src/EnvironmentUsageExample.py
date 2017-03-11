@@ -10,12 +10,10 @@ historical_data = pd.read_csv('historical_data_example.csv')
 
 
 # Generate some initials for environment.
-stocks_names = historical_data.columns
+stocks_names = historical_data.columns[1:]
 initial_stocks_count = np.arange(len(stocks_names))
 current_stocks_prices = np.linspace(30, 90, len(stocks_names))
 initial_balance = 100500
-
-history_size = 3
 
 
 print("Initial balance :", initial_balance)
@@ -27,7 +25,7 @@ print()
 
 # Create environment with some initials
 our_environment = Environment(historical_data, initial_stocks_count,
-                              current_stocks_prices, initial_balance)
+                              current_stocks_prices, "1994-11-05T14:12:30", initial_balance)
 
 
 # Print all stocks we currently have according to the environment
@@ -44,13 +42,14 @@ def print_stocks_we_have(env):
 print_stocks_we_have(our_environment)
 
 # Buy some stocks.
-our_environment.buy(["Sberbank", "Gazprom"], np.array([18, 10]))
+our_environment.buy(["Sberbank", "Gazprom"], np.array([18, 10]), "1994-11-05T13:15:30")
 
 # Print all stocks
 print_stocks_we_have(our_environment)
 
 # Sell some stocks.
-our_environment.sell(["Gazprom", "Rostelecom"], np.array([7, 6]))
+our_environment.sell(["Gazprom", "Rostelecom"], np.array([7, 6]), "1994-11-05T14:15:30")
 
 # Print all stocks
 print_stocks_we_have(our_environment)
+
