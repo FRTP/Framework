@@ -7,6 +7,7 @@
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/streambuf.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
