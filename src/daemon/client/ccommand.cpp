@@ -26,7 +26,7 @@ EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
 		msg[1] = static_cast<int>(m_filename.size());
 		msg[2] = static_cast<int>(datatype);
 
-		context->socket_write<int*>(msg);
+		context->socket_write<boost::array<int, 3>>(msg);
 		context->socket_write<std::string>(m_filename);
 
 		streambuf receive_buffer;
@@ -72,7 +72,7 @@ EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
 	msg[1] = static_cast<int>(m_filename.size());
 	msg[2] = static_cast<int>(datatype);
 
-	context->socket_write<int*>(msg);
+	context->socket_write<boost::array<int, 3>>(*msg);
 	context->socket_write<std::string>(m_filename);
 
 	streambuf receive_buffer;
@@ -91,8 +91,7 @@ EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
 	return EError::OK;
 }
 
-const unsigned char* CCmdGetMD5::hash(int& size) {
-	size = m_hash_size;
+md5sum_ptr CCmdGetMD5::hash() const {
 	return m_hash;
 
 }
@@ -113,6 +112,9 @@ EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
 	msg[0] = static_cast<int>(ECommand::UPLOAD_FILE);
 	msg[1] = static_cast<int>(m_filename.size());
 	msg[2] = static_cast<int>(datatype);
+
+	context->socket_write<boost::array<int, 3>>(*msg);
+	context->socket_write<std::string>(m_filename);
 
 	std::vector<char> data_buf;
 	EError ret = datatype_instance->get_data(data_buf, log);

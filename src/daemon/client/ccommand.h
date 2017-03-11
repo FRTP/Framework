@@ -44,13 +44,12 @@ class CCmdGetMD5 : public ICommand {
 	private:
 		static constexpr EXPECTED_ARGS_NUM = 1;
 		std::string m_filename;
-		const unsigned char* m_hash;
-		int m_hash_size;
+		md5sum_ptr m_hash;
 	public:
 		explicit CCmdGetMD5(const std::list<std::string>& args);
 		virtual ECommand type() const;
 		virtual EError invoke(CContext* context, EDataType datatype);
-		const unsigned char* hash(int& size);
+		md5sum_ptr hash() const;
 		~CCmdGetMD5() {}
 };
 
