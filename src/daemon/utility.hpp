@@ -1,6 +1,9 @@
 #ifndef UTILITY_HPP
 #define UTILITY_HPP
 
+#include <boost/array.hpp>
+#include <boost/shared_ptr.hpp>
+#include <iostream>
 #include <string>
 
 namespace utility {
@@ -18,7 +21,7 @@ namespace utility {
 		READ_ERROR,
 		OPEN_ERROR,
 		WRITE_ERROR,
-		SOCKET_ERROR
+		SOCKET_ERROR,
 		UNKNOWN_ERROR,
 		MAX_VAL = UNKNOWN_ERROR
 	};
@@ -65,8 +68,10 @@ namespace utility {
 
 	md5sum_ptr calculate_md5(const std::string& full_path) {
 		md5sum_ptr md5(new md5sum);
-		//TODO: read file here
-		MD5((unsigned char*)data_buf.data(), size, md5);
+		std::ifstream in(full_path);
+		std::string content;
+		in >> content;
+		MD5((unsigned char*)content.data(), content.size(), md5->data());
 		return md5sum;
 	}
 
