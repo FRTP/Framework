@@ -1,4 +1,4 @@
-from configparser import ConfigParser, NoSectionError, NoOptionError
+from configparser import ConfigParser
 import os
 import errno
 
