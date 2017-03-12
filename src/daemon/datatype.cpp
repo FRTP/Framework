@@ -2,20 +2,20 @@
 
 using namespace datatypes;
 
-std::map<EDataType, CDataTypeCreator*> CDataTypeFactory::m_types;
+std::map<EDataType, IAbstractDataTypeCreator*> CDataTypeFactory::m_types;
 
 CDataTypeShares::CDataTypeShares(const std::list<std::string>& args) {
 	m_success = (args.size() == EXPECTED_ARGS_NUM);
-	if (m_success} {
+	if (m_success) {
 		m_filename = args.front();
 	}
 }
 
-EError CDataTypeShares::get_data(std::vector<char>& output) {
-	std::string full_path(CSetting::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+EError CDataTypeShares::get_data(std::vector<char>& output) const {
+	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ifstream file(full_path, std::ios::binary);
 	if (!file) {
-		BOOST_TRIVIAL_LOG(error) << "unable to open file " + full_path + ": " + strerror(errno);
+		BOOST_LOG_TRIVIAL(error) << "unable to open file " + full_path + ": " + strerror(errno);
 		return EError::OPEN_ERROR;
 	}
 
@@ -25,7 +25,7 @@ EError CDataTypeShares::get_data(std::vector<char>& output) {
 	output.resize(size);
 
 	if (!file.read(output.data(), size)) {
-		BOOST_TRIVIAL_LOG(error) << "unable to read file " + full_path;
+		BOOST_LOG_TRIVIAL(error) << "unable to read file " + full_path;
 		file.close();
 		return EError::READ_ERROR;
 	}
@@ -38,16 +38,16 @@ bool CDataTypeShares::success() const {
 	return m_success;
 }
 
-EError CDataTypeShares::write_data(const char* input, int size) const {
+EError CDataTypeShares::write_data(const std::vector<char>& input) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ofstream file(full_path, std::ios::binary);
 	if (!file) {
-		BOOST_TRIVIAL_LOG(error) << "unable to read file " + full_path;
+		BOOST_LOG_TRIVIAL(error) << "unable to read file " + full_path;
 		return EError::OPEN_ERROR;
 	}
 
-	if (!file.write(input, size)) {
-		BOOST_TRIVIAL_LOG(error) << "unable to write file " + full_path;
+	if (!file.write(input.data(), input.size())) {
+		BOOST_LOG_TRIVIAL(error) << "unable to write file " + full_path;
 		file.close();
 		return EError::WRITE_ERROR;
 	}
@@ -59,16 +59,16 @@ EError CDataTypeShares::write_data(const char* input, int size) const {
 
 CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
 	m_success = (args.size() == EXPECTED_ARGS_NUM);
-	if (m_success} {
+	if (m_success) {
 		m_filename = args.front();
 	}
 }
 
-EError CDataTypeTwitter::get_data(std::vector<char>& output) {
+EError CDataTypeTwitter::get_data(std::vector<char>& output) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ifstream file(full_path, std::ios::binary);
 	if (!file) {
-		BOOST_TRIVIAL_LOG(error) << "unable to open file " + full_path + ": " + strerror(errno);
+		BOOST_LOG_TRIVIAL(error) << "unable to open file " + full_path + ": " + strerror(errno);
 		return EError::OPEN_ERROR;
 	}
 
@@ -78,7 +78,7 @@ EError CDataTypeTwitter::get_data(std::vector<char>& output) {
 	output.resize(size);
 
 	if (!file.read(output.data(), size)) {
-		BOOST_TRIVIAL_LOG(error) << "unable to read file " + full_path;
+		BOOST_LOG_TRIVIAL(error) << "unable to read file " + full_path;
 		file.close();
 		return EError::READ_ERROR;
 	}
@@ -91,16 +91,16 @@ bool CDataTypeTwitter::success() const {
 	return m_success;
 }
 
-EError CDataTypeShares::write_data(const char* input, int size) const {
+EError CDataTypeTwitter::write_data(const std::vector<char>& input) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ofstream file(full_path, std::ios::binary);
 	if (!file) {
-		BOOST_TRIVIAL_LOG(error) << "unable to open file " + full_path + ": " + strerror(errno);
+		BOOST_LOG_TRIVIAL(error) << "unable to open file " + full_path + ": " + strerror(errno);
 		return EError::OPEN_ERROR;
 	}
 
-	if (!file.write(input, size)) {
-		BOOST_TRIVIAL_LOG(error) << "unable to write file " + full_path;
+	if (!file.write(input.data(), input.size())) {
+		BOOST_LOG_TRIVIAL(error) << "unable to write file " + full_path;
 		file.close();
 		return EError::WRITE_ERROR;
 	}

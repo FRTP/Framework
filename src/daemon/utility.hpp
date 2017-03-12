@@ -4,19 +4,20 @@
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
+#include <openssl/md5.h>
 #include <string>
 
 namespace utility {
-	typedef boost::array<unsigned char, MD5_DIGEST_LENGTH> md5sum
+	typedef boost::array<unsigned char, MD5_DIGEST_LENGTH> md5sum;
 	typedef boost::shared_ptr<md5sum> md5sum_ptr;
 
-	enum ECommand {
+	enum class ECommand {
 		GET_FILE,
 		GET_MD5,
 		UPLOAD_FILE
 	};
 
-	enum EError {
+	enum class EError {
 		OK,
 		READ_ERROR,
 		OPEN_ERROR,
@@ -26,7 +27,7 @@ namespace utility {
 		MAX_VAL = UNKNOWN_ERROR
 	};
 
-	enum EDataType {
+	enum class EDataType {
 		SHARES,
 		TWITTER,
 		MAX_VAL = TWITTER
@@ -63,6 +64,8 @@ namespace utility {
 				return std::string("shares");
 			case EDataType::TWITTER:
 				return std::string("twitter");
+			default:
+				return std::string("");
 		}
 	}
 
@@ -72,7 +75,7 @@ namespace utility {
 		std::string content;
 		in >> content;
 		MD5((unsigned char*)content.data(), content.size(), md5->data());
-		return md5sum;
+		return md5;
 	}
 
 	class CSettings {

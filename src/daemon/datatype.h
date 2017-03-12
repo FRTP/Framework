@@ -1,6 +1,7 @@
 #ifndef DATATYPE_H
 #define DATATYPE_H
 
+#include <boost/log/trivial.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <list>
@@ -8,18 +9,12 @@
 #include <string>
 #include <vector>
 
-#include "clog.hpp"
 #include "utility.hpp"
 
+namespace logging = boost::log;
 using namespace utility;
 
 namespace datatypes {
-	enum EDataType {
-		SHARES,
-		TWITTER,
-		MAX_VAL = TWITTER
-	};
-
 	class IDataType {
 		public:
 			virtual EError get_data(std::vector<char>& output) const = 0;
@@ -30,12 +25,12 @@ namespace datatypes {
 
 	class CDataTypeShares : public IDataType {
 		private:
-			static constexpr EXPECTED_ARGS_NUM = 1;
-			static std::string m_data_dir = "shares";
+			static constexpr int EXPECTED_ARGS_NUM = 1;
+			static constexpr const char* m_data_dir = "shares";
 			std::string m_filename;
 			bool m_success;
 		public:
-			CDataTypeShares();
+			CDataTypeShares(const std::list<std::string>& args);
 			virtual EError get_data(std::vector<char>& output) const;
 			virtual EError write_data(const std::vector<char>& input) const;
 			virtual bool success() const;
@@ -44,8 +39,8 @@ namespace datatypes {
 
 	class CDataTypeTwitter : public IDataType {
 		private:
-			static constexpr EXPECTED_ARGS_NUM = 1;
-			static std::string m_data_dir = "twitter";
+			static constexpr int EXPECTED_ARGS_NUM = 1;
+			static constexpr const char* m_data_dir = "twitter";
 			std::string m_filename;
 			bool m_success;
 		public:
@@ -56,18 +51,24 @@ namespace datatypes {
 			virtual ~CDataTypeTwitter() {}
 	};
 
-	template<class DataType>
-	class CDataTypeCreator {
+	class IAbstractDataTypeCreator {
 		public:
-			IDataType* create(const std::list<std::string>& args) const {
+			virtual IDataType* create(const std::list<std::string>& args) const = 0;
+			virtual ~IAbstractDataTypeCreator() {}
+	};
+
+	template<class DataType>
+	class CDataTypeCreator : public IAbstractDataTypeCreator {
+		public:
+			virtual IDataType* create(const std::list<std::string>& args) const {
 				return new DataType(args);
 			}
-			~CDataTypeCreator() {}
+			virtual ~CDataTypeCreator() {}
 	};
 
 	class CDataTypeFactory {
 		private:
-			typedef std::map<EDataType, CDataTypeCreator*> types_map;
+			typedef std::map<EDataType, IAbstractDataTypeCreator*> types_map;
 			static types_map m_types;
 		public:
 			template<class DataType>
@@ -77,15 +78,15 @@ namespace datatypes {
 					m_types[type] = new CDataTypeCreator<DataType>();  
 				}
 			}
-			static IDataType* create(EDataType type) {
-				auto it = types_map.find(type);
-				if (it != types_map.end()) {
-					return it->second->create();
+			static IDataType* create(EDataType type, const std::list<std::string>& args) {
+				auto it = m_types.find(type);
+				if (it != m_types.end()) {
+					return it->second->create(args);
 				}
 				return 0;
 			}
 			~CDataTypeFactory() {
-				for (auto it = types_map.begin(); it != types_map.end(); ++it) {
+				for (auto it = m_types.begin(); it != m_types.end(); ++it) {
 					if (it->second) {
 						delete it->second;
 					}

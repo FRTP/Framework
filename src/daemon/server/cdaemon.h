@@ -6,6 +6,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/read.hpp>
+#include <boost/asio/read_until.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/write.hpp>
@@ -13,6 +14,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup/file.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <iostream>
@@ -30,21 +32,35 @@ using namespace boost::asio;
 using namespace datatypes;
 using namespace utility;
 
+class CServer;
+
 class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 	private:
 		ip::tcp::socket m_socket;
 		streambuf m_readbuf;
 		streambuf m_writebuf;
-		explicit CTCPConnection(boost::asio::io_service& io_service) : m_socket(io_service) {}
+		std::istream m_in;
+		std::ostream m_out;
+		explicit CTCPConnection(boost::asio::io_service& io_service) : m_socket(io_service),
+									       m_in(&m_readbuf), 
+									       m_out(&m_writebuf) {}
+		template<class T>
+		void _send_container(T data_buf) {
+			for (auto i : data_buf) {
+				m_out << i;
+			}
+			m_out << std::endl;
+			m_writebuf.consume(m_writebuf.size());
+		}
 	public:
 		typedef boost::shared_ptr<CTCPConnection> conn_ptr;
 		void handle_read_command(const boost::system::error_code& ec);
 		void handle_read_filename(ECommand command, EDataType datatype, const boost::system::error_code& ec);
-		void handle_transfer_file(const std::string& filename, IDataType* datatype_instance,
-					  const boost::sytem::error_code& ec);
+		void handle_transfer_file(IDataType* datatype_instance, const boost::system::error_code& ec);
 		void handle_write_response(const boost::system::error_code& ec);
 		static conn_ptr create(boost::asio::io_service& io_service);
-		ip::tcp::socket& socket();
+
+		friend CServer;
 };
 
 class CServer {

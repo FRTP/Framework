@@ -1,6 +1,6 @@
 #include "cdaemon.h"
 
-CServer::CServer(boost::asio::io_service& io_service)
+CServer::CServer(io_service& io_service)
 	: m_acceptor(io_service, ip::tcp::endpoint(ip::tcp::v4(), PORT)) {
 
 	CDataTypeFactory::register_type<CDataTypeShares>(EDataType::SHARES);
@@ -11,15 +11,15 @@ CServer::CServer(boost::asio::io_service& io_service)
 
 void CServer::_start_accept() {
 	CTCPConnection::conn_ptr connection = CTCPConnection::create(m_acceptor.get_io_service());
-	m_acceptor.async_accept(connection->socket(), boost::bind(&CServer::_handle_accept, this, connection, 
-				boost::asio::placeholders::error));
+	m_acceptor.async_accept(connection->m_socket, boost::bind(&CServer::_handle_accept, this, connection, 
+				placeholders::error));
 }
 
 void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::system::error_code& ec) {
 	if (!ec) {
-		boost::asio::async_read(connection->socket(), m_readbuf,
-					boost::bind(&CTCPConnection::handle_read_command, connection, command,
-					boost::asio::placeholders::error));
+		async_read(connection->m_socket, connection->m_readbuf,
+			   boost::bind(&CTCPConnection::handle_read_command, connection,
+			   placeholders::error));
 		_start_accept();
 	}
 }
@@ -27,14 +27,14 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
 	BOOST_LOG_TRIVIAL(info) << "New client accepted; reading command...";
 
-	ECommand srv_cmd;
+	int srv_cmd_int;
 	int filename_size;
 	int datatype;
 
-	std::istream in(&m_readbuf);
-	in >> srv_cmd >> filename_size >> datatype;
+	m_in >> srv_cmd_int >> filename_size >> datatype;
 	m_readbuf.consume(m_readbuf.size());
 
+	ECommand srv_cmd = static_cast<ECommand>(srv_cmd_int);
 	if (!ec) {
 		if (srv_cmd == ECommand::GET_FILE ||
 		    srv_cmd == ECommand::GET_MD5 ||
@@ -42,7 +42,7 @@ void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
 			std::string s_cmd;
 			switch (srv_cmd) {
 				case ECommand::GET_FILE:
-					s_smd = "GET_FILE";
+					s_cmd = "GET_FILE";
 					break;
 				case ECommand::GET_MD5:
 					s_cmd = "GET_MD5";
@@ -63,9 +63,9 @@ void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
 			}
 
 			EDataType e_datatype = static_cast<EDataType>(datatype);
-			boost::asio::async_read(m_socket, m_readbuf,
-						boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(),
-						srv_cmd, e_datatype, boost::asio::placeholders::error));
+			async_read(m_socket, m_readbuf,
+				   boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(),
+				   srv_cmd, e_datatype, placeholders::error));
 		}
 	}
 	else {
@@ -80,45 +80,39 @@ void CTCPConnection::handle_read_filename(ECommand command, EDataType datatype,
 		m_readbuf.consume(m_readbuf.size());
 		return;
 	}
+	std::string filename;
+	m_in >> filename;
+	m_readbuf.consume(m_readbuf.size());
 
-	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ *filename }));
+	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ filename }));
 	if (!datatype_instance->success()) {
 		BOOST_LOG_TRIVIAL(error) << "Ivalid argument list for data type instance";
 		m_readbuf.consume(m_readbuf.size());
 		return;
 	}
 
-	std::string filename;
-	std::istream in(&m_readbuf);
-	in >> filename;
-	m_readbuf.consume(m_readbuf.size());
+	std::vector<char> data_buf;
+	EError ret;
 	switch (command) {
 		case ECommand::GET_FILE:
-			std::vector<char> data_buf;
-			EError ret = datatype_instance->get_data(data_buf);
-			delete datatype_instance;
-			if (ret != EError::OK) {
+			if ((ret = datatype_instance->get_data(data_buf)) != EError::OK) {
+				delete datatype_instance;
 				m_readbuf.consume(m_readbuf.size());
-				std::ostream out(&m_writebuf);
-				out << static_cast<int>(ret) << std::endl;
+				m_out << static_cast<int>(ret) << std::endl;
 
 				async_write(m_socket, m_writebuf,
 					    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
 					    placeholders::error));
 				return;
 			}
-			std::ostream out(&m_writebuf);
-			out << data_buf << std::endl;
-
+			delete datatype_instance;
+			_send_container<std::vector<char>>(data_buf);
 			async_write(m_socket, m_writebuf,
 				    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
 				    placeholders::error));
 			break;
 		case ECommand::GET_MD5:
-			md5sum_ptr md5 = calculate_md5(*filename);
-			std::ostream out(&m_writebuf);
-			out << *md5 << std::endl;
-
+			_send_container<md5sum>(*(calculate_md5(filename)));
 			async_write(m_socket, m_writebuf,
 				    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
 				    placeholders::error));
@@ -126,24 +120,22 @@ void CTCPConnection::handle_read_filename(ECommand command, EDataType datatype,
 		case ECommand::UPLOAD_FILE:
 			async_read_until(m_socket, m_readbuf, '\n',
 					 boost::bind(&CTCPConnection::handle_transfer_file, shared_from_this(),
-					 filename, datatype_instance, placeholders::error));
+					 datatype_instance, placeholders::error));
 			break;
 
 	}
 }
 
-void CTCPConnection::handle_transfer_file(const std::string& filename, IDataType* datatype_instance,
-					  const boost::sytem::error_code& ec) {
-	if (ec && ec != ec::eof) {
+void CTCPConnection::handle_transfer_file(IDataType* datatype_instance, const boost::system::error_code& ec) {
+	if (ec && ec != error::eof) {
 		BOOST_LOG_TRIVIAL(error) << "handle_transfer_file: " + ec.message();
 		return;
 	}
 	const char* data = buffer_cast<const char*>(m_readbuf.data());
-	datatype_instance->write_data(data, m_readbuf.size());
+	datatype_instance->write_data(std::vector<char>(data, data + m_readbuf.size()));
 	m_readbuf.consume(m_readbuf.size());
 	delete datatype_instance;
 }
-
 
 void CTCPConnection::handle_write_response(const boost::system::error_code& ec) {
 	m_writebuf.consume(m_writebuf.size());
@@ -155,22 +147,18 @@ void CTCPConnection::handle_write_response(const boost::system::error_code& ec) 
 	}
 }
 
-CTCPConnection::conn_ptr CTCPConnection::create(boost::asio::io_service& io_service) {
+CTCPConnection::conn_ptr CTCPConnection::create(io_service& io_service) {
 	return conn_ptr(new CTCPConnection(io_service));
-}
-
-ip::tcp::socket& CTCPConnection::socket() {
-	return m_socket;
 }
 
 CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
 	CSettings::set_working_dir("/var/frtp/");
-	logging::add_file_log(CSettings::working_dir() + "frtp.log");
+	logging::add_file_log(parser.logname());
 }
 
 int CDaemon::start() {
 	CServer server(*(m_io_service.get()));
-	boost::asio::signal_set signals(*(m_io_service.get()), SIGINT, SIGTERM);
+	signal_set signals(*(m_io_service.get()), SIGINT, SIGTERM);
 	signals.async_wait(boost::bind(&io_service::stop, m_io_service));
 	m_io_service->notify_fork(io_service::fork_prepare);
 
