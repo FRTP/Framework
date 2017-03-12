@@ -1,27 +1,22 @@
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser, NoSectionError, NoOptionError
+import os
+import errno
 
 
-class ConfigParser:
-
-    def _read_opt(self, section, option):
-        if self.parser.has_option(section, option):
-            return self.parser.get(section, option)
-        else:
-            print('No option ' + option + 'in section ' + section)
-            exit()
+class Config:
 
     def __init__(self, config_file_name):
-        self.parser = SafeConfigParser()
-        if not self.parser.read(config_file_name):
-            print("Wrong filename")
-            exit()
-        self.algo_name = self._read_opt('algorithm', 'algo_name')
-        self.algo_path = self._read_opt('algorithm', 'algo_path')
+        parser = ConfigParser()
+        if not parser.read(config_file_name):
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT),
+                                    config_file_name)
+        self.algo_name = parser.get('algorithm', 'algo_name')
+        self.algo_path = parser.get('algorithm', 'algo_path')
         self.training_period_start, self.training_period_end = \
-            self._read_opt('data', 'training_period').split('-')
-        assets = self._read_opt('data', 'assets').split(',')
+            parser.get('data', 'training_period').split('-')
+        assets = parser.get('data', 'assets').split(',')
         self.assets = [x.strip().strip("'") for x in assets]
-        self.start_money = self._read_opt('money', 'start_money')
+        self.start_money = parser.get('money', 'start_money')
 
     def get_algo_name(self):
         return self.algo_name
