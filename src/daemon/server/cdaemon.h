@@ -50,7 +50,6 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 				m_out << i;
 			}
 			m_out << std::endl;
-			m_writebuf.consume(m_writebuf.size());
 		}
 	public:
 		typedef boost::shared_ptr<CTCPConnection> conn_ptr;
