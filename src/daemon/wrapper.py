@@ -18,10 +18,15 @@ class IConverter(object):
     def get_filenames(self):
         pass
 
+    @abstractmethod
+    def get_datatype(self):
+        pass
+
 
 class CConvertFromDate(IConverter):
     def __init__(self, date_from, date_to, data_type, subdirs):
         self.filelist = []
+        self.data_type = data_type
         if data_type == 'SHARES':
             counter = date_from
             delta = datetime.timedelta(days=1)
@@ -33,6 +38,8 @@ class CConvertFromDate(IConverter):
     def get_filenames(self):
         return self.filelist
 
+    def get_datatype(self):
+        return self.data_type
 
 class CNoConversion(IConverter):
     def __init__(self, filename):
@@ -40,6 +47,9 @@ class CNoConversion(IConverter):
 
     def get_filenames(self):
         return self.filelist
+
+    def get_datatype(self):
+        return self.data_type
 
 
 class CClient(object):
@@ -79,7 +89,8 @@ class CClient(object):
 
     def get_info(self, converter, check=True, force=False):
         for filename in converter.get_filenames():
-            ret = self.get_file(filename, filename, force)
+            ret = self.get_file(filename, filename, converter.get_datatype(),
+                                force)
             if ret == 0 and check:
                 if not self.check_integrity(filename):
                     raise ExInvalidMD5()

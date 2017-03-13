@@ -27,9 +27,9 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
 	BOOST_LOG_TRIVIAL(info) << "New client accepted; reading command...";
 
-	int srv_cmd_int;
-	int filename_size;
-	int datatype;
+	int srv_cmd_int = -1;
+	int filename_size = -1;
+	int datatype = -1;
 
 	m_in >> srv_cmd_int >> filename_size >> datatype;
 	m_readbuf.consume(m_readbuf.size());

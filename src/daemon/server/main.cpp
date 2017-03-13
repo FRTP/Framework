@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 			std::cerr << "[EE]: Unable to start daemon" << std::endl;
 		}
 	}
-	catch(std::exception e) {
+	catch(std::exception& e) {
 		std::cerr << e.what() << std::endl;
 	}
 
