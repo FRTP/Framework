@@ -28,7 +28,7 @@ void CClient::connect(CContext* context) {
 
 int CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
 	if (context->socket_opened()) {
-		if (datatype < 0 || datatype > static_cast<EError::MAX_VAL>) {
+		if (datatype < 0 || datatype > static_cast<int>(EError::MAX_VAL)) {
 			throw ExUnknownDataType("Invalid data type", "CClient::invoke()");
 		}
 
@@ -46,29 +46,25 @@ int CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
 
 boost::python::list CClient::get_hash(CCmdGetMD5* cmd) {
 	boost::python::list res;
-	int size = 0;
-	const unsigned char* md5sum = cmd->hash(size);
-	for (int i = 0; i < size; ++i) {
-		res.append(md5sum[i]);
+	for (auto i : *(cmd->hash())) {
+		res.append(i);
 	}
 	return res;
 }
 
 bool CClient::check_integrity(CContext* context, const std::string& srv_filename,
 			      const std::string& cli_filename, int datatype) {
-	bool res = true;
 	CCmdGetMD5* cmd = new CCmdGetMD5(std::list<std::string>({ srv_filename }));
 	invoke(context, cmd, datatype);
 	md5sum_ptr srv_md5_hash = cmd->hash();
 	delete cmd;
 
-	std::string full_path(CSettings::working_dir() + get_data_type_dir() +
+	std::string full_path(CSettings::working_dir() + get_data_type_dir(static_cast<EDataType>(datatype)) +
 			      "/" + cli_filename);
 	md5sum_ptr cli_md5_hash = calculate_md5(full_path);
 	if (srv_md5_hash != cli_md5_hash) {
-		res = false;
-		break;
+		return false;
 	}
 
-	return res;
+	return true;
 }

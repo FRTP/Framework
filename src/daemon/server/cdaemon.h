@@ -24,7 +24,7 @@
 
 #include "../datatype.h"
 #include "cparser.hpp"
-#include "../utility.hpp"
+#include "../utility.h"
 
 namespace fs = boost::filesystem;
 namespace logging = boost::log;

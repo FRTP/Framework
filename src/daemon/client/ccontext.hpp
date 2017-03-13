@@ -7,7 +7,7 @@
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 
-#include "../utility.hpp"
+#include "../utility.h"
 
 using namespace boost::asio;
 using namespace utility;
@@ -28,10 +28,13 @@ class CContext {
 			return m_socket.is_open();
 		}
 		template<class T>
-		EError socket_write(T msg) {
+		EError socket_write(const T& msg) {
 			boost::system::error_code error;
-			std::ofstream out(&m_writebuf);
-			out << msg << std::endl;
+			std::ostream out(&m_writebuf);
+			for (auto i : msg) {
+				out << msg[i];
+			}
+			out << std::endl;
 			write(m_socket, m_writebuf, error);
 			m_writebuf.consume(m_writebuf.size());
 			if (error) {

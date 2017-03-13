@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "utility.hpp"
+#include "utility.h"
 
 namespace logging = boost::log;
 using namespace utility;

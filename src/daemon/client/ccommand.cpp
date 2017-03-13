@@ -1,6 +1,6 @@
 #include "ccommand.h"
 
-std::map<std::string, CCommandCreator*> CCommandFactory::m_factory;
+std::map<std::string, IAbstractCommandCreator*> CCommandFactory::m_factory;
 
 CCmdGetFile::CCmdGetFile(const std::list<std::string>& args) {
 	if (args.size() != EXPECTED_ARGS_NUM) {
@@ -16,15 +16,14 @@ ECommand CCmdGetFile::type() const {
 }
 
 EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
-	std::string full_path = CSetting::working_dir() + get_data_type_dir(datatype) + 
+	std::string full_path = CSettings::working_dir() + get_data_type_dir(datatype) + 
 				"/" + m_newfilename;
 	if(!fs::exists(full_path) || m_force_update) {
 		fs::create_directories(CSettings::working_dir() + get_data_type_dir(datatype) + "/");
 
-		boost::shared_ptr<boost::array<int, 3>> msg(new boost::array<int, 3>);
-		msg[0] = static_cast<int>(ECommand::GET_FILE);
-		msg[1] = static_cast<int>(m_filename.size());
-		msg[2] = static_cast<int>(datatype);
+		boost::array<int, 3> msg({ static_cast<int>(ECommand::GET_FILE),
+					   static_cast<int>(m_filename.size()),
+					   static_cast<int>(datatype) });
 
 		context->socket_write<boost::array<int, 3>>(msg);
 		context->socket_write<std::string>(m_filename);
@@ -33,10 +32,10 @@ EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
 		context->socket_read(receive_buffer);
 		if (receive_buffer.size() == 1) {
 			const int* error_buff = buffer_cast<const int*>(receive_buffer.data());
-			if (*error_buff < 0 || *error_buf >= static_cast<int>(EError::MAX_VAL)) {
+			if (error_buff[0] < 0 || error_buff[0] >= static_cast<int>(EError::MAX_VAL)) {
 				return EError::UNKNOWN_ERROR;
 			}
-			return static_cast<EError>(*error_buf);
+			return static_cast<EError>(*error_buff);
 		}
 		const char* data = buffer_cast<const char*>(receive_buffer.data());
 		std::string full_path = CSettings::working_dir() + get_data_type_dir(datatype) + 
@@ -61,39 +60,39 @@ ECommand CCmdGetMD5::type() const {
 }
 
 EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
-	std::string full_path = CSetting::working_dir() + get_data_type_dir(datatype) + 
+	std::string full_path = CSettings::working_dir() + get_data_type_dir(datatype) + 
 				"/" + m_filename;
 	if (!fs::exists(full_path)) {
 		throw ExNoFile("Invalid path " + full_path, "CCmdGetMD5::invoke()");
 	}
 
-	boost::shared_ptr<boost::array<int, 3>> msg(new boost::array<int, 3>);
-	msg[0] = static_cast<int>(ECommand::GET_MD5);
-	msg[1] = static_cast<int>(m_filename.size());
-	msg[2] = static_cast<int>(datatype);
+	boost::array<int, 3> msg({ static_cast<int>(ECommand::GET_MD5),
+				   static_cast<int>(m_filename.size()),
+				   static_cast<int>(datatype) });
 
-	context->socket_write<boost::array<int, 3>>(*msg);
+	context->socket_write<boost::array<int, 3>>(msg);
 	context->socket_write<std::string>(m_filename);
 
 	streambuf receive_buffer;
 	context->socket_read(receive_buffer);
 	if (receive_buffer.size() == 1) {
 		const int* error_buff = buffer_cast<const int*>(receive_buffer.data());
-		if (*error_buff < 0 || *error_buf >= static_cast<int>(EError::MAX_VAL)) {
+		if (error_buff[0] < 0 || error_buff[0] >= static_cast<int>(EError::MAX_VAL)) {
 			return EError::UNKNOWN_ERROR;
 		}
-		return static_cast<EError>(*error_buf);
+		return static_cast<EError>(*error_buff);
 	}
 
-	m_hash = buffer_cast<const unsigned char*>(receive_buffer.data());
-	m_hash_size = receive_buffer.size();
+	const unsigned char* hash = buffer_cast<const unsigned char*>(receive_buffer.data());
+	for (size_t i = 0; i < receive_buffer.size(); ++i) {
+		(*m_hash)[i] = hash[i];
+	}
 
 	return EError::OK;
 }
 
 md5sum_ptr CCmdGetMD5::hash() const {
 	return m_hash;
-
 }
 
 CCmdUploadFile::CCmdUploadFile(const std::list<std::string>& args) {
@@ -108,17 +107,20 @@ ECommand CCmdUploadFile::type() const {
 }
 
 EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
-	boost::shared_ptr<boost::array<int, 3>> msg(new boost::array<int, 3>);
-	msg[0] = static_cast<int>(ECommand::UPLOAD_FILE);
-	msg[1] = static_cast<int>(m_filename.size());
-	msg[2] = static_cast<int>(datatype);
+	boost::array<int, 3> msg({ static_cast<int>(ECommand::UPLOAD_FILE),
+				   static_cast<int>(m_filename.size()),
+				   static_cast<int>(datatype) });
 
-	context->socket_write<boost::array<int, 3>>(*msg);
+	context->socket_write<boost::array<int, 3>>(msg);
 	context->socket_write<std::string>(m_filename);
 
 	std::vector<char> data_buf;
-	EError ret = datatype_instance->get_data(data_buf, log);
+	IDataType* datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ m_filename })); 
+	EError ret;
+	if ((ret = datatype_instance->get_data(data_buf)) != EError::OK) {
+		delete datatype_instance;
+		throw ExError(get_text_error(ret), "CCmdUploadFile::invoke()");
+	}
 	delete datatype_instance;
-
 	return context->socket_write<std::vector<char>>(data_buf);
 }

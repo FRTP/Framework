@@ -2,6 +2,7 @@
 #define CCOMMAND_H
 
 #include <boost/asio.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/python.hpp>
 #include <fstream>
@@ -13,10 +14,11 @@
 #include "ccontext.hpp"
 #include "../datatype.h"
 #include "exception.hpp"
-#include "../utility.hpp"
+#include "../utility.h"
 
 namespace fs = boost::filesystem;
 using namespace boost::asio;
+using namespace datatypes;
 using namespace utility;
 
 class ICommand {
@@ -28,7 +30,7 @@ class ICommand {
 
 class CCmdGetFile : public ICommand {
 	private:
-		static constexpr EXPECTED_ARGS_NUM = 3;
+		static constexpr int EXPECTED_ARGS_NUM = 3;
 		std::string m_filename;
 		std::string m_newfilename;
 		streambuf m_buffer;
@@ -36,13 +38,13 @@ class CCmdGetFile : public ICommand {
 	public:
 		explicit CCmdGetFile(const std::list<std::string>& args);
 		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype)
+		virtual EError invoke(CContext* context, EDataType datatype);
 		~CCmdGetFile() {}
 };
 
 class CCmdGetMD5 : public ICommand {
 	private:
-		static constexpr EXPECTED_ARGS_NUM = 1;
+		static constexpr int EXPECTED_ARGS_NUM = 1;
 		std::string m_filename;
 		md5sum_ptr m_hash;
 	public:
@@ -55,7 +57,7 @@ class CCmdGetMD5 : public ICommand {
 
 class CCmdUploadFile : public ICommand {
 	private:
-		static constexpr EXPECTED_ARGS_NUM = 1;
+		static constexpr int EXPECTED_ARGS_NUM = 1;
 		std::string m_filename;
 	public:
 		explicit CCmdUploadFile(const std::list<std::string>& args);
@@ -64,8 +66,14 @@ class CCmdUploadFile : public ICommand {
 		~CCmdUploadFile() {}
 };
 
+class IAbstractCommandCreator {
+	public:
+		virtual ICommand* create(const std::list<std::string>& args) const = 0;
+		virtual ~IAbstractCommandCreator() {}
+};
+
 template<class T>
-class CCommandCreator {
+class CCommandCreator : public IAbstractCommandCreator {
 	public:
 		virtual ICommand* create(const std::list<std::string>& args) const {
 			return new T(args);
@@ -75,8 +83,8 @@ class CCommandCreator {
 
 class CCommandFactory {
 	private:
-		typedef std::map<std::string, CCommandCreator*> factory_map;
-		factory_map m_factory;
+		typedef std::map<std::string, IAbstractCommandCreator*> factory_map;
+		static factory_map m_factory;
 	public:
 		template<class T>
 		static void add(const std::string& id) {
