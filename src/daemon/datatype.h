@@ -1,7 +1,6 @@
 #ifndef DATATYPE_H
 #define DATATYPE_H
 
-#include <boost/log/trivial.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <list>
@@ -11,7 +10,6 @@
 
 #include "utility.h"
 
-namespace logging = boost::log;
 using namespace utility;
 
 namespace datatypes {

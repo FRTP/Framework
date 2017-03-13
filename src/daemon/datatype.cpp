@@ -15,7 +15,6 @@ EError CDataTypeShares::get_data(std::vector<char>& output) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ifstream file(full_path, std::ios::binary);
 	if (!file) {
-		BOOST_LOG_TRIVIAL(error) << "unable to open file " + full_path + ": " + strerror(errno);
 		return EError::OPEN_ERROR;
 	}
 
@@ -25,7 +24,6 @@ EError CDataTypeShares::get_data(std::vector<char>& output) const {
 	output.resize(size);
 
 	if (!file.read(output.data(), size)) {
-		BOOST_LOG_TRIVIAL(error) << "unable to read file " + full_path;
 		file.close();
 		return EError::READ_ERROR;
 	}
@@ -42,12 +40,10 @@ EError CDataTypeShares::write_data(const std::vector<char>& input) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ofstream file(full_path, std::ios::binary);
 	if (!file) {
-		BOOST_LOG_TRIVIAL(error) << "unable to read file " + full_path;
 		return EError::OPEN_ERROR;
 	}
 
 	if (!file.write(input.data(), input.size())) {
-		BOOST_LOG_TRIVIAL(error) << "unable to write file " + full_path;
 		file.close();
 		return EError::WRITE_ERROR;
 	}
@@ -68,7 +64,6 @@ EError CDataTypeTwitter::get_data(std::vector<char>& output) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ifstream file(full_path, std::ios::binary);
 	if (!file) {
-		BOOST_LOG_TRIVIAL(error) << "unable to open file " + full_path + ": " + strerror(errno);
 		return EError::OPEN_ERROR;
 	}
 
@@ -78,7 +73,6 @@ EError CDataTypeTwitter::get_data(std::vector<char>& output) const {
 	output.resize(size);
 
 	if (!file.read(output.data(), size)) {
-		BOOST_LOG_TRIVIAL(error) << "unable to read file " + full_path;
 		file.close();
 		return EError::READ_ERROR;
 	}
@@ -95,12 +89,10 @@ EError CDataTypeTwitter::write_data(const std::vector<char>& input) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ofstream file(full_path, std::ios::binary);
 	if (!file) {
-		BOOST_LOG_TRIVIAL(error) << "unable to open file " + full_path + ": " + strerror(errno);
 		return EError::OPEN_ERROR;
 	}
 
 	if (!file.write(input.data(), input.size())) {
-		BOOST_LOG_TRIVIAL(error) << "unable to write file " + full_path;
 		file.close();
 		return EError::WRITE_ERROR;
 	}
