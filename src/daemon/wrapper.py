@@ -41,6 +41,7 @@ class CConvertFromDate(IConverter):
     def get_datatype(self):
         return self.data_type
 
+
 class CNoConversion(IConverter):
     def __init__(self, filename):
         self.filelist = [filename]
