@@ -55,6 +55,8 @@ class CNoConversion(IConverter):
 
 class CClient(object):
     def __init__(self, srv_address, srv_port, working_dir):
+        if working_dir[-1] != "/":
+            working_dir += str("/")
         self.client = lib.LibClient(server=srv_address, port=srv_port,
                                     workingdir=working_dir)
         self.context = self.client.create_context()
