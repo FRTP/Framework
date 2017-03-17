@@ -13,7 +13,7 @@ function usage {
 	echo "Options:"
 	echo -e "-s \t build with tests"
 	echo -e "-d \t build debug version"
-	echo -e "-j \t determine the number of parallel jobs"
+	echo -e "-j <number> \t determine the number of parallel jobs"
 	echo -e "-h \t show this help"
 	exit 1
 }
