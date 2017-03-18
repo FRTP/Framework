@@ -1,3 +1,4 @@
+#ifndef TESTING
 #include <stdexcept>
 #include <iostream>
 
@@ -20,3 +21,8 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
+
+#else
+#include "test.hpp"
+
+#endif //TESTING
