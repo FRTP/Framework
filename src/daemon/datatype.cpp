@@ -100,3 +100,53 @@ EError CDataTypeTwitter::write_data(const std::vector<char>& input) const {
 	file.close();
 	return EError::OK;
 }
+
+#ifdef TESTING
+CDataTypeTest::CDataTypeTest(const std::list<std::string>& args) {
+	m_success = (args.size() == EXPECTED_ARGS_NUM);
+	if (m_success) {
+		m_filename = args.front();
+	}
+}
+
+bool CDataTypeTest::success() const {
+	return m_success;
+}
+
+EError CDataTypeTest::get_data(std::vector<char>& output) const {
+	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+	std::ifstream file(full_path, std::ios::binary);
+	if (!file) {
+		return EError::OPEN_ERROR;
+	}
+
+	file.seekg(0, file.end);
+	int size = file.tellg();
+	file.seekg(0, file.beg);
+	output.resize(size);
+
+	if (!file.read(output.data(), size)) {
+		file.close();
+		return EError::READ_ERROR;
+	}
+
+	file.close();
+	return EError::OK;
+}
+
+EError CDataTypeTest::write_data(const std::vector<char>& input) const {
+	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+	std::ofstream file(full_path, std::ios::binary);
+	if (!file) {
+		return EError::OPEN_ERROR;
+	}
+
+	if (!file.write(input.data(), input.size())) {
+		file.close();
+		return EError::WRITE_ERROR;
+	}
+
+	file.close();
+	return EError::OK;
+}
+#endif //TESTING

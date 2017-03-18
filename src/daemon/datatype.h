@@ -49,6 +49,21 @@ namespace datatypes {
 			virtual ~CDataTypeTwitter() {}
 	};
 
+#ifdef TESTING
+	class CDataTypeTest : public IDataType {
+		private:
+			static constexpr int EXPECTED_ARGS_NUM = 1;
+			static constexpr const char* m_data_dir = "test_data";
+			std::string m_filename;
+			bool m_success;
+		public:
+			CDataTypeTest(const std::list<std::string>& args);
+			virtual EError get_data(std::vector<char>& output) const;
+			virtual EError write_data(const std::vector<char>& input) const;
+			virtual bool success() const;
+	};
+#endif //TESTING
+
 	class IAbstractDataTypeCreator {
 		public:
 			virtual IDataType* create(const std::list<std::string>& args) const = 0;
