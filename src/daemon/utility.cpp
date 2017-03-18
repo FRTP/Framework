@@ -42,8 +42,13 @@ namespace utility {
 	md5sum_ptr calculate_md5(const std::string& full_path) {
 		md5sum_ptr md5(new md5sum);
 		std::ifstream in(full_path);
-		std::string content;
-		in >> content;
+
+		in.seekg(0, std::ios::end);
+		size_t size = in.tellg();
+		std::string content(size, ' ');
+		in.seekg(0);
+		in.read(&content[0], size);
+
 		MD5((unsigned char*)content.data(), content.size(), md5->data());
 		return md5;
 	}
