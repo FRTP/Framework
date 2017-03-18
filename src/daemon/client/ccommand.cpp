@@ -119,7 +119,13 @@ EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
 	EError ret;
 	if ((ret = datatype_instance->get_data(data_buf)) != EError::OK) {
 		delete datatype_instance;
-		throw ExError(get_text_error(ret), "CCmdUploadFile::invoke()");
+		switch (ret) {
+			case EError::OPEN_ERROR:
+				throw ExNoFile("No such file: " + m_filename, "CCmdUploadFile::invoke()");
+			default:
+				throw ExError(get_text_error(ret), "CCmdUploadFile::invoke()");
+			//TODO
+		}
 	}
 	delete datatype_instance;
 	return context->socket_write<std::vector<char>>(data_buf);
