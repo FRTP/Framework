@@ -44,11 +44,8 @@ int CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
 	return 0;
 }
 
-boost::python::list CClient::get_hash(CCmdGetMD5* cmd) {
-	boost::python::list res;
-	for (auto i : *(cmd->hash())) {
-		res.append(i);
-	}
+std::string CClient::get_hash(CCmdGetMD5* cmd) {
+	std::string res = md5sum_to_str(cmd->hash());
 	return res;
 }
 

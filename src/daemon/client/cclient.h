@@ -30,7 +30,7 @@ class CClient {
 		CContext* create_context();
 		static void connect(CContext* context);
 		static int invoke(CContext* context, ICommand* cmd, int datatype);
-		static boost::python::list get_hash(CCmdGetMD5* cmd);
+		static std::string get_hash(CCmdGetMD5* cmd);
 		static bool check_integrity(CContext* context, const std::string& srv_filename, 
 					    const std::string& cli_filename, int datatype);
 };
