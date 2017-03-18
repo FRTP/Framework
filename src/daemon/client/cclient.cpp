@@ -26,7 +26,7 @@ void CClient::connect(CContext* context) {
 	}
 }
 
-int CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
+void CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
 	if (context->socket_opened()) {
 		if (datatype < 0 || datatype > static_cast<int>(EError::MAX_VAL)) {
 			throw ExUnknownDataType("Invalid data type", "CClient::invoke()");
@@ -34,14 +34,18 @@ int CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
 
 		EError ret;
 		if ((ret = cmd->invoke(context, static_cast<EDataType>(datatype))) != EError::OK) {
-			std::cerr << "[EE]: Server error: " << get_text_error(ret) << std::endl;
-			return static_cast<int>(ret);
+			switch (ret) {
+				case EError::OPEN_ERROR:
+					throw ExNoFile("No such file on server", "CClient::invoke()");
+				default:
+					throw ExError(get_text_error(ret), "CClient::invoke()");
+				//TODO
+			}
 		}
 	}
 	else {
 		throw ExSocketProblem("Socket was unexpectedly closed", "CClient::invoke()");
 	}
-	return 0;
 }
 
 std::string CClient::get_hash(CCmdGetMD5* cmd) {
