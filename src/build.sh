@@ -20,7 +20,9 @@ function usage {
 
 TARGET=""
 ADDITIONAL_CFLAGS=""
+ADDITIONAL_LFLAGS=""
 JOBS=2
+DEFINES=""
 
 while getopts "t:j:sdh" opt;
 do
@@ -50,8 +52,9 @@ do
 			JOBS=$OPTARG
 			;;
 		s)
-			echo Testing is not implemented yet
-			exit 127
+			ADDITIONAL_CFLAGS="-DTESTING $ADDITIONAL_CFLAGS"
+			ADDITIONAL_LFLAGS="-lboost_unit_test_framework"
+			echo Building with tests
 			;;
 		d)
 			ADDITIONAL_CFLAGS="-g $ADDITIONAL_CFLAGS"
@@ -67,4 +70,4 @@ do
 done
 
 
-make -j$JOBS $TARGET CFLAGS="$ADDITIONAL_CFLAGS"
+make -j$JOBS $TARGET CFLAGS="$ADDITIONAL_CFLAGS" LFLAGS="$ADDITIONAL_LFLAGS"
