@@ -48,6 +48,15 @@ namespace utility {
 		return md5;
 	}
 
+	std::string md5sum_to_str(md5sum_ptr md5) {
+		std::ostringstream oss;
+		for (auto i : *md5) {
+			oss << boost::format("%02x") % static_cast<unsigned int>(i);
+		}
+		oss << std::endl;
+		return oss.str();
+	}
+
 	void CSettings::set_working_dir(const std::string& working_dir) {
 		m_working_dir = working_dir;
 	}

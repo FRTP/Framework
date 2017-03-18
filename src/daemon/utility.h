@@ -2,10 +2,12 @@
 #define UTILITY_H
 
 #include <boost/array.hpp>
+#include <boost/format.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <iostream>
 #include <openssl/md5.h>
+#include <sstream>
 #include <string>
 
 namespace utility {
@@ -37,6 +39,7 @@ namespace utility {
 	std::string get_text_error(EError error);
 	std::string get_data_type_dir(EDataType type); 
 	md5sum_ptr calculate_md5(const std::string& full_path);
+	std::string md5sum_to_str(md5sum_ptr md5);
 
 	class CSettings {
 		private:
