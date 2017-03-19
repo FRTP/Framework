@@ -154,7 +154,7 @@ CTCPConnection::conn_ptr CTCPConnection::create(io_service& io_service) {
 CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
 	CSettings::set_working_dir("/var/frtp/");
 
-	boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
+	logging::register_simple_formatter_factory<logging::trivial::severity_level, char>("Severity");
 	logging::add_file_log(
 			keywords::file_name = parser.logname(),
 			keywords::auto_flush = true,
