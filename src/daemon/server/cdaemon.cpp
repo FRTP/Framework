@@ -32,7 +32,7 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 }
 
 void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
-	if (!ec && ec != error::eof) {
+	if (!ec || ec == error::eof) {
 		BOOST_LOG_TRIVIAL(info) << "Processing incoming buffer...";
 
 		int srv_cmd_int = -1;
@@ -87,6 +87,7 @@ void CTCPConnection::handle_read_filename(ECommand command, EDataType datatype,
 		m_readbuf.consume(m_readbuf.size());
 		return;
 	}
+	BOOST_LOG_TRIVIAL(info) << "Reading filename...";
 	std::string filename;
 	m_in >> filename;
 	m_readbuf.consume(m_readbuf.size());
@@ -102,7 +103,9 @@ void CTCPConnection::handle_read_filename(ECommand command, EDataType datatype,
 	EError ret;
 	switch (command) {
 		case ECommand::GET_FILE:
+			BOOST_LOG_TRIVIAL(info) << "Reading file...";
 			if ((ret = datatype_instance->get_data(data_buf)) != EError::OK) {
+				BOOST_LOG_TRIVIAL(warning) << "Unable to read file " + filename;
 				delete datatype_instance;
 				m_readbuf.consume(m_readbuf.size());
 				m_out << static_cast<int>(ret) << std::endl;
@@ -114,12 +117,14 @@ void CTCPConnection::handle_read_filename(ECommand command, EDataType datatype,
 			}
 			delete datatype_instance;
 			_send_container<std::vector<char>>(data_buf);
+			BOOST_LOG_TRIVIAL(info) << "Sending file...";
 			async_write(m_socket, m_writebuf,
 				    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
 				    placeholders::error));
 			break;
 		case ECommand::GET_MD5:
 			_send_container<md5sum>(*(calculate_md5(filename)));
+			BOOST_LOG_TRIVIAL(info) << "Sending MD5...";
 			async_write(m_socket, m_writebuf,
 				    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
 				    placeholders::error));
