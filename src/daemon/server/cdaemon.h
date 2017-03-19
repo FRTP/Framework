@@ -45,9 +45,9 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 		streambuf m_writebuf;
 		std::istream m_in;
 		std::ostream m_out;
-		explicit CTCPConnection(boost::asio::io_service& io_service) : m_socket(io_service),
-									       m_in(&m_readbuf), 
-									       m_out(&m_writebuf) {}
+		explicit CTCPConnection(io_service& io_service) : m_socket(io_service),
+								  m_in(&m_readbuf),
+								  m_out(&m_writebuf) {}
 		template<class T>
 		void _send_container(T data_buf) {
 			for (auto i : data_buf) {
@@ -61,7 +61,7 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 		void handle_read_filename(ECommand command, EDataType datatype, const boost::system::error_code& ec);
 		void handle_transfer_file(IDataType* datatype_instance, const boost::system::error_code& ec);
 		void handle_write_response(const boost::system::error_code& ec);
-		static conn_ptr create(boost::asio::io_service& io_service);
+		static conn_ptr create(io_service& io_service);
 
 		friend CServer;
 };
