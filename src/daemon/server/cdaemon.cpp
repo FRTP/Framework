@@ -10,32 +10,39 @@ CServer::CServer(io_service& io_service)
 }
 
 void CServer::_start_accept() {
+	BOOST_LOG_TRIVIAL(info) << "Waiting for client...";
+
 	CTCPConnection::conn_ptr connection = CTCPConnection::create(m_acceptor.get_io_service());
 	m_acceptor.async_accept(connection->m_socket, boost::bind(&CServer::_handle_accept, this, connection, 
 				placeholders::error));
 }
 
 void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::system::error_code& ec) {
+	BOOST_LOG_TRIVIAL(info) << "Accepting client...";
 	if (!ec) {
-		async_read(connection->m_socket, connection->m_readbuf,
-			   boost::bind(&CTCPConnection::handle_read_command, connection,
-			   placeholders::error));
-		_start_accept();
+		BOOST_LOG_TRIVIAL(info) << "New client accepted; reading command...";
+		async_read_until(connection->m_socket, connection->m_readbuf, "\n",
+				 boost::bind(&CTCPConnection::handle_read_command, connection,
+				 placeholders::error));
 	}
+	else {
+		BOOST_LOG_TRIVIAL(error) << "Unable to accept client: " + ec.message();
+	}
+	_start_accept();
 }
 
 void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
-	BOOST_LOG_TRIVIAL(info) << "New client accepted; reading command...";
+	if (!ec && ec != error::eof) {
+		BOOST_LOG_TRIVIAL(info) << "Processing incoming buffer...";
 
-	int srv_cmd_int = -1;
-	int filename_size = -1;
-	int datatype = -1;
+		int srv_cmd_int = -1;
+		int filename_size = -1;
+		int datatype = -1;
 
-	m_in >> srv_cmd_int >> filename_size >> datatype;
-	m_readbuf.consume(m_readbuf.size());
+		m_in >> srv_cmd_int >> filename_size >> datatype;
+		m_readbuf.consume(m_readbuf.size());
 
-	ECommand srv_cmd = static_cast<ECommand>(srv_cmd_int);
-	if (!ec) {
+		ECommand srv_cmd = static_cast<ECommand>(srv_cmd_int);
 		if (srv_cmd == ECommand::GET_FILE ||
 		    srv_cmd == ECommand::GET_MD5 ||
 		    srv_cmd == ECommand::UPLOAD_FILE) {
@@ -63,9 +70,9 @@ void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
 			}
 
 			EDataType e_datatype = static_cast<EDataType>(datatype);
-			async_read(m_socket, m_readbuf,
-				   boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(),
-				   srv_cmd, e_datatype, placeholders::error));
+			async_read_until(m_socket, m_readbuf, "\n",
+					 boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(),
+					 srv_cmd, e_datatype, placeholders::error));
 		}
 	}
 	else {
@@ -75,7 +82,7 @@ void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
 
 void CTCPConnection::handle_read_filename(ECommand command, EDataType datatype,
 					  const boost::system::error_code& ec) {
-	if (ec) {
+	if (ec && ec != error::eof) {
 		BOOST_LOG_TRIVIAL(error) << "handle_read_filename: " + ec.message();
 		m_readbuf.consume(m_readbuf.size());
 		return;
@@ -166,7 +173,6 @@ CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
 }
 
 int CDaemon::start() {
-	CServer server(*(m_io_service.get()));
 	signal_set signals(*(m_io_service.get()), SIGINT, SIGTERM);
 	signals.async_wait(boost::bind(&io_service::stop, m_io_service));
 	m_io_service->notify_fork(io_service::fork_prepare);
@@ -203,7 +209,9 @@ int CDaemon::start() {
 	}
 
 	m_io_service->notify_fork(io_service::fork_child);
+
 	BOOST_LOG_TRIVIAL(info) << "CDaemon::start(): daemon started.";
+	CServer server(*(m_io_service.get()));
 	m_io_service->run();
 	BOOST_LOG_TRIVIAL(info) << "CDaemon::start(): daemon stopped.";
 
