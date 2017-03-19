@@ -9,10 +9,10 @@ class TestFileOperations(unittest.TestCase):
         cls.client = wrapper.CClient('127.0.0.1', 34567,
                                       '/home/maked0n/frtp/')
     def test_getbyname(self):
-        self.client.get_file('AFLT/test_info.csv', 'AFLT/test_info.csv',
-                             'SHARES')
-        all_ok = self.client.check_integrity('AFLT/test_info.csv',
-                                             'AFLT/test_info.csv',
+        self.client.get_file('AFLT/test_data.csv', 'AFLT/test_data.csv',
+                             'SHARES', True)
+        all_ok = self.client.check_integrity('AFLT/test_data.csv',
+                                             'AFLT/test_data.csv',
                                              'SHARES')
         self.assertTrue(all_ok)
 
@@ -20,7 +20,7 @@ class TestFileOperations(unittest.TestCase):
         with self.assertRaises(ExNoFile):
             self.client.get_file('AFLT/nonexistent.file',
                                  'AFLT/nonexistent.file',
-                                 'SHARES')
+                                 'SHARES', True)
 
     def test_sendbyname(self):
         self.client.upload_file('test_send', 'SHARES')
@@ -40,7 +40,7 @@ class TestFileOperations(unittest.TestCase):
                                              datetime.date(2015, 8, 10),
                                              'SHARES', 'AFLT')
         try:
-            self.client.get_info(converter)
+            self.client.get_info(converter, force=True)
         except ExInvalidMD5:
             self.fail("Invalid MD5")
 
