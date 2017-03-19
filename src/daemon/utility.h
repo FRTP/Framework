@@ -33,12 +33,7 @@ namespace utility {
 	enum class EDataType {
 		SHARES,
 		TWITTER,
-#ifdef TESTING
-		TEST,
-		MAX_VAL = TEST
-#else
 		MAX_VAL = TWITTER
-#endif
 	};
 
 	std::string get_text_error(EError error);

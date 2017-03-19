@@ -8,9 +8,7 @@ class ExInvalidMD5(Exception):
     def __init__(self):
         Exception.__init__(self)
 
-DATA_TYPES = {'SHARES': 0,
-              'TWITTER': 1,
-              'test_data': 2}
+DATA_TYPES = {'SHARES': 0, 'TWITTER': 1}
 
 
 class IConverter(object):
@@ -70,14 +68,14 @@ class CClient(object):
         l_arg = [filename, newfilename, str(force)]
         cmd = lib.LibCommandFactory.create_command(cmd_id="GetFile",
                                                    args=l_arg)
-        lib.LibClient.invoke(context=self.context, command=cmd,
-                             datatype=DATA_TYPES[data_type])
+        return lib.LibClient.invoke(context=self.context, command=cmd,
+                                    datatype=DATA_TYPES[data_type])
 
     def upload_file(self, filename, data_type):
         cmd = lib.LibCommandFactory.create_command(cmd_id="UploadFile",
                                                    args=[filename])
-        lib.LibClient.invoke(connect=self.context, command=cmd,
-                             datatype=DATA_TYPES[data_type])
+        return lib.LibClient.invoke(connect=self.context, command=cmd,
+                                    datatype=DATA_TYPES[data_type])
 
     def get_md5(self, srv_filename, data_type):
         cmd = lib.LibCommandFactory.create_command(cmd_id="GetMD5",

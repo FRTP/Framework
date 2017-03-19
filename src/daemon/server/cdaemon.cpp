@@ -5,9 +5,6 @@ CServer::CServer(io_service& io_service)
 
 	CDataTypeFactory::register_type<CDataTypeShares>(EDataType::SHARES);
 	CDataTypeFactory::register_type<CDataTypeTwitter>(EDataType::TWITTER);
-#ifdef TESTING
-	CDataTypeFactory::register_type<CDataTypeTest>(EDataType::TEST);
-#endif
 
 	_start_accept();	
 }
