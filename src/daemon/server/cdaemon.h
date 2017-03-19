@@ -13,7 +13,9 @@
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/log/attributes.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
@@ -28,6 +30,8 @@
 
 namespace fs = boost::filesystem;
 namespace logging = boost::log;
+namespace keywords = boost::log::keywords;
+namespace attrs = boost::log::attributes;
 using namespace boost::asio;
 using namespace datatypes;
 using namespace utility;

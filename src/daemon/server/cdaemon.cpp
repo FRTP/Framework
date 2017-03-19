@@ -153,7 +153,16 @@ CTCPConnection::conn_ptr CTCPConnection::create(io_service& io_service) {
 
 CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
 	CSettings::set_working_dir("/var/frtp/");
-	logging::add_file_log(parser.logname());
+
+	boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
+	logging::add_file_log(
+			keywords::file_name = parser.logname(),
+			keywords::auto_flush = true,
+			keywords::open_mode = (std::ios::out | std::ios::app),
+			keywords::format = "%TimeStamp% [%Uptime%] (%LineID%) <%Severity%>: %Message%"
+			);
+	logging::add_common_attributes();
+	logging::core::get()->add_global_attribute("Uptime", attrs::timer());
 }
 
 int CDaemon::start() {
