@@ -64,7 +64,7 @@ template<>
 inline EError CContext::socket_write<std::string>(const std::string& msg) {
 	boost::system::error_code error;
 	std::ostream out(&m_writebuf);
-	out << msg << std::endl;
+	out << msg << " " << std::endl;
 	write(m_socket, m_writebuf, error);
 	m_writebuf.consume(m_writebuf.size());
 	if (error) {
