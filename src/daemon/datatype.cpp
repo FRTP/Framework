@@ -36,19 +36,19 @@ bool CDataTypeShares::success() const {
 	return m_success;
 }
 
-EError CDataTypeShares::write_data(const std::vector<char>& input) const {
+EError CDataTypeShares::write_data(std::vector<char>::iterator begin,
+				   std::vector<char>::iterator end) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ofstream file(full_path, std::ios::binary);
 	if (!file) {
 		return EError::OPEN_ERROR;
 	}
 
-	if (!file.write(input.data(), input.size())) {
-		file.close();
-		return EError::WRITE_ERROR;
+	while (begin != end) {
+		file << *begin;
 	}
-
 	file.close();
+
 	return EError::OK;
 }
 	
@@ -85,18 +85,18 @@ bool CDataTypeTwitter::success() const {
 	return m_success;
 }
 
-EError CDataTypeTwitter::write_data(const std::vector<char>& input) const {
+EError CDataTypeTwitter::write_data(std::vector<char>::iterator begin,
+				    std::vector<char>::iterator end) const {
 	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 	std::ofstream file(full_path, std::ios::binary);
 	if (!file) {
 		return EError::OPEN_ERROR;
 	}
 
-	if (!file.write(input.data(), input.size())) {
-		file.close();
-		return EError::WRITE_ERROR;
+	while (begin != end) {
+		file << *begin;
 	}
-
 	file.close();
+
 	return EError::OK;
 }

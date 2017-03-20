@@ -16,7 +16,8 @@ namespace datatypes {
 	class IDataType {
 		public:
 			virtual EError get_data(std::vector<char>& output) const = 0;
-			virtual EError write_data(const std::vector<char>& input) const = 0;
+			virtual EError write_data(std::vector<char>::iterator begin,
+						  std::vector<char>::iterator end) const = 0;
 			virtual bool success() const = 0;
 			virtual ~IDataType() {}
 	};
@@ -30,7 +31,8 @@ namespace datatypes {
 		public:
 			CDataTypeShares(const std::list<std::string>& args);
 			virtual EError get_data(std::vector<char>& output) const;
-			virtual EError write_data(const std::vector<char>& input) const;
+			virtual EError write_data(std::vector<char>::iterator begin,
+						  std::vector<char>::iterator end) const;
 			virtual bool success() const;
 			virtual ~CDataTypeShares() {}
 	};
@@ -44,7 +46,8 @@ namespace datatypes {
 		public:
 			CDataTypeTwitter(const std::list<std::string>& args);
 			virtual EError get_data(std::vector<char>& output) const;
-			virtual EError write_data(const std::vector<char>& input) const;
+			virtual EError write_data(std::vector<char>::iterator begin,
+						  std::vector<char>::iterator end) const;
 			virtual bool success() const;
 			virtual ~CDataTypeTwitter() {}
 	};
