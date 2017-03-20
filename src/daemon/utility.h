@@ -103,6 +103,19 @@ namespace utility {
 		private:
 			typedef std::map<std::string, IAbstractCommandCreator*> factory_map;
 			static factory_map m_factory;
+
+			static std::string _cmd_to_string(ECommand cmd) {
+				switch (cmd) {
+					case ECommand::FEEDBACK:
+						return "Feedback";
+					case ECommand::UPLOAD_FILE:
+						return "UploadFile";
+					case ECommand::GET_MD5:
+						return "GetMD5";
+					case ECommand::GET_FILE:
+						return "GetFile";
+				}
+			}
 		public:
 			template<class T>
 			static void add(const std::string& id) {
@@ -111,6 +124,16 @@ namespace utility {
 					m_factory[id] = new CCommandCreator<T>();
 				}
 			}
+
+			template<class T>
+			static void add(ECommand cmd) {
+				std::string id = _cmd_to_string(cmd);
+				auto it = m_factory.find(id);
+				if (it == m_factory.end()) {
+					m_factory[id] = new CCommandCreator<T>();
+				}
+			}
+
 			static ICommand* create(const std::string& id, boost::python::list args) {
 				auto it = m_factory.find(id);
 				if (it != m_factory.end()) {
@@ -120,8 +143,17 @@ namespace utility {
 					}
 					return it->second->create(arguments);
 				}
-				return 0;
+				return NULL;
 			}
+
+			static ICommand* create(ECommand command, const std::list<std::string>& args) {
+				auto it = m_factory.find(_cmd_to_string(command));
+				if (it != m_factory.end()) {
+					return it->second->create(args);
+				}
+				return NULL;
+			}
+
 			~CCommandFactory() {
 				for (auto it = m_factory.begin(); it != m_factory.end(); ++it) {
 					if (it->second) {
