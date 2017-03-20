@@ -159,4 +159,13 @@ namespace utility {
 
 	std::vector<char>& CMessage::data() {
 		return m_data;
+	}
+
+	std::vector<char>::iterator CMessage::data_begin() {
+		return m_data.begin();
+	}
+
+	std::vector<char>::iterator CMessage::data_end() {
+		return m_data.end();
+	}
 };

@@ -75,6 +75,8 @@ namespace utility {
 			ECommand command() const;
 			EDataType datatype() const;
 			std::vector<char>& data();
+			std::vector<char>::iterator data_begin();
+			std::vector<char>::iterator data_end();
 	};
 
 	class ICommand {
@@ -146,10 +148,10 @@ namespace utility {
 				return NULL;
 			}
 
-			static ICommand* create(ECommand command, const std::list<std::string>& args) {
-				auto it = m_factory.find(_cmd_to_string(command));
+			static ICommand* create(const CMessage& msg) {
+				auto it = m_factory.find(_cmd_to_string(msg.command()));
 				if (it != m_factory.end()) {
-					return it->second->create(args);
+					return it->second->create(msg);
 				}
 				return NULL;
 			}
