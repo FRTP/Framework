@@ -17,6 +17,7 @@ namespace utility {
 	typedef boost::shared_ptr<md5sum> md5sum_ptr;
 
 	enum class ECommand {
+		FEEDBACK,
 		GET_FILE,
 		GET_MD5,
 		UPLOAD_FILE,
@@ -31,11 +32,13 @@ namespace utility {
 		SOCKET_ERROR,
 		UNKNOWN_COMMAND,
 		UNKNOWN_DATATYPE,
+		CORRUPTED_MESSAGE,
 		UNKNOWN_ERROR,
 		MAX_VAL = UNKNOWN_ERROR
 	};
 
 	enum class EDataType {
+		ERROR_CODE,
 		SHARES,
 		TWITTER,
 		MAX_VAL = TWITTER
@@ -58,16 +61,18 @@ namespace utility {
 		private:
 			ECommand m_cmd;
 			EDataType m_datatype;
-			unsigned int m_datasize;
 			std::vector<char> m_data;
 			md5sum m_hash;
+
+			void _calculate_hash();
 		public:
 			CMessage();
-			CMessage(ECommand cmd, EDataType datatype, unsigned int datasize, const std::vector<char>& data, 
-				 const md5sum& hash);
+			CMessage(ECommand cmd, EDataType datatype, const std::vector<char>& data);
 			void to_streambuf(boost::asio::streambuf& buffer) const;
 			EError from_streambuf(boost::asio::streambuf& buffer);
-			bool check_integrity(md5sum_ptr etalon_md5) const;
+			ECommand command() const;
+			EDataType datatype() const;
+			std::vector<char>& data();
 	};
 };
 

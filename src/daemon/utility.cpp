@@ -27,6 +27,9 @@ namespace utility {
 			case EError::UNKNOWN_DATATYPE:
 				res = "Unknown data type";
 				break;
+			case EError::CORRUPTED_MESSAGE:
+				res = "Corrupted message";
+				break;
 			case EError::UNKNOWN_ERROR:
 				res = "Unknown error";
 				break;
@@ -76,13 +79,28 @@ namespace utility {
 		return m_working_dir;
 	}
 
-	CMessage::CMessage(ECommand cmd, EDataType datatype, unsigned int datasize, const std::vector<char>& data,
-			   const md5sum& hash) : m_cmd(cmd), m_datatype(datatype), m_datasize(datasize),
-						 m_data(data), m_hash(hash) {}
+	CMessage::CMessage(ECommand cmd, EDataType datatype, const std::vector<char>& data)
+		: m_cmd(cmd), m_datatype(datatype), m_data(data) {
+		_get_hash();
+	}
+
+	void CMessage::_calculate_hash() {
+		//dirty hack to calculate md5 from all packet fields together without excessive copying of the data field
+		m_data.reserve(m_data.size() + 2);
+		m_data.push_back(static_cast<char>(m_cmd));
+		m_data.push_back(static_cast<char>(m_datatype));
+
+		MD5((unsigned char*)&m_data[0], m_data.size(), m_hash->data());
+
+		//clean m_data after the dirty hack
+		m_data.pop_back();
+		m_data.pop_back();
+		m_data.shrink_to_fit();
+	}
 
 	void CMessage::to_streambuf(boost::asio::streambuf& buffer) const {
 		std::ostream out(&buffer);
-		out << static_cast<int>(m_cmd) << " " << static_cast<int>(m_datatype) << " " << m_datasize;
+		out << static_cast<int>(m_cmd) << " " << static_cast<int>(m_datatype) << " " << m_data.size();
 		for (auto i : m_data) {
 			out << i << " ";
 		}
@@ -106,28 +124,35 @@ namespace utility {
 
 		m_cmd = static_cast<ECommand>(i_cmd);
 		m_datatype = static_cast<EDataType>(i_datatype);
-		in >> m_datasize;
-		m_data.resize(m_datasize);
+		unsigned int datasize = 0;
+		in >> datasize;
+		m_data.resize(datasize);
 
 		char tmp_char;
-		for (unsigned int i = 0; i < m_datasize; ++i) {
+		for (unsigned int i = 0; i < datasize; ++i) {
 			in >> tmp_char;
 			m_data.push_back(tmp_char);
 		}
+		_get_hash();
+
 		char tmp_unsigned_char;
 		for (unsigned int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
 			in >> tmp_unsigned_char;
-			m_hash[i] = tmp_unsigned_char;
+			if (m_hash[i] != tmp_unsigned_char) {
+				return EError::CORRUPTED_MESSAGE;
+			}
 		}
 		return EError::OK;
 	}
 
-	bool CMessage::check_integrity(md5sum_ptr etalon_md5) const {
-		for (unsigned int i = 0; i , MD5_DIGEST_LENGTH; ++i) {
-			if (m_hash[i] != (*etalon_md5)[i]) {
-				return false;
-			}
-		}
-		return true;
+	ECommand CMessage::command() const {
+		return m_cmd;
 	}
+
+	EDataType CMessage::datatype() const {
+		return m_datatype;
+	}
+
+	std::vector<char>& CMessage::data() {
+		return m_data;
 };
