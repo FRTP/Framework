@@ -2,6 +2,7 @@
 #define UTILITY_H
 
 #include <boost/array.hpp>
+#include <boost/asio/streambuf.hpp>
 #include <boost/format.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
@@ -9,6 +10,7 @@
 #include <openssl/md5.h>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace utility {
 	typedef boost::array<unsigned char, MD5_DIGEST_LENGTH> md5sum;
@@ -17,7 +19,8 @@ namespace utility {
 	enum class ECommand {
 		GET_FILE,
 		GET_MD5,
-		UPLOAD_FILE
+		UPLOAD_FILE,
+		MAX_VAL = UPLOAD_FILE
 	};
 
 	enum class EError {
@@ -26,6 +29,8 @@ namespace utility {
 		OPEN_ERROR,
 		WRITE_ERROR,
 		SOCKET_ERROR,
+		UNKNOWN_COMMAND,
+		UNKNOWN_DATATYPE,
 		UNKNOWN_ERROR,
 		MAX_VAL = UNKNOWN_ERROR
 	};
@@ -47,6 +52,22 @@ namespace utility {
 		public:
 			static void set_working_dir(const std::string& working_dir);
 			static std::string working_dir();
+	};
+
+	class CMessage {
+		private:
+			ECommand m_cmd;
+			EDataType m_datatype;
+			unsigned int m_datasize;
+			std::vector<char> m_data;
+			md5sum m_hash;
+		public:
+			CMessage();
+			CMessage(ECommand cmd, EDataType datatype, unsigned int datasize, const std::vector<char>& data, 
+				 const md5sum& hash);
+			void to_streambuf(boost::asio::streambuf& buffer) const;
+			EError from_streambuf(boost::asio::streambuf& buffer);
+			bool check_integrity(md5sum_ptr etalon_md5) const;
 	};
 };
 
