@@ -48,18 +48,12 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 		explicit CTCPConnection(io_service& io_service) : m_socket(io_service),
 								  m_in(&m_readbuf),
 								  m_out(&m_writebuf) {}
-		template<class T>
-		void _send_container(T data_buf) {
-			for (auto i : data_buf) {
-				m_out << i;
-			}
-			m_out << std::endl;
-		}
+
+		void _process_message(boost::shared_ptr<CMessage> msg);
+		void _send_feedback(EError error);
 	public:
 		typedef boost::shared_ptr<CTCPConnection> conn_ptr;
-		void handle_read_command(const boost::system::error_code& ec);
-		void handle_read_filename(ECommand command, EDataType datatype, const boost::system::error_code& ec);
-		void handle_transfer_file(IDataType* datatype_instance, const boost::system::error_code& ec);
+		void handle_recv_message(const boost::system::error_code& ec);
 		void handle_write_response(const boost::system::error_code& ec);
 		static conn_ptr create(io_service& io_service);
 

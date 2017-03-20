@@ -6,6 +6,10 @@ CServer::CServer(io_service& io_service)
 	CDataTypeFactory::register_type<CDataTypeShares>(EDataType::SHARES);
 	CDataTypeFactory::register_type<CDataTypeTwitter>(EDataType::TWITTER);
 
+	CCommandFactory::add<CCmdGetFile>(ECommand::GET_FILE);
+	CCommandFactory::add<CCmdGetMD5>(ECommand::GET_MD5);
+	CCommandFactory::add<CCmdUploadFile>(ECommand::UPLOAD_FILE);
+
 	_start_accept();	
 }
 
@@ -31,122 +35,48 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 	_start_accept();
 }
 
-void CTCPConnection::handle_read_command(const boost::system::error_code& ec) {
+void CTCPConnection::_send_feedback(EError error) {
+	BOOST_LOG_TRIVIAL(info) << "Sending feedback...";
+	std::vector<char> payload({ static_cast<char>(error) });
+	CMessage feedback(ECommand::FEEDBACK, EDataType::ERROR_CODE, payload);
+	feedback.to_streambuf(m_writebuf);
+	async_write(m_socket, m_writebuf,
+		    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
+		    placeholders::error));
+}
+
+void CTCPConnection::handle_recv_message(const boost::system::error_code& ec) {
 	if (!ec || ec == error::eof) {
-		BOOST_LOG_TRIVIAL(info) << "Processing incoming buffer...";
-
-		int srv_cmd_int = -1;
-		int filename_size = -1;
-		int datatype = -1;
-
-		m_in >> srv_cmd_int >> filename_size >> datatype;
+		BOOST_LOG_TRIVIAL(info) << "Processing incoming message...";
+		boost::shared_ptr<CMessage> msg(new CMessage);
+		EError ret = msg->from_streambuf(m_readbuf);
 		m_readbuf.consume(m_readbuf.size());
-
-		ECommand srv_cmd = static_cast<ECommand>(srv_cmd_int);
-		if (srv_cmd == ECommand::GET_FILE ||
-		    srv_cmd == ECommand::GET_MD5 ||
-		    srv_cmd == ECommand::UPLOAD_FILE) {
-			std::string s_cmd;
-			switch (srv_cmd) {
-				case ECommand::GET_FILE:
-					s_cmd = "GET_FILE";
-					break;
-				case ECommand::GET_MD5:
-					s_cmd = "GET_MD5";
-					break;
-				case ECommand::UPLOAD_FILE:
-					s_cmd = "UPLOAD_FILE";
-					break;
-			}
-			BOOST_LOG_TRIVIAL(info) << "Trying to process " + s_cmd + " command";
-
-			if (filename_size < 0) {
-				BOOST_LOG_TRIVIAL(error) << "handle_read_command: Invalid buffer size";
-				return;
-			}
-			if (datatype < 0 || datatype > static_cast<int>(EDataType::MAX_VAL)) {
-				BOOST_LOG_TRIVIAL(error) << "handle_read_command: Invalid data type";
-				return;
-			}
-
-			EDataType e_datatype = static_cast<EDataType>(datatype);
-			async_read_until(m_socket, m_readbuf, "\n",
-					 boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(),
-					 srv_cmd, e_datatype, placeholders::error));
+		if (ret != EError::OK) {
+			BOOST_LOG_TRIVIAL(warning) << get_text_error(ret);
+			_send_feedback(ret);
+			return;
 		}
+		_process_message(msg);
 	}
 	else {
-		BOOST_LOG_TRIVIAL(error) << "handle_read_command: " + ec.message();
+		BOOST_LOG_TRIVIAL(error) << "handle_recv_message: " + ec.message();
 	}
 }
 
-void CTCPConnection::handle_read_filename(ECommand command, EDataType datatype,
-					  const boost::system::error_code& ec) {
-	if (ec && ec != error::eof) {
-		BOOST_LOG_TRIVIAL(error) << "handle_read_filename: " + ec.message();
-		m_readbuf.consume(m_readbuf.size());
+void CTCPConnection::_process_message(boost::shared_ptr<CMessage> msg) {
+	auto cmd = CCommandFactory::create(*msg);
+	if (cmd == NULL) {
+		_send_feedback(EError::UNKNOWN_COMMAND);
 		return;
 	}
-	BOOST_LOG_TRIVIAL(info) << "Reading filename...";
-	std::string filename;
-	m_in >> filename;
-	m_readbuf.consume(m_readbuf.size());
-
-	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ filename }));
-	if (!datatype_instance->success()) {
-		BOOST_LOG_TRIVIAL(error) << "Ivalid argument list for data type instance";
-		m_readbuf.consume(m_readbuf.size());
-		return;
+	cmd->extract_args_from_message(*msg);
+	EError ret = cmd->invoke(m_context, msg->datatype());
+	if (ret != EError::OK) {
+		m_context->async_send_feedback(ret);
 	}
-
-	std::vector<char> data_buf;
-	EError ret;
-	switch (command) {
-		case ECommand::GET_FILE:
-			BOOST_LOG_TRIVIAL(info) << "Reading file...";
-			if ((ret = datatype_instance->get_data(data_buf)) != EError::OK) {
-				BOOST_LOG_TRIVIAL(warning) << "Unable to read file " + filename;
-				delete datatype_instance;
-				m_readbuf.consume(m_readbuf.size());
-				m_out << static_cast<int>(ret) << std::endl;
-
-				async_write(m_socket, m_writebuf,
-					    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
-					    placeholders::error));
-				return;
-			}
-			delete datatype_instance;
-			_send_container<std::vector<char>>(data_buf);
-			BOOST_LOG_TRIVIAL(info) << "Sending file...";
-			async_write(m_socket, m_writebuf,
-				    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
-				    placeholders::error));
-			break;
-		case ECommand::GET_MD5:
-			_send_container<md5sum>(*(calculate_md5(filename)));
-			BOOST_LOG_TRIVIAL(info) << "Sending MD5...";
-			async_write(m_socket, m_writebuf,
-				    boost::bind(&CTCPConnection::handle_write_response, shared_from_this(),
-				    placeholders::error));
-			break;
-		case ECommand::UPLOAD_FILE:
-			async_read_until(m_socket, m_readbuf, '\n',
-					 boost::bind(&CTCPConnection::handle_transfer_file, shared_from_this(),
-					 datatype_instance, placeholders::error));
-			break;
-
+	if (cmd) {
+		delete cmd;
 	}
-}
-
-void CTCPConnection::handle_transfer_file(IDataType* datatype_instance, const boost::system::error_code& ec) {
-	if (ec && ec != error::eof) {
-		BOOST_LOG_TRIVIAL(error) << "handle_transfer_file: " + ec.message();
-		return;
-	}
-	const char* data = buffer_cast<const char*>(m_readbuf.data());
-	datatype_instance->write_data(std::vector<char>(data, data + m_readbuf.size()));
-	m_readbuf.consume(m_readbuf.size());
-	delete datatype_instance;
 }
 
 void CTCPConnection::handle_write_response(const boost::system::error_code& ec) {
