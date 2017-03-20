@@ -27,6 +27,9 @@ namespace utility {
 			case EError::UNKNOWN_DATATYPE:
 				res = "Unknown data type";
 				break;
+			case EError::INTERNAL_ERROR:
+				res = "Internal error";
+				break;
 			case EError::CORRUPTED_MESSAGE:
 				res = "Corrupted message";
 				break;
