@@ -111,6 +111,7 @@ namespace utility {
 		for (auto i : m_hash) {
 			out << i << " ";
 		}
+		out << MESSAGE_ENDING;
 	}
 
 	EError CMessage::from_streambuf(boost::asio::streambuf& buffer) {

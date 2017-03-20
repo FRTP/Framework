@@ -68,6 +68,7 @@ namespace utility {
 
 			void _calculate_hash();
 		public:
+			static constexpr const char* MESSAGE_ENDING = "\r\n\r\n";
 			CMessage();
 			CMessage(ECommand cmd, EDataType datatype, const std::vector<char>& data);
 			void to_streambuf(boost::asio::streambuf& buffer) const;
