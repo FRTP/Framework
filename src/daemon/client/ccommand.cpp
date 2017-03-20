@@ -1,7 +1,5 @@
 #include "ccommand.h"
 
-std::map<std::string, IAbstractCommandCreator*> CCommandFactory::m_factory;
-
 CCmdGetFile::CCmdGetFile(const std::list<std::string>& args) {
 	if (args.size() != EXPECTED_ARGS_NUM) {
 		throw ExInvalidArgs("Invalid number of arguments", "CCmdGetFile::CCmdGetFile()");

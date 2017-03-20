@@ -1,6 +1,7 @@
 #include "utility.h"
 
 namespace utility {
+	std::map<std::string, IAbstractCommandCreator*> CCommandFactory::m_factory;
 	std::string CSettings::m_working_dir;
 
 	std::string get_text_error(EError error) {
