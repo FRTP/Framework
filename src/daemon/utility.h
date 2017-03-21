@@ -4,14 +4,18 @@
 #include <boost/array.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/format.hpp>
+#include <boost/python.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <iostream>
 #include <list>
+#include <map>
 #include <openssl/md5.h>
 #include <sstream>
 #include <string>
 #include <vector>
+
+class CContext;
 
 namespace utility {
 	typedef boost::array<unsigned char, MD5_DIGEST_LENGTH> md5sum;
@@ -75,9 +79,9 @@ namespace utility {
 			EError from_streambuf(boost::asio::streambuf& buffer);
 			ECommand command() const;
 			EDataType datatype() const;
-			std::vector<char>& data();
-			std::vector<char>::iterator data_begin();
-			std::vector<char>::iterator data_end();
+			const std::vector<char>& data() const;
+			std::vector<char>::const_iterator data_begin() const;
+			std::vector<char>::const_iterator data_end() const;
 	};
 
 	class ICommand {
@@ -90,6 +94,7 @@ namespace utility {
 	class IAbstractCommandCreator {
 		public:
 			virtual ICommand* create(const std::list<std::string>& args) const = 0;
+			virtual ICommand* create(const CMessage& msg) const = 0;
 			virtual ~IAbstractCommandCreator() {}
 	};
 
@@ -99,6 +104,11 @@ namespace utility {
 			virtual ICommand* create(const std::list<std::string>& args) const {
 				return new T(args);
 			}
+
+			virtual ICommand* create(const CMessage& msg) const {
+				return new T(msg);
+			}
+
 			virtual ~CCommandCreator() {}
 	};
 
@@ -117,6 +127,8 @@ namespace utility {
 						return "GetMD5";
 					case ECommand::GET_FILE:
 						return "GetFile";
+					default:
+						return "";
 				}
 			}
 		public:
