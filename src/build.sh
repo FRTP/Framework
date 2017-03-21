@@ -36,7 +36,8 @@ do
 					|| [ $OPTARG = "client" ] || [ $OPTARG = "clean" ] \
 					|| [ $OPTARG = "all" ]; then
 						TARGET="$OPTARG"
-						if [ $TARGET = "client" ] || [ $TARGET = "daemon" ] || [ $TARGET = "all" ]; then
+						if [ $TARGET = "client" ] || [ $TARGET = "daemon" ] \
+						|| [ $TARGET = "server" ] || [ $TARGET = "all" ]; then
 							PYTHON_PATH="$(find /usr/include -name pyconfig.h -printf "%h\n" | head -1)/"
 							echo Using python directory $PYTHON_PATH
 							ADDITIONAL_CFLAGS="-I$PYTHON_PATH"
