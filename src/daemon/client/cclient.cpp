@@ -1,8 +1,6 @@
 #include "cclient.h"
 
-CClient::CClient(const std::string& server, int port, const std::string& working_dir) {
-	m_server = server;
-	m_port = port;
+CClient::CClient(const std::string& working_dir) {
 	m_io_service = boost::shared_ptr<io_service>(new io_service());
 
 	CCommandFactory::add<CCmdGetFile>("GetFile");
@@ -13,14 +11,14 @@ CClient::CClient(const std::string& server, int port, const std::string& working
 }
 
 CContext* CClient::create_context() {
-	CContext* context = new CContext(m_server, m_port, m_io_service);
+	CContext* context = new CContext(*m_io_service);
 	m_io_service->run();
 	return context;
 }
 
-void CClient::connect(CContext* context) {
+void CClient::connect(CContext* context, const std::string& server, int port) {
 	boost::system::error_code error;
-	context->connect(error);
+	context->socket().connect(ip::tcp::endpoint(ip::address::from_string(server.c_str()), port), error);
 	if (error) {
 		throw ExConnectionProblem("Connection error: " + error.message(), "CClient::connect()");
 	}
@@ -55,17 +53,16 @@ std::string CClient::get_hash(CCmdGetMD5* cmd) {
 
 bool CClient::check_integrity(CContext* context, const std::string& srv_filename,
 			      const std::string& cli_filename, int datatype) {
-	CCmdGetMD5* cmd = new CCmdGetMD5(std::list<std::string>({ srv_filename }));
-	invoke(context, cmd, datatype);
+	boost::shared_ptr<CCmdGetMD5> cmd = boost::shared_ptr<CCmdGetMD5>(new CCmdGetMD5(std::list<std::string>({ srv_filename })));
+	invoke(context, cmd.get(), datatype);
 	md5sum_ptr srv_md5_hash = cmd->hash();
-	delete cmd;
 
-	std::string full_path(CSettings::working_dir() + get_data_type_dir(static_cast<EDataType>(datatype)) +
-			      "/" + cli_filename);
+	std::string full_path(CSettings::working_dir() + get_data_type_dir(static_cast<EDataType>(datatype)) + "/" + cli_filename);
 	md5sum_ptr cli_md5_hash = calculate_md5(full_path);
-	if (srv_md5_hash != cli_md5_hash) {
-		return false;
+	for (unsigned int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
+		if ((*srv_md5_hash)[i] != (*cli_md5_hash)[i]) {
+			return false;
+		}
 	}
-
 	return true;
 }
