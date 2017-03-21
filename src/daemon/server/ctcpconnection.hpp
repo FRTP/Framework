@@ -33,6 +33,7 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 			: m_context(io_srvs) {}
 
 		void handle_recv_message(const boost::system::error_code& ec) {
+			BOOST_LOG_TRIVIAL(info) << "Receiving message...";
 			if (!ec || ec == error::eof) {
 				BOOST_LOG_TRIVIAL(info) << "Processing incoming message...";
 				boost::shared_ptr<CMessage> msg(new CMessage);
