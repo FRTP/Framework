@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "ccontext.hpp"
+#include "../ccontext.hpp"
 #include "../datatype.h"
 #include "exception.hpp"
 #include "../utility.h"
@@ -30,6 +30,7 @@ class CCmdGetFile : public ICommand {
 		bool m_force_update;
 	public:
 		explicit CCmdGetFile(const std::list<std::string>& args);
+		explicit CCmdGetFile(const CMessage& msg);
 		virtual ECommand type() const;
 		virtual EError invoke(CContext* context, EDataType datatype);
 		~CCmdGetFile() {}
@@ -42,6 +43,7 @@ class CCmdGetMD5 : public ICommand {
 		md5sum_ptr m_hash;
 	public:
 		explicit CCmdGetMD5(const std::list<std::string>& args);
+		explicit CCmdGetMD5(const CMessage& msg);
 		virtual ECommand type() const;
 		virtual EError invoke(CContext* context, EDataType datatype);
 		md5sum_ptr hash() const;
@@ -54,6 +56,7 @@ class CCmdUploadFile : public ICommand {
 		std::string m_filename;
 	public:
 		explicit CCmdUploadFile(const std::list<std::string>& args);
+		explicit CCmdUploadFile(const CMessage& msg);
 		virtual ECommand type() const;
 		virtual EError invoke(CContext* context, EDataType datatype);
 		~CCmdUploadFile() {}
