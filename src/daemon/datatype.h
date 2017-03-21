@@ -16,9 +16,11 @@ namespace datatypes {
 	class IDataType {
 		public:
 			virtual EError get_data(std::vector<char>& output) const = 0;
-			virtual EError write_data(std::vector<char>::iterator begin,
-						  std::vector<char>::iterator end) const = 0;
+			virtual EError append_data(std::vector<char>& output) const = 0;
+			virtual EError write_data(std::vector<char>::const_iterator begin,
+						  std::vector<char>::const_iterator end) const = 0;
 			virtual bool success() const = 0;
+			virtual std::string full_path() const = 0;
 			virtual ~IDataType() {}
 	};
 
@@ -31,9 +33,11 @@ namespace datatypes {
 		public:
 			CDataTypeShares(const std::list<std::string>& args);
 			virtual EError get_data(std::vector<char>& output) const;
-			virtual EError write_data(std::vector<char>::iterator begin,
-						  std::vector<char>::iterator end) const;
+			virtual EError append_data(std::vector<char>& output) const;
+			virtual EError write_data(std::vector<char>::const_iterator begin,
+						  std::vector<char>::const_iterator end) const;
 			virtual bool success() const;
+			virtual std::string full_path() const;
 			virtual ~CDataTypeShares() {}
 	};
 
@@ -46,53 +50,49 @@ namespace datatypes {
 		public:
 			CDataTypeTwitter(const std::list<std::string>& args);
 			virtual EError get_data(std::vector<char>& output) const;
-			virtual EError write_data(std::vector<char>::iterator begin,
-						  std::vector<char>::iterator end) const;
+			virtual EError append_data(std::vector<char>& output) const;
+			virtual EError write_data(std::vector<char>::const_iterator begin,
+						  std::vector<char>::const_iterator end) const;
 			virtual bool success() const;
+			virtual std::string full_path() const;
 			virtual ~CDataTypeTwitter() {}
 	};
 
 	class IAbstractDataTypeCreator {
 		public:
-			virtual IDataType* create(const std::list<std::string>& args) const = 0;
+			virtual boost::shared_ptr<IDataType> create(const std::list<std::string>& args) const = 0;
 			virtual ~IAbstractDataTypeCreator() {}
 	};
 
 	template<class DataType>
 	class CDataTypeCreator : public IAbstractDataTypeCreator {
 		public:
-			virtual IDataType* create(const std::list<std::string>& args) const {
-				return new DataType(args);
+			virtual boost::shared_ptr<IDataType> create(const std::list<std::string>& args) const {
+				return boost::shared_ptr<IDataType>(new DataType(args));
 			}
 			virtual ~CDataTypeCreator() {}
 	};
 
 	class CDataTypeFactory {
 		private:
-			typedef std::map<EDataType, IAbstractDataTypeCreator*> types_map;
+			typedef std::map<EDataType, boost::shared_ptr<IAbstractDataTypeCreator>> types_map;
 			static types_map m_types;
 		public:
 			template<class DataType>
 			static void register_type(EDataType type) {
 				auto it = m_types.find(type);
 				if (it == m_types.end()) {
-					m_types[type] = new CDataTypeCreator<DataType>();  
+					m_types[type] = boost::shared_ptr<IAbstractDataTypeCreator>(new CDataTypeCreator<DataType>());
 				}
 			}
-			static IDataType* create(EDataType type, const std::list<std::string>& args) {
+			static boost::shared_ptr<IDataType> create(EDataType type, const std::list<std::string>& args) {
 				auto it = m_types.find(type);
 				if (it != m_types.end()) {
 					return it->second->create(args);
 				}
 				return 0;
 			}
-			~CDataTypeFactory() {
-				for (auto it = m_types.begin(); it != m_types.end(); ++it) {
-					if (it->second) {
-						delete it->second;
-					}
-				}
-			}
+			~CDataTypeFactory() {}
 	};
 }
 
