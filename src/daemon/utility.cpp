@@ -83,9 +83,12 @@ namespace utility {
 		return m_working_dir;
 	}
 
+	CMessage::CMessage() {
+	}
+
 	CMessage::CMessage(ECommand cmd, EDataType datatype, const std::vector<char>& data)
 		: m_cmd(cmd), m_datatype(datatype), m_data(data) {
-		_get_hash();
+		_calculate_hash();
 	}
 
 	void CMessage::_calculate_hash() {
@@ -94,7 +97,7 @@ namespace utility {
 		m_data.push_back(static_cast<char>(m_cmd));
 		m_data.push_back(static_cast<char>(m_datatype));
 
-		MD5((unsigned char*)&m_data[0], m_data.size(), m_hash->data());
+		MD5((unsigned char*)&m_data[0], m_data.size(), m_hash.data());
 
 		//clean m_data after the dirty hack
 		m_data.pop_back();
@@ -115,6 +118,7 @@ namespace utility {
 	}
 
 	EError CMessage::from_streambuf(boost::asio::streambuf& buffer) {
+		m_data.clear();
 		std::istream in(&buffer);
 		int i_cmd = -1;
 		int i_datatype = -1;
@@ -138,7 +142,7 @@ namespace utility {
 			in >> tmp_char;
 			m_data.push_back(tmp_char);
 		}
-		_get_hash();
+		_calculate_hash();
 
 		char tmp_unsigned_char;
 		for (unsigned int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
@@ -158,15 +162,15 @@ namespace utility {
 		return m_datatype;
 	}
 
-	std::vector<char>& CMessage::data() {
+	const std::vector<char>& CMessage::data() const {
 		return m_data;
 	}
 
-	std::vector<char>::iterator CMessage::data_begin() {
-		return m_data.begin();
+	std::vector<char>::const_iterator CMessage::data_begin() const {
+		return m_data.cbegin();
 	}
 
-	std::vector<char>::iterator CMessage::data_end() {
-		return m_data.end();
+	std::vector<char>::const_iterator CMessage::data_end() const {
+		return m_data.cend();
 	}
 };
