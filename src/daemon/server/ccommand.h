@@ -4,39 +4,59 @@
 #include <cassert>
 #include <vector>
 
+#include "../ccontext.hpp"
 #include "../datatype.h"
 #include "../utility.h"
 
-class CCmdGetFile : public ICommand {
-	private:
-		std::string m_filename;
-	public:
-		explicit CCmdGetFile(const CMessage& msg);
-		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype);
-		~CCmdGetFile() {}
-};
+using namespace datatypes;
 
-class CCmdGetMD5 : public ICommand {
-	private:
-		std::string m_filename;
-	public:
-		explicit CCmdGetMD5(const CMessage& msg);
-		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype);
-		~CCmdGetMD5() {}
-};
+namespace server_command {
+	class IServerCommand : public ICommand {
+		public:
+			virtual void set_callback(CContext::callback_type callback) = 0;
+			virtual ~IServerCommand() {}
+	};
 
-class CCmdUploadFile : public ICommand {
-	private:
-		std::string m_filename;
-		std::vector<char>::iterator m_data_begin;
-		std::vector<char>::iterator m_data_end;
-	public:
-		explicit CCmdUploadFile(const CMessage& msg);
-		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype);
-		~CCmdUploadFile() {}
-};
+	class CCmdGetFile : public IServerCommand {
+		private:
+			std::string m_filename;
+			CContext::callback_type m_callback;
+		public:
+			explicit CCmdGetFile(const CMessage& msg);
+			explicit CCmdGetFile(const std::list<std::string>& args);
+			virtual ECommand type() const;
+			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual void set_callback(CContext::callback_type  callback);
+			~CCmdGetFile() {}
+	};
+
+	class CCmdGetMD5 : public IServerCommand {
+		private:
+			std::string m_filename;
+			CContext::callback_type m_callback;
+		public:
+			explicit CCmdGetMD5(const CMessage& msg);
+			explicit CCmdGetMD5(const std::list<std::string>& args);
+			virtual ECommand type() const;
+			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual void set_callback(CContext::callback_type callback);
+			~CCmdGetMD5() {}
+	};
+
+	class CCmdUploadFile : public IServerCommand {
+		private:
+			std::string m_filename;
+			std::vector<char>::const_iterator m_data_begin;
+			std::vector<char>::const_iterator m_data_end;
+			CContext::callback_type m_callback;
+		public:
+			explicit CCmdUploadFile(const CMessage& msg);
+			explicit CCmdUploadFile(const std::list<std::string>& args);
+			virtual ECommand type() const;
+			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual void set_callback(CContext::callback_type callback);
+			~CCmdUploadFile() {}
+	};
+}
 
 #endif //CCOMMAND_H
