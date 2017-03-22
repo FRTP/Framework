@@ -57,29 +57,28 @@ class CClient(object):
     def __init__(self, srv_address, srv_port, working_dir):
         if working_dir[-1] != "/":
             working_dir += str("/")
-        self.client = lib.LibClient(server=srv_address, port=srv_port,
-                                    workingdir=working_dir)
+        self.client = lib.LibClient(workingdir=working_dir)
         self.context = self.client.create_context()
-        lib.LibClient.connect(context=self.context)
+        lib.LibClient.connect(server=srv_address, port=srv_port,
+                              context=self.context)
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
 
     def get_file(self, filename, newfilename, data_type, force=False):
         l_arg = [filename, newfilename, str(force)]
-        cmd = lib.LibCommandFactory.create_command(cmd_id="GetFile",
-                                                   args=l_arg)
+        cmd = lib.LibCommandFactory.create_command("GetFile", l_arg)
         lib.LibClient.invoke(context=self.context, command=cmd,
                              datatype=DATA_TYPES[data_type])
 
     def upload_file(self, filename, data_type):
-        cmd = lib.LibCommandFactory.create_command(cmd_id="UploadFile",
+        cmd = lib.LibCommandFactory.create_command("UploadFile",
                                                    args=[filename])
         lib.LibClient.invoke(context=self.context, command=cmd,
                              datatype=DATA_TYPES[data_type])
 
     def get_md5(self, srv_filename, data_type):
-        cmd = lib.LibCommandFactory.create_command(cmd_id="GetMD5",
-                                                   args=[srv_filename])
+        cmd = lib.LibCommandFactory.create_command("GetMD5",
+                                                   [srv_filename])
         lib.LibClient.invoke(context=self.context, command=cmd,
                              datatype=DATA_TYPES[data_type])
         return CClient.get_hash(cmd)
