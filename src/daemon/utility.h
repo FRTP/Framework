@@ -44,10 +44,10 @@ namespace utility {
 	};
 
 	enum class EDataType {
-		ERROR_CODE,
 		SHARES,
 		TWITTER,
-		MAX_VAL = TWITTER
+		ERROR_CODE,
+		MAX_VAL = ERROR_CODE
 	};
 
 	std::string get_text_error(EError error);
