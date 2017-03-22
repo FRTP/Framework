@@ -7,6 +7,9 @@ CClient::CClient(const std::string& working_dir) {
 	CCommandFactory::add<CCmdGetMD5>("GetMD5");
 	CCommandFactory::add<CCmdUploadFile>("UploadFile");
 
+	CDataTypeFactory::register_type<CDataTypeShares>(EDataType::SHARES);
+	CDataTypeFactory::register_type<CDataTypeTwitter>(EDataType::TWITTER);
+
 	CSettings::set_working_dir(working_dir);
 }
 

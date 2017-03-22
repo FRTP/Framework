@@ -15,6 +15,7 @@
 #include "exception.hpp"
 
 using namespace boost::asio;
+using namespace datatypes;
 using namespace utility;
 
 class CClient {
