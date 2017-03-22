@@ -19,6 +19,9 @@ ECommand CCmdGetFile::type() const {
 
 EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
 	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>{ m_newfilename });
+	if (datatype_instance == nullptr) {
+		return EError::INTERNAL_ERROR;
+	}
 	if(!fs::exists(datatype_instance->full_path()) || m_force_update) {
 		fs::create_directories(datatype_instance->full_path());
 		CMessage msg(ECommand::GET_FILE, datatype, std::vector<char>(m_filename.begin(), m_filename.end()));
@@ -60,6 +63,9 @@ ECommand CCmdGetMD5::type() const {
 
 EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
 	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>{ m_filename });
+	if (datatype_instance == nullptr) {
+		return EError::INTERNAL_ERROR;
+	}
 	if (!fs::exists(datatype_instance->full_path())) {
 		throw ExNoFile("Invalid path " + datatype_instance->full_path(), "CCmdGetMD5::invoke()");
 	}
@@ -111,6 +117,9 @@ EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
 	std::vector<char> data_buf(m_filename.begin(), m_filename.end());
 	data_buf.push_back('\0');
 	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>{ m_filename }); 
+	if (datatype_instance == nullptr) {
+		return EError::INTERNAL_ERROR;
+	}
 	EError ret = datatype_instance->append_data(data_buf);
 	if (ret != EError::OK) {
 		return ret;
