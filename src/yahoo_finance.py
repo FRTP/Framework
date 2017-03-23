@@ -68,7 +68,7 @@ def get_info(working_dir):
         outfile.write(open_url(shares_list[i]))
         test_set = checker.check(filename)
         if len(test_set) != 0:
-            print("Difference in " + shares_list[i] + ".csv:\n" 
+            print("Difference in " + shares_list[i] + ".csv:\n"
                   + str(test_set))
             return
 
