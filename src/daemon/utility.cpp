@@ -109,12 +109,13 @@ namespace utility {
 		std::ostream out(&buffer);
 		out << static_cast<int>(m_cmd) << " " << static_cast<int>(m_datatype) << " " << m_data.size() << " ";
 		for (auto i : m_data) {
-			out << i << " ";
+			out << i;
 		}
+		out << " ";
 		for (auto i : m_hash) {
-			out << i << " ";
+			out << i;
 		}
-		out << MESSAGE_ENDING;
+		out << " " << MESSAGE_ENDING;
 	}
 
 	EError CMessage::from_streambuf(boost::asio::streambuf& buffer) {
@@ -135,19 +136,18 @@ namespace utility {
 		m_datatype = static_cast<EDataType>(i_datatype);
 		unsigned int datasize = 0;
 		in >> datasize;
+		in.ignore();
 		m_data.resize(datasize);
 
-		char tmp_char;
-		for (unsigned int i = 0; i < datasize; ++i) {
-			in >> tmp_char;
-			m_data[i] = tmp_char;
-		}
+		in.read(&m_data[0], datasize);
 		_calculate_hash();
 
-		char tmp_unsigned_char;
+		std::vector<char> etalon_hash;
+		etalon_hash.resize(MD5_DIGEST_LENGTH);
+		in.ignore();
+		in.read(&etalon_hash[0], MD5_DIGEST_LENGTH);
 		for (unsigned int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
-			in >> tmp_unsigned_char;
-			if (m_hash[i] != tmp_unsigned_char) {
+			if (m_hash[i] != etalon_hash[i]) {
 				return EError::CORRUPTED_MESSAGE;
 			}
 		}
