@@ -95,5 +95,3 @@ def get_info(working_dir):
                   + str(test_set))
             return
     checker.remove_zero_volumes()
-
-get_info('/home/maked0n/frtp/yahoo')
