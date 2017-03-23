@@ -16,7 +16,7 @@ class CChecker:
         new_set = set(fd.Date)
         standart_set = set(self.standart_dates)
         return new_set ^ standart_set
-        
+
 
 start_date = 'a=00&b=01&c=2000'
 now = datetime.datetime.now()
@@ -39,6 +39,7 @@ shares_list = [
         'XRX'
         ]
 
+
 def open_url(share):
     end_date = "d=" + str(now.month - 1) + "&e=" + str(now.day) + \
             "&f=" + str(now.year)
@@ -47,9 +48,11 @@ def open_url(share):
             '&' + start_date + '&' + end_date + '&g=d&ignore=.csv')
     return response.read()
 
+
 def check_identity():
     standart_filename = shares_list[0] + ".csv"
     print("Standart file: " + standart_filename)
+
 
 def get_info(working_dir):
     if working_dir[-1] != "/":
@@ -65,7 +68,8 @@ def get_info(working_dir):
         outfile.write(open_url(shares_list[i]))
         test_set = checker.check(filename)
         if len(test_set) != 0:
-            print("Difference in " + shares_list[i] + ".csv:\n" + str(test_set))
+            print("Difference in " + shares_list[i] + ".csv:\n" 
+                  + str(test_set))
             return
 
 
