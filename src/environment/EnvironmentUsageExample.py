@@ -2,8 +2,8 @@
 
 import numpy as np
 import pandas as pd
-from Environment import Environment
 
+from src.environment.Environment import Environment
 
 # Extract historical data.
 historical_data = pd.read_csv('historical_data_example.csv')

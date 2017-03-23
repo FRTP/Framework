@@ -68,7 +68,7 @@ class Environment:
 
     # @params
     #
-    # @param historical_data <pandas DataFrame>
+    # @param historical_data list <pandas DataFrame>
     #   Historical data about prices on assets in following format:
     #    ___________________________________________________
     #   | Date & Time            | 'Sber' | 'Gazprom' | ... |
