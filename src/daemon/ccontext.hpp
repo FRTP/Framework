@@ -56,9 +56,9 @@ class CContext {
 				rflush();
 				return EError::READ_ERROR;
 			}
-			msg.from_streambuf(m_readbuf);
+			EError ret = msg.from_streambuf(m_readbuf);
 			rflush();
-			return EError::OK;
+			return ret;
 		}
 
 		EError send_feedback(EError error) {
