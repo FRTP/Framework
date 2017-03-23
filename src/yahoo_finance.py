@@ -17,6 +17,10 @@ class CChecker:
 
     def check(self, filename):
         fd = pd.read_csv(filename)
+        volume = fd.Volume
+        for vol in volume:
+            if int(vol) == 0:
+                print("Volume = 0 in file: " + filename)
         new_set = set(fd.Date)
         standart_set = set(self.standart_dates)
         return new_set ^ standart_set
@@ -31,7 +35,6 @@ shares_list = [
         'MSFT',
         'AAPL',
         'ADBE',
-        'AMD',
         'CSCO',
         'EBAY',
         'EA',
