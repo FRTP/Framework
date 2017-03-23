@@ -1,3 +1,7 @@
+# Usage:
+# import yahoo_finance as yf
+# yf.get_info(your_working_dir)
+
 import datetime
 import pandas as pd
 import urllib.request
@@ -71,6 +75,3 @@ def get_info(working_dir):
             print("Difference in " + shares_list[i] + ".csv:\n"
                   + str(test_set))
             return
-
-
-get_info('/home/maked0n/frtp/yahoo')
