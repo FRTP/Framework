@@ -80,7 +80,7 @@ class CContext {
 		}
 
 		void async_recv_message(callback_type callback) {
-			async_read(m_socket, m_readbuf, callback);
+			async_read_until(m_socket, m_readbuf, CMessage::MESSAGE_ENDING, callback);
 		}
 		
 		void async_send_feedback(EError error, callback_type callback) {
