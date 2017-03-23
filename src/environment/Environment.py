@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from datetime import datetime
 import numpy as np
 
@@ -41,7 +39,6 @@ class AssetsPortfolio:
 
         return given_date
 
-
 # Environment.
 # @brief
 #   Provides the interface to perform assets manipulations.
@@ -69,15 +66,21 @@ class Environment:
     # @params
     #
     # @param historical_data list <pandas DataFrame>
-    #   Historical data about prices on assets in following format:
-    #    ___________________________________________________
-    #   | Date & Time            | 'Sber' | 'Gazprom' | ... |
-    #   | -----------------------|--------|-----------|-----|
-    #   | 1994-11-05T13:15:30    | 32.2   | 45.7      | ... |
-    #   |------------------------|--------|-----------|-----|
-    #   | %Y-%m-%dT%H:%M:%S      | ...    | ...       | ... |
-    #
-    #
+    #   Historical data is list of pd_frames
+    #   with information on assets. Each frame in following format:
+    ##
+    # LIST PD.DATA_FRAME:
+    #  __                                                                      __
+    # |                                                                          |
+    # |   __________________________________________________________________     |
+    # |  | Time                | Open | High | Low | Close | Volume | Count |    |
+    # |  | --------------------|------|------|-----|-------|--------|-------|    |
+    # |  | 05.11.1996 13:15:30 | 32.2 | 45.7 | ... |  ...  |  ....  |  ...  |    |
+    # |  |---------------------|------|------|-----|------------------------|    |
+    # |  | %d.%m.%Y %H:%M:%S   | ...  | ...  | ... |  ...  |  ....  |  ...  |    |
+    # |                                                                          |
+    # |                                                                          |
+    #  --                                                                      --
     #
     # @param initial_assets_count - <numpy array>
     #   The number of each asset we currently have.
@@ -88,18 +91,18 @@ class Environment:
     # @param initial_balance - <float>
     #   Amount of money we currently have ( may be negative ).
     #
-    def __init__(self, hist_data, initial_assets_count=None,
-                 current_assets_prices=None, initial_date=None,
+    def __init__(self, hist_data, names_list, current_assets_prices=None,
+                 initial_assets_count=None, initial_date=None,
                  initial_balance=0):
 
         if initial_assets_count is None:
-            initial_assets_count = []
+            initial_assets_count = np.zeros(len(hist_data))
         if current_assets_prices is None:
-            current_assets_prices = []
+            current_assets_prices = np.zeros(len(hist_data))
         if initial_date is None:
-            initial_date = ""
+            initial_date = datetime.now()
 
-        self.names = np.array(hist_data.columns)[1:]
+        self.names = names_list
         self.prices = current_assets_prices
         self.current_balance = initial_balance
         self.balancing_coefficients = \
@@ -113,15 +116,17 @@ class Environment:
     # @param all_history_prices
     #   Historical chronology of prices in format described in constructor
     #
-    @staticmethod
-    def compute_balancing_coefficients(historical_prices):
-        without_dates = np.array(historical_prices)[:, 1:]
-        means = without_dates.mean(axis=0)
-        max_mean = np.max(means)
-        coefficients = [round(float(max_mean) / float(cur_mean))
-                        for cur_mean in means]
+    def compute_balancing_coefficients(self, hist_data_list):
 
-        return np.array(coefficients)
+        #    without_dates = np.array(historical_prices)[:, 1:]
+        #    means = without_dates.mean(axis=0)
+        #    max_mean = np.max(means)
+        #    coefficients = [round(float(max_mean) / float(cur_mean))
+        #                    for cur_mean in means]
+        #
+        #    return np.array(coefficients)
+
+        return np.ones(len(self.names))
 
     # Buy assets
     # @brief
@@ -134,7 +139,8 @@ class Environment:
     #   Count of assets to buy. Size must be equal to given_names size.
     #
     # @param purchase_date <datetime>
-    #   Date of the purchase
+    #   Date of the purchase. Needed for the AssetsPortfolio constructor.
+    #   Cause portfolio must have info about date.
     #
     # @throws Exception
     #   if len(given_names) != len(given_count)
@@ -215,10 +221,11 @@ class Environment:
             self.update_price(assets_names[i], new_prices[i])
 
     # @brief
-    #   Extracts needed_asset's price at needed_date
+    #   Extracts asset's price at needed_date from asset_hist_data
     #
-    # @param needed_asset <str>
-    #   Needed asset name.
+    # @param asset_hist_data <pd dataframe>
+    #   Dataframe with historical prices for needed asset.
+    #       Needed format noticed in constructor.
     #
     # @param needed_date <str> in following format :%Y-%m-%dT%H:%M:%S
     #    or <datetime>.
@@ -234,28 +241,31 @@ class Environment:
     #   None - if wasn't found.
     #
     @staticmethod
-    def get_price_by_date(hist_data, needed_asset, needed_date):
+    def get_price_by_date(asset_hist_data, needed_date):
         needed_date = AssetsPortfolio.to_datetime(needed_date)
-        idx = Environment.__find__row__by__date__(hist_data, needed_date)
+        idx = Environment.__find__row__by__date__(asset_hist_data, needed_date)
 
         if idx is not None:
-            return hist_data[needed_asset][idx]
+            return idx[1]
         else:
             return None
 
+    # Finds row in pd_frame of a particular asset by date
     @staticmethod
-    def __find__row__by__date__(hist_data, given_date):
+    def __find__row__by__date__(asset_hist_data, given_date):
         if type(given_date) != datetime:
             raise TypeError("given_date must be <datetime> type.")
 
-        for i in range(len(hist_data)):
-            cur_date = AssetsPortfolio.to_datetime(hist_data[:, 0][i])
+        for i in range(len(asset_hist_data)):
+            cur_date = AssetsPortfolio.to_datetime(asset_hist_data[:, 0][i])
             if cur_date == given_date:
                 return i
         return None
 
+    # Gives rows in the asset_hist_data
+    #   which are appropriate to the start_date and length of the period.
     @staticmethod
-    def get_train_period(hist_data, start_date=None, length=0, ratio=0.):
+    def get_train_period(asset_hist_data, start_date=None, length=0, ratio=0.):
         if length == 0 and ratio == 0:
             return None
 
@@ -263,22 +273,26 @@ class Environment:
             first_idx = 0
         else:
             start_date = AssetsPortfolio.to_datetime(start_date)
-            first_idx = Environment.__find__row__by__date__(hist_data,
+            first_idx = Environment.__find__row__by__date__(asset_hist_data,
                                                             start_date)
             if first_idx is None:
-                raise ValueError("No such start_date in hist_data.")
+                raise ValueError("No such start_date in asset_hist_data.")
 
         if length == 0:
-            length = len(hist_data) * ratio
-        last_idx = min(len(hist_data), first_idx + length)
+            length = len(asset_hist_data) * ratio
+        last_idx = min(len(asset_hist_data), first_idx + length)
 
-        return hist_data[first_idx:last_idx]
+        return asset_hist_data[first_idx:last_idx]
 
+    # Just gives names of considered assets.
     def get_assets_names(self):
         return self.names
 
+    # Environments maintains current balance
+    #   and can be asked for it at any moment.
     def get_current_balance(self):
         return self.current_balance
 
+    # Gives the last portfolio in the portfolio chain (sequence).
     def get_current_portfolio(self):
         return self.portfolio_sequence[-1]
