@@ -107,7 +107,7 @@ namespace utility {
 
 	void CMessage::to_streambuf(boost::asio::streambuf& buffer) const {
 		std::ostream out(&buffer);
-		out << static_cast<int>(m_cmd) << " " << static_cast<int>(m_datatype) << " " << m_data.size();
+		out << static_cast<int>(m_cmd) << " " << static_cast<int>(m_datatype) << " " << m_data.size() << " ";
 		for (auto i : m_data) {
 			out << i << " ";
 		}
