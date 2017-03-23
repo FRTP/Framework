@@ -140,7 +140,7 @@ namespace utility {
 		char tmp_char;
 		for (unsigned int i = 0; i < datasize; ++i) {
 			in >> tmp_char;
-			m_data.push_back(tmp_char);
+			m_data[i] = tmp_char;
 		}
 		_calculate_hash();
 
