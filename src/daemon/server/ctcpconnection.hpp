@@ -56,6 +56,12 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 			else {
 				BOOST_LOG_TRIVIAL(error) << "handle_write_response: " +  ec.message();
 			}
+
+			if (m_context.socket_opened()) {
+				BOOST_LOG_TRIVIAL(info) << "Reading new command...";
+				m_context.async_recv_message(boost::bind(&CTCPConnection::handle_recv_message,
+							     shared_from_this(), placeholders::error));
+			}
 		}
 
 		CContext& context() {

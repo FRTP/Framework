@@ -24,10 +24,8 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 	BOOST_LOG_TRIVIAL(info) << "Accepting client...";
 	if (!ec) {
 		BOOST_LOG_TRIVIAL(info) << "New client accepted";
-		while (connection->context().socket_opened()) {
-			connection->context().async_recv_message(boost::bind(&CTCPConnection::handle_recv_message, connection,
-								 placeholders::error));
-		}
+		connection->context().async_recv_message(boost::bind(&CTCPConnection::handle_recv_message, connection,
+							 placeholders::error));
 	}
 	else {
 		BOOST_LOG_TRIVIAL(error) << "Unable to accept client: " + ec.message();
