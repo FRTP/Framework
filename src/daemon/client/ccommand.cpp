@@ -22,8 +22,10 @@ EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
 	if (datatype_instance == nullptr) {
 		return EError::INTERNAL_ERROR;
 	}
-	if(!fs::exists(datatype_instance->full_path()) || m_force_update) {
-		fs::create_directories(datatype_instance->full_path());
+	if (!fs::exists(datatype_instance->full_path()) || m_force_update) {
+		if (!fs::exists(datatype_instance->path())) {
+			fs::create_directories(datatype_instance->path());
+		}
 		CMessage msg(ECommand::GET_FILE, datatype, std::vector<char>(m_filename.begin(), m_filename.end()));
 		EError ret = context->send_message(msg);
 		if (ret != EError::OK) {
@@ -41,7 +43,8 @@ EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
 			}
 			return static_cast<EError>(i_error_code);
 		}
-		return datatype_instance->write_data(msg.data_begin(), msg.data_end());
+		ret = datatype_instance->write_data(msg.data_begin(), msg.data_end());
+		return ret;
 	}
 	return EError::OK;
 }
