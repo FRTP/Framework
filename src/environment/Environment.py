@@ -17,10 +17,10 @@ class AssetsPortfolio:
     # @param all_assets_names <np array of 'str'>
     # @param asset_name
     def get_asset_count(self, all_assets_names, asset_name):
-        index = all_assets_names.tolist().index(asset_name)
+        index = all_assets_names.index(asset_name)
         return self.count[index]
 
-    TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
+    TIME_FORMAT = "%d.%m.%Y %H:%M:%S"
     ERR_MSG_WRONG_TIME_FORMAT = "Wrong input format. Needed following:" + \
                                 TIME_FORMAT
     ERR_MSG_WRONG_TIME_TYPE = "Wrong input. Needed 'str' or 'datetime'"
@@ -102,6 +102,8 @@ class Environment:
         if initial_date is None:
             initial_date = datetime.now()
 
+        print(initial_date)
+
         self.names = names_list
         self.prices = current_assets_prices
         self.current_balance = initial_balance
@@ -158,7 +160,7 @@ class Environment:
             raise Exception("given_names mustn't be empty")
 
         for i in range(len(given_names)):
-            current_asset_idx = self.names.tolist().index(given_names[i])
+            current_asset_idx = self.names.index(given_names[i])
             current_coef = self.balancing_coefficients[current_asset_idx]
             new_assets_count[current_asset_idx] += \
                 given_count[i] * current_coef
@@ -192,13 +194,13 @@ class Environment:
     #   The amount of a particular asset we currently have.
     #
     def get_asset_count(self, asset_name):
-        needed_index = self.names.tolist().index(asset_name)
+        needed_index = self.names.index(asset_name)
         return self.portfolio_sequence[-1].count[needed_index]
 
     # @brief
     #   Updates price of the one asset
     def update_price(self, asset, new_price):
-        index = self.names.tolist().index(asset)
+        index = self.names.index(asset)
         self.prices[index] = new_price
 
     # @brief
