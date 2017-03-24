@@ -66,7 +66,7 @@ EError CDataTypeShares::write_data(std::vector<char>::const_iterator begin,
 	}
 
 	while (begin != end) {
-		file << *begin;
+		file << *begin++;
 	}
 	file.close();
 
