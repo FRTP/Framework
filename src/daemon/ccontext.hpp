@@ -90,9 +90,10 @@ class CContext {
 			async_write(m_socket, m_writebuf, callback);
 		}
 
-		void read_buffer(CMessage& msg) {
-			msg.from_streambuf(m_readbuf);
+		EError read_buffer(CMessage& msg) {
+			EError ret = msg.from_streambuf(m_readbuf);
 			rflush();
+			return ret;
 		}
 
 		~CContext() {
