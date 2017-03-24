@@ -21,6 +21,7 @@ namespace datatypes {
 						  std::vector<char>::const_iterator end) const = 0;
 			virtual bool success() const = 0;
 			virtual std::string full_path() const = 0;
+			virtual std::string path() const = 0;
 			virtual ~IDataType() {}
 	};
 
@@ -38,6 +39,7 @@ namespace datatypes {
 						  std::vector<char>::const_iterator end) const;
 			virtual bool success() const;
 			virtual std::string full_path() const;
+			virtual std::string path() const;
 			virtual ~CDataTypeShares() {}
 	};
 
@@ -55,6 +57,7 @@ namespace datatypes {
 						  std::vector<char>::const_iterator end) const;
 			virtual bool success() const;
 			virtual std::string full_path() const;
+			virtual std::string path() const;
 			virtual ~CDataTypeTwitter() {}
 	};
 

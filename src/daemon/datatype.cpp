@@ -77,6 +77,10 @@ std::string CDataTypeShares::full_path() const {
 	return (CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 }
 
+std::string CDataTypeShares::path() const {
+	return (CSettings::working_dir() + "data/" + m_data_dir);
+}
+
 CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
 	m_success = (args.size() == EXPECTED_ARGS_NUM);
 	if (m_success) {
@@ -150,3 +154,6 @@ std::string CDataTypeTwitter::full_path() const {
 	return (CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
 }
 
+std::string CDataTypeTwitter::path() const {
+	return (CSettings::working_dir() + "data/" + m_data_dir);
+}
