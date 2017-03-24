@@ -18,7 +18,7 @@
 class CContext;
 
 namespace utility {
-	typedef boost::array<unsigned char, MD5_DIGEST_LENGTH> md5sum;
+	typedef boost::array<char, MD5_DIGEST_LENGTH> md5sum;
 	typedef boost::shared_ptr<md5sum> md5sum_ptr;
 
 	enum class ECommand {

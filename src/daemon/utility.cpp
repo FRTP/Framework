@@ -62,7 +62,7 @@ namespace utility {
 		in.seekg(0);
 		in.read(&content[0], size);
 
-		MD5((unsigned char*)content.data(), content.size(), md5->data());
+		MD5((unsigned char*)content.data(), content.size(), (unsigned char*)md5->data());
 		return md5;
 	}
 
@@ -97,7 +97,7 @@ namespace utility {
 		m_data.push_back(static_cast<char>(m_cmd));
 		m_data.push_back(static_cast<char>(m_datatype));
 
-		MD5((unsigned char*)&m_data[0], m_data.size(), m_hash.data());
+		MD5((unsigned char*)&m_data[0], m_data.size(), (unsigned char*)m_hash.data());
 
 		//clean m_data after the dirty hack
 		m_data.pop_back();
@@ -142,12 +142,11 @@ namespace utility {
 		in.read(&m_data[0], datasize);
 		_calculate_hash();
 
-		std::vector<char> etalon_hash;
-		etalon_hash.resize(MD5_DIGEST_LENGTH);
+		md5sum standart_hash;
 		in.ignore();
-		in.read(&etalon_hash[0], MD5_DIGEST_LENGTH);
+		in.read(&standart_hash[0], MD5_DIGEST_LENGTH);
 		for (unsigned int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
-			if (m_hash[i] != etalon_hash[i]) {
+			if (m_hash[i] != standart_hash[i]) {
 				return EError::CORRUPTED_MESSAGE;
 			}
 		}
