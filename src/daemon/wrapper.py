@@ -72,7 +72,7 @@ class CClient(object):
 
     def upload_file(self, filename, data_type):
         cmd = lib.LibCommandFactory.create_command("UploadFile",
-                                                   args=[filename])
+                                                   [filename])
         lib.LibClient.invoke(context=self.context, command=cmd,
                              datatype=DATA_TYPES[data_type])
 
