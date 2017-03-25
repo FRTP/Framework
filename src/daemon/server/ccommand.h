@@ -46,8 +46,8 @@ namespace server_command {
 	class CCmdUploadFile : public IServerCommand {
 		private:
 			std::string m_filename;
-			std::vector<char>::const_iterator m_data_begin;
-			std::vector<char>::const_iterator m_data_end;
+			data_t::const_iterator m_data_begin;
+			data_t::const_iterator m_data_end;
 			CContext::callback_type m_callback;
 		public:
 			explicit CCmdUploadFile(const CMessage& msg);

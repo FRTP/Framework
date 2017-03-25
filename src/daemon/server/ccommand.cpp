@@ -3,7 +3,7 @@
 using namespace server_command;
 
 CCmdGetFile::CCmdGetFile(const CMessage& msg) {
-	m_filename = std::string(&(msg.data())[0], msg.data().size());
+	m_filename = std::string(reinterpret_cast<const char*>(&(msg.data())[0]), msg.data().size());
 }
 
 CCmdGetFile::CCmdGetFile(__attribute__ ((unused)) const std::list<std::string>& args) {
@@ -19,7 +19,7 @@ EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
 	if (!datatype_instance->success()) {
 		return EError::INTERNAL_ERROR;
 	}
-	std::vector<char> data_buf;
+	data_t data_buf;
 	EError ret;
 	if ((ret = datatype_instance->get_data(data_buf)) != EError::OK) {
 		return ret;
@@ -36,7 +36,7 @@ void CCmdGetFile::set_callback(CContext::callback_type callback) {
 }
 
 CCmdGetMD5::CCmdGetMD5(const CMessage& msg) {
-	m_filename = std::string(&(msg.data())[0], msg.data().size());
+	m_filename = std::string(reinterpret_cast<const char*>(&(msg.data())[0]), msg.data().size());
 }
 
 CCmdGetMD5::CCmdGetMD5(__attribute__ ((unused)) const std::list<std::string>& args) {
@@ -48,13 +48,11 @@ ECommand CCmdGetMD5::type() const {
 }
 
 EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
-	md5sum_ptr md5 = calculate_md5(m_filename);
-	std::vector<char> data_buf;
-	data_buf.resize(MD5_DIGEST_LENGTH);
-	for (auto i : *md5) {
-		data_buf[i] = static_cast<char>(i);
+	md5sum_ptr md5 = calculate_md5(get_full_path(datatype, m_filename));
+	if (md5 == nullptr) {
+		return EError::INTERNAL_ERROR;
 	}
-	CMessage msg_md5(ECommand::GET_MD5, datatype, data_buf);
+	CMessage msg_md5(ECommand::GET_MD5, datatype, *md5);
 	context->async_send_message(msg_md5, m_callback);
 
 	return EError::OK;
