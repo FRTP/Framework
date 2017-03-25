@@ -18,8 +18,9 @@
 class CContext;
 
 namespace utility {
-	typedef boost::array<char, MD5_DIGEST_LENGTH> md5sum;
+	typedef std::vector<unsigned char> md5sum;
 	typedef boost::shared_ptr<md5sum> md5sum_ptr;
+	typedef std::vector<unsigned char> data_t;
 
 	enum class ECommand {
 		FEEDBACK,
@@ -52,36 +53,42 @@ namespace utility {
 
 	std::string get_text_error(EError error);
 	std::string get_data_type_dir(EDataType type); 
+	std::string get_full_path(EDataType type, const std::string& filename);
 	md5sum_ptr calculate_md5(const std::string& full_path);
 	std::string md5sum_to_str(md5sum_ptr md5);
+	void str_to_data_t(const std::string& input, data_t& output);
 
 	class CSettings {
 		private:
 			static std::string m_working_dir;
+			static std::string m_data_dir;
 		public:
 			static void set_working_dir(const std::string& working_dir);
+			static void set_data_dir(const std::string& data_dir);
 			static std::string working_dir();
+			static std::string data_dir(bool relative = false);
 	};
 
 	class CMessage {
 		private:
 			ECommand m_cmd;
 			EDataType m_datatype;
-			std::vector<char> m_data;
+			data_t m_data;
 			md5sum m_hash;
 
 			void _calculate_hash();
 		public:
 			static constexpr const char* MESSAGE_ENDING = "\r\n\r\n";
 			CMessage();
+			CMessage(ECommand cmd, EDataType datatype, const data_t& data);
 			CMessage(ECommand cmd, EDataType datatype, const std::vector<char>& data);
 			void to_streambuf(boost::asio::streambuf& buffer) const;
 			EError from_streambuf(boost::asio::streambuf& buffer);
 			ECommand command() const;
 			EDataType datatype() const;
-			const std::vector<char>& data() const;
-			std::vector<char>::const_iterator data_begin() const;
-			std::vector<char>::const_iterator data_end() const;
+			const data_t& data() const;
+			data_t::const_iterator data_begin() const;
+			data_t::const_iterator data_end() const;
 	};
 
 	class ICommand {

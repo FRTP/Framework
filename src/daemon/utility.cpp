@@ -3,6 +3,7 @@
 namespace utility {
 	std::map<std::string, IAbstractCommandCreator*> CCommandFactory::m_factory;
 	std::string CSettings::m_working_dir;
+	std::string CSettings::m_data_dir;
 
 	std::string get_text_error(EError error) {
 		std::string res = "";
@@ -44,25 +45,35 @@ namespace utility {
 	std::string get_data_type_dir(EDataType type) {
 		switch (type) {
 			case EDataType::SHARES:
-				return std::string("shares");
+				return std::string("shares/");
 			case EDataType::TWITTER:
-				return std::string("twitter");
+				return std::string("twitter/");
 			default:
 				return std::string("");
 		}
 	}
 
+	std::string get_full_path(EDataType type, const std::string& filename) {
+		return CSettings::data_dir() + get_data_type_dir(type) + filename;
+	}
+
 	md5sum_ptr calculate_md5(const std::string& full_path) {
 		md5sum_ptr md5(new md5sum);
+		md5->resize(MD5_DIGEST_LENGTH);
 		std::ifstream in(full_path);
 
+		in.clear();
 		in.seekg(0, std::ios::end);
-		size_t size = in.tellg();
-		std::string content(size, ' ');
+		int size = in.tellg();
+		if (size < 0) {
+			return nullptr;
+		}
+		data_t content;
+		content.resize(size);
 		in.seekg(0);
-		in.read(&content[0], size);
+		in.read(reinterpret_cast<char*>(&content[0]), size);
 
-		MD5((unsigned char*)content.data(), content.size(), (unsigned char*)md5->data());
+		MD5(content.data(), content.size(), md5->data());
 		return md5;
 	}
 
@@ -75,19 +86,47 @@ namespace utility {
 		return oss.str();
 	}
 
+	void str_to_data_t(const std::string& input, data_t& output) {
+		output.resize(input.size());
+		for (unsigned int i = 0; i < input.size(); ++i) {
+			output[i] = static_cast<unsigned char>(output[i]);
+		}
+	}
+
 	void CSettings::set_working_dir(const std::string& working_dir) {
 		m_working_dir = working_dir;
+	}
+
+	void CSettings::set_data_dir(const std::string& data_dir) {
+		m_data_dir = data_dir;
 	}
 
 	std::string CSettings::working_dir() {
 		return m_working_dir;
 	}
 
+	std::string CSettings::data_dir(bool relative) {
+		std::string res = m_data_dir;
+		if (!relative) {
+			res = m_working_dir + res;
+		}
+		return res;
+	}
+
 	CMessage::CMessage() {
 	}
 
-	CMessage::CMessage(ECommand cmd, EDataType datatype, const std::vector<char>& data)
+	CMessage::CMessage(ECommand cmd, EDataType datatype, const data_t& data)
 		: m_cmd(cmd), m_datatype(datatype), m_data(data) {
+		_calculate_hash();
+	}
+
+	CMessage::CMessage(ECommand cmd, EDataType datatype, const std::vector<char>& data)
+		: m_cmd(cmd), m_datatype(datatype) {
+		m_data.reserve(data.size());
+		for (char i : data) {
+			m_data.push_back(static_cast<unsigned char>(i));
+		}
 		_calculate_hash();
 	}
 
@@ -97,7 +136,8 @@ namespace utility {
 		m_data.push_back(static_cast<char>(m_cmd));
 		m_data.push_back(static_cast<char>(m_datatype));
 
-		MD5((unsigned char*)&m_data[0], m_data.size(), (unsigned char*)m_hash.data());
+		m_hash.resize(MD5_DIGEST_LENGTH);
+		MD5(&m_data[0], m_data.size(), m_hash.data());
 
 		//clean m_data after the dirty hack
 		m_data.pop_back();
@@ -139,12 +179,13 @@ namespace utility {
 		in.ignore();
 		m_data.resize(datasize);
 
-		in.read(&m_data[0], datasize);
+		in.read(reinterpret_cast<char*>(&m_data[0]), datasize);
 		_calculate_hash();
 
 		md5sum standart_hash;
+		standart_hash.resize(MD5_DIGEST_LENGTH);
 		in.ignore();
-		in.read(&standart_hash[0], MD5_DIGEST_LENGTH);
+		in.read(reinterpret_cast<char*>(&standart_hash[0]), MD5_DIGEST_LENGTH);
 		for (unsigned int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
 			if (m_hash[i] != standart_hash[i]) {
 				return EError::CORRUPTED_MESSAGE;
@@ -161,15 +202,15 @@ namespace utility {
 		return m_datatype;
 	}
 
-	const std::vector<char>& CMessage::data() const {
+	const data_t& CMessage::data() const {
 		return m_data;
 	}
 
-	std::vector<char>::const_iterator CMessage::data_begin() const {
+	data_t::const_iterator CMessage::data_begin() const {
 		return m_data.cbegin();
 	}
 
-	std::vector<char>::const_iterator CMessage::data_end() const {
+	data_t::const_iterator CMessage::data_end() const {
 		return m_data.cend();
 	}
 };
