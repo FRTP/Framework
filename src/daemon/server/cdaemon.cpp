@@ -35,6 +35,7 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 
 CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
 	CSettings::set_working_dir("/var/frtp/");
+	CSettings::set_data_dir("data/");
 
 	logging::register_simple_formatter_factory<logging::trivial::severity_level, char>("Severity");
 	logging::add_file_log(
