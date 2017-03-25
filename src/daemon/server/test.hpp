@@ -19,17 +19,17 @@ BOOST_AUTO_TEST_CASE(Equal) {
 	utility::md5sum_ptr md5 = utility::calculate_md5(full_path);
 
 	std::string command = "md5sum " + full_path + " | grep -Eo '^.{32}'";
-	std::string etalon_md5 = "";
+	std::string standart_md5 = "";
 	const int MAX_BUFF_SIZE = 1024;
-	char etalon_md5_buf[MAX_BUFF_SIZE];
+	char standart_md5_buf[MAX_BUFF_SIZE];
 	FILE* stream = popen(command.c_str(), "r");
 	if (stream) {
-		fgets(etalon_md5_buf, MAX_BUFF_SIZE, stream);
-		etalon_md5 = std::string(etalon_md5_buf);
+		fgets(standart_md5_buf, MAX_BUFF_SIZE, stream);
+		standart_md5 = std::string(standart_md5_buf);
 		pclose(stream);
 	}
 
-	BOOST_CHECK_EQUAL(utility::md5sum_to_str(md5), etalon_md5);
+	BOOST_CHECK_EQUAL(utility::md5sum_to_str(md5), standart_md5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
