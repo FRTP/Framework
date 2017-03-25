@@ -11,8 +11,8 @@ CDataTypeShares::CDataTypeShares(const std::list<std::string>& args) {
 	}
 }
 
-EError CDataTypeShares::get_data(std::vector<char>& output) const {
-	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+EError CDataTypeShares::get_data(data_t& output) const {
+	std::string full_path = get_full_path(EDataType::SHARES, m_filename);
 	std::ifstream file(full_path, std::ios::binary);
 	if (!file) {
 		return EError::OPEN_ERROR;
@@ -23,7 +23,7 @@ EError CDataTypeShares::get_data(std::vector<char>& output) const {
 	file.seekg(0, file.beg);
 	output.resize(size);
 
-	if (!file.read(output.data(), size)) {
+	if (!file.read(reinterpret_cast<char*>(output.data()), size)) {
 		file.close();
 		return EError::READ_ERROR;
 	}
@@ -32,8 +32,8 @@ EError CDataTypeShares::get_data(std::vector<char>& output) const {
 	return EError::OK;
 }
 
-EError CDataTypeShares::append_data(std::vector<char>& output) const {
-	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+EError CDataTypeShares::append_data(data_t& output) const {
+	std::string full_path = get_full_path(EDataType::SHARES, m_filename);
 	std::ifstream file(full_path, std::ios::binary);
 	if (!file) {
 		return EError::OPEN_ERROR;
@@ -46,7 +46,7 @@ EError CDataTypeShares::append_data(std::vector<char>& output) const {
 	int i = output.size();
 	output.resize(output.size() + size);
 	while (!file.eof()) {
-		file >> output[i++];
+		file >> output[i++];	//NOTE: this does not read special symbols
 	}
 	file.close();
 
@@ -57,9 +57,9 @@ bool CDataTypeShares::success() const {
 	return m_success;
 }
 
-EError CDataTypeShares::write_data(std::vector<char>::const_iterator begin,
-				   std::vector<char>::const_iterator end) const {
-	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+EError CDataTypeShares::write_data(data_t::const_iterator begin,
+				   data_t::const_iterator end) const {
+	std::string full_path = get_full_path(EDataType::SHARES, m_filename);
 	std::ofstream file(full_path, std::ios::binary);
 	if (!file) {
 		return EError::OPEN_ERROR;
@@ -74,11 +74,11 @@ EError CDataTypeShares::write_data(std::vector<char>::const_iterator begin,
 }
 
 std::string CDataTypeShares::full_path() const {
-	return (CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+	return get_full_path(EDataType::SHARES, m_filename);
 }
 
 std::string CDataTypeShares::path() const {
-	return (CSettings::working_dir() + "data/" + m_data_dir);
+	return (CSettings::data_dir() + get_data_type_dir(EDataType::SHARES));
 }
 
 CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
@@ -88,8 +88,8 @@ CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
 	}
 }
 
-EError CDataTypeTwitter::get_data(std::vector<char>& output) const {
-	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+EError CDataTypeTwitter::get_data(data_t& output) const {
+	std::string full_path = get_full_path(EDataType::TWITTER, m_filename);
 	std::ifstream file(full_path, std::ios::binary);
 	if (!file) {
 		return EError::OPEN_ERROR;
@@ -100,7 +100,7 @@ EError CDataTypeTwitter::get_data(std::vector<char>& output) const {
 	file.seekg(0, file.beg);
 	output.resize(size);
 
-	if (!file.read(output.data(), size)) {
+	if (!file.read(reinterpret_cast<char*>(output.data()), size)) {
 		file.close();
 		return EError::READ_ERROR;
 	}
@@ -109,8 +109,8 @@ EError CDataTypeTwitter::get_data(std::vector<char>& output) const {
 	return EError::OK;
 }
 
-EError CDataTypeTwitter::append_data(std::vector<char>& output) const {
-	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+EError CDataTypeTwitter::append_data(data_t& output) const {
+	std::string full_path = get_full_path(EDataType::TWITTER, m_filename);
 	std::ifstream file(full_path, std::ios::binary);
 	if (!file) {
 		return EError::OPEN_ERROR;
@@ -123,7 +123,8 @@ EError CDataTypeTwitter::append_data(std::vector<char>& output) const {
 	int i = output.size();
 	output.resize(output.size() + size);
 	while (!file.eof()) {
-		file >> output[i++];
+		file >> output[i++];	//NOTE: this does not read special symbols
+
 	}
 	file.close();
 
@@ -134,9 +135,9 @@ bool CDataTypeTwitter::success() const {
 	return m_success;
 }
 
-EError CDataTypeTwitter::write_data(std::vector<char>::const_iterator begin,
-				    std::vector<char>::const_iterator end) const {
-	std::string full_path(CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+EError CDataTypeTwitter::write_data(data_t::const_iterator begin,
+				    data_t::const_iterator end) const {
+	std::string full_path = get_full_path(EDataType::TWITTER, m_filename);
 	std::ofstream file(full_path, std::ios::binary);
 	if (!file) {
 		return EError::OPEN_ERROR;
@@ -151,9 +152,9 @@ EError CDataTypeTwitter::write_data(std::vector<char>::const_iterator begin,
 }
 
 std::string CDataTypeTwitter::full_path() const {
-	return (CSettings::working_dir() + "data/" + m_data_dir + "/" + m_filename);
+	return get_full_path(EDataType::TWITTER, m_filename);
 }
 
 std::string CDataTypeTwitter::path() const {
-	return (CSettings::working_dir() + "data/" + m_data_dir);
+	return (CSettings::data_dir() + get_data_type_dir(EDataType::TWITTER));
 }

@@ -15,10 +15,10 @@ using namespace utility;
 namespace datatypes {
 	class IDataType {
 		public:
-			virtual EError get_data(std::vector<char>& output) const = 0;
-			virtual EError append_data(std::vector<char>& output) const = 0;
-			virtual EError write_data(std::vector<char>::const_iterator begin,
-						  std::vector<char>::const_iterator end) const = 0;
+			virtual EError get_data(data_t& output) const = 0;
+			virtual EError append_data(data_t& output) const = 0;
+			virtual EError write_data(data_t::const_iterator begin,
+						  data_t::const_iterator end) const = 0;
 			virtual bool success() const = 0;
 			virtual std::string full_path() const = 0;
 			virtual std::string path() const = 0;
@@ -28,15 +28,14 @@ namespace datatypes {
 	class CDataTypeShares : public IDataType {
 		private:
 			static constexpr int EXPECTED_ARGS_NUM = 1;
-			static constexpr const char* m_data_dir = "shares";
 			std::string m_filename;
 			bool m_success;
 		public:
 			CDataTypeShares(const std::list<std::string>& args);
-			virtual EError get_data(std::vector<char>& output) const;
-			virtual EError append_data(std::vector<char>& output) const;
-			virtual EError write_data(std::vector<char>::const_iterator begin,
-						  std::vector<char>::const_iterator end) const;
+			virtual EError get_data(data_t& output) const;
+			virtual EError append_data(data_t& output) const;
+			virtual EError write_data(data_t::const_iterator begin,
+						  data_t::const_iterator end) const;
 			virtual bool success() const;
 			virtual std::string full_path() const;
 			virtual std::string path() const;
@@ -46,15 +45,14 @@ namespace datatypes {
 	class CDataTypeTwitter : public IDataType {
 		private:
 			static constexpr int EXPECTED_ARGS_NUM = 1;
-			static constexpr const char* m_data_dir = "twitter";
 			std::string m_filename;
 			bool m_success;
 		public:
 			CDataTypeTwitter(const std::list<std::string>& args);
-			virtual EError get_data(std::vector<char>& output) const;
-			virtual EError append_data(std::vector<char>& output) const;
-			virtual EError write_data(std::vector<char>::const_iterator begin,
-						  std::vector<char>::const_iterator end) const;
+			virtual EError get_data(data_t& output) const;
+			virtual EError append_data(data_t& output) const;
+			virtual EError write_data(data_t::const_iterator begin,
+						  data_t::const_iterator end) const;
 			virtual bool success() const;
 			virtual std::string full_path() const;
 			virtual std::string path() const;
