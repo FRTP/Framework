@@ -54,9 +54,14 @@ CCmdGetMD5::CCmdGetMD5(const std::list<std::string>& args) {
 		throw ExInvalidArgs("Invalid number of arguments", "CCmdGetMD5::CCmdGetMD5()");
 	}
 	m_filename = args.front();
+
+	m_hash = md5sum_ptr(new md5sum);
+	m_hash->resize(MD5_DIGEST_LENGTH);
 }
 
 CCmdGetMD5::CCmdGetMD5(__attribute__((unused)) const CMessage& msg) {
+	m_hash = md5sum_ptr(new md5sum);
+	m_hash->resize(MD5_DIGEST_LENGTH);
 	//TODO
 }
 
@@ -73,6 +78,7 @@ EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
 		throw ExNoFile("Invalid path " + datatype_instance->full_path(), "CCmdGetMD5::invoke()");
 	}
 
+	//TODO: CMessage(ECommand, EDataType, const std::string&)
 	CMessage msg(ECommand::GET_MD5, datatype, std::vector<char>(m_filename.begin(), m_filename.end()));
 	EError ret = context->send_message(msg);
 	if (ret != EError::OK) {
@@ -91,8 +97,12 @@ EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
 		return static_cast<EError>(i_error_code);
 	}
 
-	for (size_t i = 0; i < msg.data().size(); ++i) {
-		(*m_hash)[i] = static_cast<unsigned char>((msg.data())[i]);
+	if (msg.data().size() != MD5_DIGEST_LENGTH) {
+		return EError::INTERNAL_ERROR;
+	}
+
+	for (size_t i = 0; i < MD5_DIGEST_LENGTH; ++i) {
+		(*m_hash)[i] = (msg.data())[i];
 	}
 	return EError::OK;
 }
@@ -117,7 +127,8 @@ ECommand CCmdUploadFile::type() const {
 }
 
 EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
-	std::vector<char> data_buf(m_filename.begin(), m_filename.end());
+	data_t data_buf;
+	str_to_data_t(m_filename, data_buf);
 	data_buf.push_back('\0');
 	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>{ m_filename }); 
 	if (datatype_instance == nullptr) {
