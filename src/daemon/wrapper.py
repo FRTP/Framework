@@ -91,8 +91,11 @@ class CClient(object):
 
     def get_info(self, converter, check=True, force=False):
         for filename in converter.get_filenames():
-            ret = self.get_file(filename, filename, converter.get_datatype(),
-                                force)
+            try:
+                ret = self.get_file(filename, filename, converter.get_datatype(),
+                                    force)
+            except RuntimeError:
+                pass
             if ret == 0 and check:
                 if not self.check_integrity(filename):
                     raise ExInvalidMD5()

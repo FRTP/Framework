@@ -17,7 +17,7 @@ class TestFileOperations(unittest.TestCase):
         self.assertTrue(all_ok)
 
     def test_getnonexistent(self):
-        with self.assertRaises(ExNoFile):
+        with self.assertRaises(RuntimeError):
             self.client.get_file('AFLT/nonexistent.file',
                                  'AFLT/nonexistent.file',
                                  'SHARES', True)
@@ -30,7 +30,7 @@ class TestFileOperations(unittest.TestCase):
         self.assertTrue(all_ok)
     
     def test_sendnonexistent(self):
-        with self.assertRaises(ExNoFile):
+        with self.assertRaises(RuntimeError):
             self.client.upload_file('AFLT/nonexistent.file',
                                     'AFLT/nonexistent.file',
                                     'SHARES')
@@ -41,7 +41,7 @@ class TestFileOperations(unittest.TestCase):
                                              'SHARES', 'AFLT')
         try:
             self.client.get_info(converter, force=True)
-        except ExInvalidMD5:
+        except wrapper.ExInvalidMD5:
             self.fail("Invalid MD5")
 
 

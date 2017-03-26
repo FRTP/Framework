@@ -60,7 +60,7 @@ void transtale_socket_problem_error(const ExSocketProblem& e) {
 }
 
 void translate_unknown_data_type_error(const ExUnknownDataType& e) {
-	PyErr_SetString(PyExc_RuntimeError, e.what());
+	PyErr_SetString(PyExc_TypeError, e.what());
 }
 
 void translate_no_file_error(const ExNoFile& e) {
