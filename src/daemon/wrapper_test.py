@@ -32,7 +32,6 @@ class TestFileOperations(unittest.TestCase):
     def test_sendnonexistent(self):
         with self.assertRaises(RuntimeError):
             self.client.upload_file('AFLT/nonexistent.file',
-                                    'AFLT/nonexistent.file',
                                     'SHARES')
 
     def test_getperiod(self):
