@@ -43,10 +43,11 @@ EError CDataTypeShares::append_data(data_t& output) const {
 	int size = file.tellg();
 	file.seekg(0, file.beg);
 
-	int i = output.size();
-	output.resize(output.size() + size);
-	while (!file.eof()) {
-		file >> output[i++];	//NOTE: this does not read special symbols
+	int pre_size = output.size();
+	output.resize(pre_size + size);
+	if (!file.read(reinterpret_cast<char*>(output.data() + pre_size), size)) {
+		file.close();
+		return EError::READ_ERROR;
 	}
 	file.close();
 
@@ -120,11 +121,11 @@ EError CDataTypeTwitter::append_data(data_t& output) const {
 	int size = file.tellg();
 	file.seekg(0, file.beg);
 
-	int i = output.size();
-	output.resize(output.size() + size);
-	while (!file.eof()) {
-		file >> output[i++];	//NOTE: this does not read special symbols
-
+	int pre_size = output.size();
+	output.resize(pre_size + size);
+	if (!file.read(reinterpret_cast<char*>(output.data() + pre_size), size)) {
+		file.close();
+		return EError::READ_ERROR;
 	}
 	file.close();
 
