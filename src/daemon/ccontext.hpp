@@ -96,6 +96,13 @@ class CContext {
 			return ret;
 		}
 
+		void close_socket(boost::system::error_code& ec) {
+			if (m_socket.is_open()) {
+				m_socket.shutdown(ip::tcp::socket::shutdown_both, ec);
+				m_socket.close();
+			}
+		}
+
 		~CContext() {
 			if (m_socket.is_open()) {
 				m_socket.close();

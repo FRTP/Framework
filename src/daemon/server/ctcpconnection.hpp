@@ -1,6 +1,7 @@
 #ifndef CTCPCONNECTION_HPP
 #define CTCPCONNECTION_HPP
 
+#include <boost/system/error_code.hpp>
 #include <boost/pointer_cast.hpp>
 
 #include "ccommand.h"
@@ -54,6 +55,15 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 				BOOST_LOG_TRIVIAL(info) << "Response transmitted successfully";
 			}
 			else {
+				boost::system::error_code shutdown_error;
+				if (ec.value() == boost::system::errc::broken_pipe) {
+					BOOST_LOG_TRIVIAL(info) << "Disconnecting";
+					m_context.close_socket(shutdown_error);
+					if (shutdown_error) {
+						BOOST_LOG_TRIVIAL(error) << "Unable to shutdown socket: " + shutdown_error.message();
+					}
+
+				}
 				BOOST_LOG_TRIVIAL(error) << "handle_write_response: " +  ec.message();
 			}
 
