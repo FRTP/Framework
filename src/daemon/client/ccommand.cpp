@@ -129,7 +129,7 @@ ECommand CCmdUploadFile::type() const {
 EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
 	data_t data_buf;
 	str_to_data_t(m_filename, data_buf);
-	data_buf.push_back('\0');
+	data_buf.push_back('\n');
 	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>{ m_filename }); 
 	if (datatype_instance == nullptr) {
 		return EError::INTERNAL_ERROR;

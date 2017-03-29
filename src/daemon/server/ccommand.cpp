@@ -66,13 +66,13 @@ CCmdUploadFile::CCmdUploadFile(const CMessage& msg) {
 	auto it = msg.data_begin();
 
 	//determine the end of file name (where the file content begins)
-	while (*it != '\0') {
+	while (*it != '\n') {
 		++it;
 	}
+	m_filename = std::string(msg.data_begin(), it);
+
 	m_data_begin = ++it;
 	m_data_end = msg.data_end();
-	
-	m_filename = std::string(msg.data_begin(), it);
 }
 
 CCmdUploadFile::CCmdUploadFile(__attribute__ ((unused)) const std::list<std::string>& args) {
