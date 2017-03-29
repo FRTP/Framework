@@ -24,8 +24,8 @@ class TestFileOperations(unittest.TestCase):
 
     def test_sendbyname(self):
         self.client.upload_file('test_send', 'SHARES')
-        all_ok = self.client.check_integrity('AFLT/test_send',
-                                             'AFLT/test_send',
+        all_ok = self.client.check_integrity('test_send',
+                                             'test_send',
                                              'SHARES')
         self.assertTrue(all_ok)
     
