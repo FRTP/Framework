@@ -89,7 +89,7 @@ namespace utility {
 	void str_to_data_t(const std::string& input, data_t& output) {
 		output.resize(input.size());
 		for (unsigned int i = 0; i < input.size(); ++i) {
-			output[i] = static_cast<unsigned char>(output[i]);
+			output[i] = static_cast<unsigned char>(input[i]);
 		}
 	}
 
