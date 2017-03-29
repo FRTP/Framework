@@ -38,7 +38,7 @@ void CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
 		if ((ret = cmd->invoke(context, static_cast<EDataType>(datatype))) != EError::OK) {
 			switch (ret) {
 				case EError::OPEN_ERROR:
-					throw ExNoFile("No such file on server", "CClient::invoke()");
+					throw ExNoFile("Invalid file name", "CClient::invoke()");
 				default:
 					throw ExError(get_text_error(ret), "CClient::invoke()");
 				//TODO
