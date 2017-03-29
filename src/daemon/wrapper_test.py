@@ -29,7 +29,7 @@ class TestFileOperations(unittest.TestCase):
                                              'test_send',
                                              'SHARES')
         self.assertTrue(all_ok)
-    
+
     def test_sendnonexistent(self):
         with self.assertRaises(RuntimeError):
             self.client.upload_file('AFLT/nonexistent.file',

@@ -92,7 +92,7 @@ class CClient(object):
     def get_info(self, converter, check=True, force=False):
         for filename in converter.get_filenames():
             try:
-                ret = self.get_file(filename, filename, 
+                ret = self.get_file(filename, filename,
                                     converter.get_datatype(),
                                     force)
             except RuntimeError:
