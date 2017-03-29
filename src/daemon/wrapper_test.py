@@ -7,7 +7,8 @@ class TestFileOperations(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.client = wrapper.CClient('127.0.0.1', 34567,
-                                      '/home/maked0n/frtp/')
+                                     '/home/maked0n/frtp/')
+
     def test_getbyname(self):
         self.client.get_file('AFLT/test_data.csv', 'AFLT/test_data.csv',
                              'SHARES', True)
