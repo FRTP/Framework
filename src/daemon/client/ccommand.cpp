@@ -160,7 +160,8 @@ EError CCmdAuthorize::invoke(CContext* context, EDataType datatype) {
 	std::string s_data = m_login + "\n";
 	str_to_data_t(s_data, data_buf);
 	data_buf.reserve(data_buf.size() + SHA512_DIGEST_LENGTH);
-	for (auto i : *(encrypt_string(m_password))) {
+	auto sha_hash_ptr = encrypt_string(m_password);
+	for (auto i : *sha_hash_ptr) {
 		data_buf.push_back(i);
 	}
 	CMessage msg(ECommand::AUTHORIZE, datatype, data_buf);
