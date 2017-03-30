@@ -97,3 +97,68 @@ EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
 void CCmdUploadFile::set_callback(CContext::callback_type callback) {
 	m_callback = callback;
 }
+
+CCmdAuthorize::CCmdAuthorize(const CMessage& msg)
+	: m_authorized(false) {
+	auto it = msg.data_begin();
+
+	while (*it != '\n') {
+		++it;
+	}
+
+	m_login = std::string(msg.data_begin(), it);
+	sha512_ptr pwd_hash_ptr(new sha512(++it, msg.data_end()));
+	m_password = hash_to_str(pwd_hash_ptr);
+}
+
+CCmdAuthorize::CCmdAuthorize(__attribute__ ((unused)) const std::list<std::string>& args)
+	: m_authorized(false) {
+	//TODO
+}
+
+ECommand CCmdAuthorize::type() const {
+	return ECommand::AUTHORIZE;
+}
+
+EError CCmdAuthorize::invoke(CContext* context, __attribute__ ((unused)) EDataType datatype) {
+	sqlite3* db = 0;
+	std::string query = "select password from users where login = " + m_login;
+	char* err = 0;
+
+	if (sqlite3_open((CSettings::working_dir() + "db/users.db").c_str(), &db)) {
+		return EError::OPEN_ERROR;
+	}
+	else if (sqlite3_exec(db, query.c_str(), db_callback, reinterpret_cast<void*>(this), &err)) {
+		sqlite3_free(err);
+		sqlite3_close(db);
+		return EError::DB_ERROR;
+	}
+	sqlite3_close(db);
+	EError ret = m_authorized ? EError::OK : EError::AUTH_ERROR;
+	context->async_send_feedback(ret, m_callback);
+	return ret;
+}
+
+void CCmdAuthorize::set_callback(CContext::callback_type callback) {
+	m_callback = callback;
+}
+
+const std::string& CCmdAuthorize::login() const {
+	return m_login;
+}
+
+void CCmdAuthorize::make_authorized() {
+	m_authorized = true;
+}
+
+int server_command::db_callback(void* cmd,
+				__attribute__ ((unused)) int col_num,
+				char** fields,
+				__attribute__ ((unused)) char** columns) {
+	auto cmd_instance = reinterpret_cast<CCmdAuthorize*>(cmd);
+	std::string db_pwd(fields[0] ? fields[0] : "NULL");
+	if (db_pwd == cmd_instance->login()) {
+		cmd_instance->make_authorized();
+	}
+	return 0;
+}

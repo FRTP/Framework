@@ -8,6 +8,7 @@ CServer::CServer(boost::shared_ptr<io_service> io_srvs)
 	CCommandFactory::add<server_command::CCmdGetFile>(ECommand::GET_FILE);
 	CCommandFactory::add<server_command::CCmdGetMD5>(ECommand::GET_MD5);
 	CCommandFactory::add<server_command::CCmdUploadFile>(ECommand::UPLOAD_FILE);
+	CCommandFactory::add<server_command::CCmdAuthorize>(ECommand::AUTHORIZE);
 
 	_start_accept();	
 }
@@ -24,7 +25,7 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 	BOOST_LOG_TRIVIAL(info) << "Accepting client...";
 	if (!ec) {
 		BOOST_LOG_TRIVIAL(info) << "New client accepted";
-		connection->context().async_recv_message(boost::bind(&CTCPConnection::handle_recv_message, connection,
+		connection->context().async_recv_message(boost::bind(&CTCPConnection::authorize, connection,
 							 placeholders::error));
 	}
 	else {
