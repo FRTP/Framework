@@ -27,24 +27,17 @@ EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
 			fs::create_directories(datatype_instance->path());
 		}
 		CMessage msg(ECommand::GET_FILE, datatype, std::vector<char>(m_filename.begin(), m_filename.end()));
-		EError ret = context->send_message(msg);
-		if (ret != EError::OK) {
+		EError ret; ;
+		if ((ret = context->send_message(msg)) != EError::OK) {
 			return ret;
 		}
-
-		ret = context->recv_message(msg);
-		if (ret != EError::OK) {
+		if ((ret = context->recv_message(msg)) != EError::OK) {
 			return ret;
 		}
-		if (msg.command() == ECommand::FEEDBACK && msg.datatype() == EDataType::ERROR_CODE) {
-			int i_error_code = static_cast<int>((msg.data())[0]);
-			if (i_error_code < 0 || i_error_code >= static_cast<int>(EError::MAX_VAL)) {
-				return EError::UNKNOWN_ERROR;
-			}
-			return static_cast<EError>(i_error_code);
+		if ((ret = check_message(msg)) != EError::OK) {
+			return ret;
 		}
-		ret = datatype_instance->write_data(msg.data_begin(), msg.data_end());
-		return ret;
+		return datatype_instance->write_data(msg.data_begin(), msg.data_end());
 	}
 	return EError::OK;
 }
@@ -80,27 +73,19 @@ EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
 
 	//TODO: CMessage(ECommand, EDataType, const std::string&)
 	CMessage msg(ECommand::GET_MD5, datatype, std::vector<char>(m_filename.begin(), m_filename.end()));
-	EError ret = context->send_message(msg);
-	if (ret != EError::OK) {
+	EError ret;
+	if ((ret = context->send_message(msg)) != EError::OK) {
 		return ret;
 	}
-
-	ret = context->recv_message(msg);
-	if (ret != EError::OK) {
+	if ((ret = context->recv_message(msg)) != EError::OK) {
 		return ret;
 	}
-	if (msg.command() == ECommand::FEEDBACK && msg.datatype() == EDataType::ERROR_CODE) {
-		int i_error_code = static_cast<int>((msg.data())[0]);
-		if (i_error_code < 0 || i_error_code >= static_cast<int>(EError::MAX_VAL)) {
-			return EError::UNKNOWN_ERROR;
-		}
-		return static_cast<EError>(i_error_code);
+	if ((ret = check_message(msg)) != EError::OK) {
+		return ret;
 	}
-
 	if (msg.data().size() != MD5_DIGEST_LENGTH) {
 		return EError::INTERNAL_ERROR;
 	}
-
 	for (size_t i = 0; i < MD5_DIGEST_LENGTH; ++i) {
 		(*m_hash)[i] = (msg.data())[i];
 	}
@@ -134,28 +119,63 @@ EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
 	if (datatype_instance == nullptr) {
 		return EError::INTERNAL_ERROR;
 	}
-	EError ret = datatype_instance->append_data(data_buf);
-	if (ret != EError::OK) {
+	EError ret;
+	if ((ret = datatype_instance->append_data(data_buf)) != EError::OK) {
 		return ret;
 	}
 	CMessage msg(ECommand::UPLOAD_FILE, datatype, data_buf);
-	ret = context->send_message(msg);	
-	if (ret != EError::OK) {
+	if ((ret = context->send_message(msg)) != EError::OK) {
 		return ret;
 	}
-
-	ret = context->recv_message(msg);
-	if (ret != EError::OK) {
+	if ((ret = context->recv_message(msg)) != EError::OK) {
 		return ret;
 	}
-	if (msg.command() == ECommand::FEEDBACK && msg.datatype() == EDataType::ERROR_CODE) {
-		int i_error_code = static_cast<int>((msg.data())[0]);
-		if (i_error_code < 0 || i_error_code >= static_cast<int>(EError::MAX_VAL)) {
-			return EError::UNKNOWN_ERROR;
-		}
-		return static_cast<EError>(i_error_code);
+	if ((ret = check_message(msg)) != EError::OK) {
+		return ret;
 	}
-	else {
+	else if (msg.command() != ECommand::FEEDBACK) {
 		return EError::INTERNAL_ERROR;
 	}
+	return EError::OK;
+}
+
+CCmdAuthorize::CCmdAuthorize(const std::list<std::string>& args) {
+	if (args.size() != EXPECTED_ARGS_NUM) {
+		throw ExInvalidArgs("Invalid number of arguments", "CCmdAuthorize::CCmdAuthorize()");
+	}
+	m_login = args.front();
+	m_password = *(std::next(args.begin(), 1));
+}
+
+CCmdAuthorize::CCmdAuthorize(__attribute__((unused)) const CMessage& msg) {
+	//TODO
+}
+
+ECommand CCmdAuthorize::type() const {
+	return ECommand::AUTHORIZE;
+}
+
+EError CCmdAuthorize::invoke(CContext* context, EDataType datatype) {
+	data_t data_buf;
+	std::string s_data = m_login + "\n";
+	str_to_data_t(s_data, data_buf);
+	data_buf.reserve(data_buf.size() + SHA512_DIGEST_LENGTH);
+	for (auto i : *(encrypt_string(m_password))) {
+		data_buf.push_back(i);
+	}
+	CMessage msg(ECommand::AUTHORIZE, datatype, data_buf);
+	EError ret;
+	if ((ret = context->send_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = context->recv_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = check_message(msg)) != EError::OK) {
+		return ret;
+	}
+	else if (msg.command() != ECommand::FEEDBACK) {
+		return EError::INTERNAL_ERROR;
+	}
+	return EError::OK;
 }
