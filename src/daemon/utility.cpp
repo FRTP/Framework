@@ -96,7 +96,6 @@ namespace utility {
 		for (auto i : *hash) {
 			oss << boost::format("%02x") % static_cast<unsigned int>(i);
 		}
-		oss << std::endl;
 		return oss.str();
 	}
 
