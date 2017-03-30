@@ -121,6 +121,10 @@ ECommand CCmdAuthorize::type() const {
 }
 
 EError CCmdAuthorize::invoke(__attribute__ ((unused)) CContext* context, __attribute__ ((unused)) EDataType datatype) {
+	if (!is_valid_login(m_login)) {
+		return EError::AUTH_ERROR;
+	}
+
 	sqlite3* db = 0;
 	std::string query = "select password from users where login = '" + m_login + "';";
 	char* err = 0;
@@ -150,6 +154,12 @@ const std::string& CCmdAuthorize::password() const {
 
 void CCmdAuthorize::make_authorized() {
 	m_authorized = true;
+}
+
+bool CCmdAuthorize::is_valid_login(const std::string& login) const {
+	boost::regex login_regex("[A-Z,a-z,0-9]+");
+	boost::smatch result;
+	return boost::regex_match(login, result, login_regex);
 }
 
 int server_command::db_callback(void* cmd,

@@ -1,6 +1,7 @@
 #ifndef CCOMMAND_H
 #define CCOMMAND_H
 
+#include <boost/regex.hpp>
 #include <cassert>
 #include <sqlite3.h>
 #include <vector>
@@ -76,6 +77,7 @@ namespace server_command {
 			const std::string& login() const;
 			const std::string& password() const;
 			void make_authorized();
+			bool is_valid_login(const std::string& login) const;
 			~CCmdAuthorize() {}
 	};
 }
