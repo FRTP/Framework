@@ -55,8 +55,12 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 				}
 				EError ret;
 				if ((ret = cmd->invoke(&m_context, msg->datatype())) == EError::OK) {
+					auto cmd_auth = boost::dynamic_pointer_cast<server_command::CCmdAuthorize>(cmd);
+					BOOST_LOG_TRIVIAL(info) << cmd_auth->login() + " authorized";
 					m_authorized = true;
 				}
+				m_context.async_send_feedback(ret, boost::bind(&CTCPConnection::handle_write_response,
+									       shared_from_this(), placeholders::error));
 			}
 		}
 
