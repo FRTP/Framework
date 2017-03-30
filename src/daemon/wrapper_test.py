@@ -7,6 +7,7 @@ class TestFileOperations(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.client = wrapper.CClient('127.0.0.1', 34567,
+                                     'user', # 'password here',
                                      '/home/maked0n/frtp/')
 
     def test_getbyname(self):
@@ -43,6 +44,12 @@ class TestFileOperations(unittest.TestCase):
             self.client.get_info(converter, force=True)
         except wrapper.ExInvalidMD5:
             self.fail("Invalid MD5")
+
+    def test_invalidlogin(self):
+        with self.assertRaises(Exception):
+            cls.client = wrapper.CClient('127.0.0.1', 34567,
+                                         'no_such_user', 'password',
+                                         '/home/maked0n/frtp/')
 
 
 if __name__ == '__main__':
