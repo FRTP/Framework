@@ -47,7 +47,7 @@ class TestFileOperations(unittest.TestCase):
 
     def test_invalidlogin(self):
         with self.assertRaises(Exception):
-            cls.client = wrapper.CClient('127.0.0.1', 34567,
+            self.client = wrapper.CClient('127.0.0.1', 34567,
                                          'no_such_user', 'password',
                                          '/home/maked0n/frtp/')
 
