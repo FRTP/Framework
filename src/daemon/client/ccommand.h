@@ -62,4 +62,17 @@ class CCmdUploadFile : public ICommand {
 		~CCmdUploadFile() {}
 };
 
+class CCmdAuthorize : public ICommand {
+	private:
+		static constexpr int EXPECTED_ARGS_NUM = 2;
+		std::string m_login;
+		std::string m_password;
+	public:
+		explicit CCmdAuthorize(const std::list<std::string>& args);
+		explicit CCmdAuthorize(const CMessage& msg);
+		virtual ECommand type() const;
+		virtual EError invoke(CContext* context, EDataType datatype);
+		~CCmdAuthorize() {}
+};
+
 #endif //CCOMMAND_H

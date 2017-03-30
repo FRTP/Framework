@@ -6,6 +6,7 @@ CClient::CClient(const std::string& working_dir) {
 	CCommandFactory::add<CCmdGetFile>("GetFile");
 	CCommandFactory::add<CCmdGetMD5>("GetMD5");
 	CCommandFactory::add<CCmdUploadFile>("UploadFile");
+	CCommandFactory::add<CCmdAuthorize>("Authorize");
 
 	CDataTypeFactory::register_type<CDataTypeShares>(EDataType::SHARES);
 	CDataTypeFactory::register_type<CDataTypeTwitter>(EDataType::TWITTER);
@@ -51,7 +52,7 @@ void CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
 }
 
 std::string CClient::get_hash(CCmdGetMD5* cmd) {
-	std::string res = md5sum_to_str(cmd->hash());
+	std::string res = hash_to_str(cmd->hash());
 	return res;
 }
 
