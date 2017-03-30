@@ -74,6 +74,7 @@ namespace server_command {
 			virtual EError invoke(CContext* context, EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 			const std::string& login() const;
+			const std::string& password() const;
 			void make_authorized();
 			~CCmdAuthorize() {}
 	};
