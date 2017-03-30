@@ -180,3 +180,45 @@ EError CCmdAuthorize::invoke(CContext* context, EDataType datatype) {
 	}
 	return EError::OK;
 }
+
+CCmdRegister::CCmdRegister(const std::list<std::string>& args) {
+	if (args.size() != EXPECTED_ARGS_NUM) {
+		throw ExInvalidArgs("Invalid number of arguments", "CCmdRegister::CCmdRegister()");
+	}
+	m_login = args.front();
+	m_password = *(std::next(args.begin(), 1));
+}
+
+CCmdRegister::CCmdRegister(__attribute__((unused)) const CMessage& msg) {
+	//TODO
+}
+
+ECommand CCmdRegister::type() const {
+	return ECommand::REGISTER;
+}
+
+EError CCmdRegister::invoke(CContext* context, EDataType datatype) {
+	data_t data_buf;
+	std::string s_data = m_login + "\n";
+	str_to_data_t(s_data, data_buf);
+	data_buf.reserve(data_buf.size() + SHA512_DIGEST_LENGTH);
+	auto sha_hash_ptr = encrypt_string(m_password);
+	for (auto i : *sha_hash_ptr) {
+		data_buf.push_back(i);
+	}
+	CMessage msg(ECommand::REGISTER, datatype, data_buf);
+	EError ret;
+	if ((ret = context->send_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = context->recv_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = check_message(msg)) != EError::OK) {
+		return ret;
+	}
+	else if (msg.command() != ECommand::FEEDBACK) {
+		return EError::INTERNAL_ERROR;
+	}
+	return EError::OK;
+}

@@ -38,6 +38,9 @@ namespace utility {
 			case EError::AUTH_ERROR:
 				res = "Invalid login/password";
 				break;
+			case EError::INVALID_LOGIN:
+				res = "Invalid login";
+				break;
 			case EError::DB_ERROR:
 				res = "Database error";
 				break;

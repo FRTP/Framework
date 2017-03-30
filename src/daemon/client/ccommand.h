@@ -75,4 +75,17 @@ class CCmdAuthorize : public ICommand {
 		~CCmdAuthorize() {}
 };
 
+class CCmdRegister : public ICommand {
+	private:
+		static constexpr int EXPECTED_ARGS_NUM = 2;
+		std::string m_login;
+		std::string m_password;
+	public:
+		explicit CCmdRegister(const std::list<std::string>& args);
+		explicit CCmdRegister(const CMessage& msg);
+		virtual ECommand type() const;
+		virtual EError invoke(CContext* context, EDataType datatype);
+		~CCmdRegister() {}
+};
+
 #endif //CCOMMAND_H

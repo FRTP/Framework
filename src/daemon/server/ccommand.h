@@ -13,7 +13,8 @@
 using namespace datatypes;
 
 namespace server_command {
-	int db_callback(void* cmd, int col_num, char** fields, char** columns);
+	int auth_callback(void* cmd, int col_num, char** fields, char** columns);
+	bool is_valid_login(const std::string& login);
 
 	class IServerCommand : public ICommand {
 		public:
@@ -77,8 +78,20 @@ namespace server_command {
 			const std::string& login() const;
 			const std::string& password() const;
 			void make_authorized();
-			bool is_valid_login(const std::string& login) const;
 			~CCmdAuthorize() {}
+	};
+
+	class CCmdRegister : public IServerCommand {
+		private:
+			std::string m_login;
+			std::string m_password;
+			CContext::callback_type m_callback;
+		public:
+			explicit CCmdRegister(const CMessage& msg);
+			explicit CCmdRegister(const std::list<std::string>& args);
+			virtual ECommand type() const;
+			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual void set_callback(CContext::callback_type callback);
 	};
 }
 

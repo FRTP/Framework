@@ -29,6 +29,7 @@ namespace utility {
 
 	enum class ECommand {
 		AUTHORIZE,
+		REGISTER,
 		FEEDBACK,
 		GET_FILE,
 		GET_MD5,
@@ -48,6 +49,7 @@ namespace utility {
 		CORRUPTED_MESSAGE,
 		DB_ERROR,
 		AUTH_ERROR,
+		INVALID_LOGIN,
 		UNKNOWN_ERROR,
 		MAX_VAL = UNKNOWN_ERROR
 	};
@@ -149,6 +151,8 @@ namespace utility {
 						return "GetFile";
 					case ECommand::AUTHORIZE:
 						return "Authorize";
+					case ECommand::REGISTER:
+						return "Register";
 					default:
 						return "";
 				}

@@ -9,6 +9,7 @@ CServer::CServer(boost::shared_ptr<io_service> io_srvs)
 	CCommandFactory::add<server_command::CCmdGetMD5>(ECommand::GET_MD5);
 	CCommandFactory::add<server_command::CCmdUploadFile>(ECommand::UPLOAD_FILE);
 	CCommandFactory::add<server_command::CCmdAuthorize>(ECommand::AUTHORIZE);
+	CCommandFactory::add<server_command::CCmdRegister>(ECommand::REGISTER);
 
 	_start_accept();	
 }

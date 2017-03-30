@@ -133,7 +133,7 @@ EError CCmdAuthorize::invoke(__attribute__ ((unused)) CContext* context, __attri
 		return EError::DB_ERROR;
 	}
 
-	sqlite3_exec(db, query.c_str(), db_callback, reinterpret_cast<void*>(this), &err);
+	sqlite3_exec(db, query.c_str(), auth_callback, reinterpret_cast<void*>(this), &err);
 	sqlite3_free(err);
 	sqlite3_close(db);
 	EError ret = m_authorized ? EError::OK : EError::AUTH_ERROR;
@@ -156,16 +156,64 @@ void CCmdAuthorize::make_authorized() {
 	m_authorized = true;
 }
 
-bool CCmdAuthorize::is_valid_login(const std::string& login) const {
+CCmdRegister::CCmdRegister(const CMessage& msg) {
+	auto it = msg.data_begin();
+
+	while (*it != '\n') {
+		++it;
+	}
+
+	m_login = std::string(msg.data_begin(), it);
+	sha512_ptr pwd_hash_ptr(new sha512(++it, msg.data_end()));
+	m_password = hash_to_str(pwd_hash_ptr);
+}
+
+CCmdRegister::CCmdRegister(__attribute__ ((unused)) const std::list<std::string>& args) {
+	//TODO
+}
+
+ECommand CCmdRegister::type() const {
+	return ECommand::REGISTER;
+}
+
+EError CCmdRegister::invoke(CContext* context, __attribute__ ((unused)) EDataType datatype) {
+	if (!is_valid_login(m_login)) {
+		return EError::INVALID_LOGIN;
+	}
+
+	sqlite3* db = 0;
+	std::string query = "insert into users (login,password)  values ('" + m_login + "','" + m_password + "');";
+	char* err = 0;
+
+	if (sqlite3_open((CSettings::working_dir() + "db/users.db").c_str(), &db)) {
+		return EError::DB_ERROR;
+	}
+
+	if (sqlite3_exec(db, query.c_str(), 0, 0, &err) != SQLITE_OK) {
+		sqlite3_free(err);
+		sqlite3_close(db);
+		return EError::INVALID_LOGIN;
+	}
+	sqlite3_free(err);
+	sqlite3_close(db);
+	context->async_send_feedback(EError::OK, m_callback);
+	return EError::OK;
+}
+
+void CCmdRegister::set_callback(CContext::callback_type callback) {
+	m_callback = callback;
+}
+
+bool server_command::is_valid_login(const std::string& login) {
 	boost::regex login_regex("[A-Z,a-z,0-9]+");
 	boost::smatch result;
 	return boost::regex_match(login, result, login_regex);
 }
 
-int server_command::db_callback(void* cmd,
-				__attribute__ ((unused)) int col_num,
-				char** fields,
-				__attribute__ ((unused)) char** columns) {
+int server_command::auth_callback(void* cmd,
+				  __attribute__ ((unused)) int col_num,
+				  char** fields,
+				  __attribute__ ((unused)) char** columns) {
 	auto cmd_instance = reinterpret_cast<CCmdAuthorize*>(cmd);
 	std::string db_pwd(fields[0] ? fields[0] : "NULL");
 	if (db_pwd == cmd_instance->password()) {
