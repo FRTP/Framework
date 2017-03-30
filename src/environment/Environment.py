@@ -20,7 +20,7 @@ class AssetsPortfolio:
         index = all_assets_names.index(asset_name)
         return self.count[index]
 
-    TIME_FORMAT = "%d.%m.%Y %H:%M:%S"
+    TIME_FORMAT = "%Y-%m-%d"
     ERR_MSG_WRONG_TIME_FORMAT = "Wrong input format. Needed following:" + \
                                 TIME_FORMAT
     ERR_MSG_WRONG_TIME_TYPE = "Wrong input. Needed 'str' or 'datetime'"
@@ -70,17 +70,17 @@ class Environment:
     #   with information on assets. Each frame in following format:
     ##
     # LIST PD.DATA_FRAME:
-    #  __                                                                  __
-    # |                                                                      |
-    # |  __________________________________________________________________  |
-    # | | Time                | Open | High | Low | Close | Volume | Count | |
-    # | | --------------------|------|------|-----|-------|--------|-------| |
-    # | | 05.11.1996 13:15:30 | 32.2 | 45.7 | ... |  ...  |  ....  |  ...  | |
-    # | |---------------------|------|------|-----|------------------------| |
-    # | | %d.%m.%Y %H:%M:%S   | ...  | ...  | ... |  ...  |  ....  |  ...  | |
-    # |                                                                      |
-    # |                                                                      |
-    #  --                                                                  --
+    #  __                                                            __
+    # |                                                                |
+    # |  ____________________________________________________________  |
+    # | | Date       | Open | High | Low | Close | Volume | Adj close| |
+    # | | -----------|------|------|-----|-------|--------|----------| |
+    # | | 2000-02-18 | 32.2 | 45.7 | ... |  ...  |  ....  |   ...    | |
+    # | |------------|------|------|-----|-------|--------|----------| |
+    # | | %Y-%m-%d   | ...  | ...  | ... |  ...  |  ....  |   ...    | |
+    # |                                                                |
+    # |                                                                |
+    #  --                                                            --
     #
     # @param initial_assets_count - <numpy array>
     #   The number of each asset we currently have.
@@ -266,25 +266,25 @@ class Environment:
 
     # Gives rows in the asset_hist_data
     #   which are appropriate to the start_date and length of the period.
-    @staticmethod
-    def get_train_period(asset_hist_data, start_date=None, length=0, ratio=0.):
-        if length == 0 and ratio == 0:
-            return None
-
-        if start_date is None:
-            first_idx = 0
-        else:
-            start_date = AssetsPortfolio.to_datetime(start_date)
-            first_idx = Environment.__find__row__by__date__(asset_hist_data,
-                                                            start_date)
-            if first_idx is None:
-                raise ValueError("No such start_date in asset_hist_data.")
-
-        if length == 0:
-            length = len(asset_hist_data) * ratio
-        last_idx = min(len(asset_hist_data), first_idx + length)
-
-        return asset_hist_data[first_idx:last_idx]
+    # @staticmethod
+    # def get_train_period(asset_hist_data, start_date=None, length=0, ratio=0.):
+    #     if length == 0 and ratio == 0:
+    #         return None
+    #
+    #     if start_date is None:
+    #         first_idx = 0
+    #     else:
+    #         start_date = AssetsPortfolio.to_datetime(start_date)
+    #         first_idx = Environment.__find__row__by__date__(asset_hist_data,
+    #                                                         start_date)
+    #         if first_idx is None:
+    #             raise ValueError("No such start_date in asset_hist_data.")
+    #
+    #     if length == 0:
+    #         length = len(asset_hist_data) * ratio
+    #     last_idx = min(len(asset_hist_data), first_idx + length)
+    #
+    #     return asset_hist_data[first_idx:last_idx]
 
     # Just gives names of considered assets.
     def get_assets_names(self):
@@ -298,3 +298,5 @@ class Environment:
     # Gives the last portfolio in the portfolio chain (sequence).
     def get_current_portfolio(self):
         return self.portfolio_sequence[-1]
+
+
