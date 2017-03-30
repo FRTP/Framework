@@ -15,7 +15,7 @@ BOOST_PYTHON_MODULE(libfrtpsrv)
 {
 	class_<CClient>("LibClient", init<std::string>(args("workingdir")))
 		.def("create_context", &CClient::create_context, return_value_policy<manage_new_object>())
-		.def("connect", &CClient::connect, args("context", "server", "port"))
+		.def("connect", &CClient::connect, args("context", "server", "port", "login", "password"))
 		.staticmethod("connect")
 		.def("invoke", &CClient::invoke, args("context", "command", "datatype"))
 		.staticmethod("invoke")

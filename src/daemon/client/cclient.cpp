@@ -21,12 +21,19 @@ CContext* CClient::create_context() {
 	return context;
 }
 
-void CClient::connect(CContext* context, const std::string& server, int port) {
+void CClient::connect(CContext* context, const std::string& server, int port,
+		      const std::string& login, const std::string& password) {
 	boost::system::error_code error;
 	context->socket().connect(ip::tcp::endpoint(ip::address::from_string(server.c_str()), port), error);
 	if (error) {
 		throw ExConnectionProblem("Connection error: " + error.message(), "CClient::connect()");
 	}
+
+	boost::python::list args;
+	args.append(login);
+	args.append(password);
+	auto cmd = CCommandFactory::create("Authorize", args);
+	invoke(context, cmd, static_cast<int>(EDataType::ACCOUNT));
 }
 
 void CClient::invoke(CContext* context, ICommand* cmd, int datatype) {

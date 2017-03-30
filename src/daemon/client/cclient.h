@@ -26,7 +26,8 @@ class CClient {
 		CClient(const std::string& working_dir);
 		~CClient() {}
 		CContext* create_context();
-		static void connect(CContext* context, const std::string& server, int port);
+		static void connect(CContext* context, const std::string& server, int port,
+				    const std::string& login, const std::string& password);
 		static void invoke(CContext* context, ICommand* cmd, int datatype);
 		static std::string get_hash(CCmdGetMD5* cmd);
 		static bool check_integrity(CContext* context, const std::string& srv_filename, 
