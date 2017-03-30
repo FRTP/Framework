@@ -53,9 +53,9 @@ namespace utility {
 	};
 
 	enum class EDataType {
-		ACCOUNT,
 		SHARES,
 		TWITTER,
+		ACCOUNT,
 		ERROR_CODE,
 		MAX_VAL = ERROR_CODE
 	};
