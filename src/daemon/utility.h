@@ -147,6 +147,8 @@ namespace utility {
 						return "GetMD5";
 					case ECommand::GET_FILE:
 						return "GetFile";
+					case ECommand::AUTHORIZE:
+						return "Authorize";
 					default:
 						return "";
 				}
