@@ -35,6 +35,12 @@ namespace utility {
 			case EError::CORRUPTED_MESSAGE:
 				res = "Corrupted message";
 				break;
+			case EError::AUTH_ERROR:
+				res = "Invalid login/password";
+				break;
+			case EError::DB_ERROR:
+				res = "Database error";
+				break;
 			case EError::UNKNOWN_ERROR:
 				res = "Unknown error";
 				break;
@@ -57,6 +63,14 @@ namespace utility {
 		return CSettings::data_dir() + get_data_type_dir(type) + filename;
 	}
 
+	sha512_ptr encrypt_string(const std::string& input) {
+		sha512_ptr sha_hash(new sha512);
+		sha_hash->resize(SHA512_DIGEST_LENGTH);
+
+		SHA512(reinterpret_cast<const unsigned char*>(&input[0]), input.size(), sha_hash->data());
+		return sha_hash;
+	}
+
 	md5sum_ptr calculate_md5(const std::string& full_path) {
 		md5sum_ptr md5(new md5sum);
 		md5->resize(MD5_DIGEST_LENGTH);
@@ -77,9 +91,9 @@ namespace utility {
 		return md5;
 	}
 
-	std::string md5sum_to_str(md5sum_ptr md5) {
+	std::string hash_to_str(hash_ptr hash) {
 		std::ostringstream oss;
-		for (auto i : *md5) {
+		for (auto i : *hash) {
 			oss << boost::format("%02x") % static_cast<unsigned int>(i);
 		}
 		oss << std::endl;
@@ -91,6 +105,17 @@ namespace utility {
 		for (unsigned int i = 0; i < input.size(); ++i) {
 			output[i] = static_cast<unsigned char>(input[i]);
 		}
+	}
+
+	EError check_message(const CMessage& msg) {
+		if (msg.command() == ECommand::FEEDBACK && msg.datatype() == EDataType::ERROR_CODE) {
+			int i_error_code = static_cast<int>((msg.data())[0]);
+			if (i_error_code < 0 || i_error_code >= static_cast<int>(EError::MAX_VAL)) {
+				return EError::UNKNOWN_ERROR;
+			}
+			return static_cast<EError>(i_error_code);
+		}
+		return EError::OK;
 	}
 
 	void CSettings::set_working_dir(const std::string& working_dir) {

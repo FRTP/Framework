@@ -11,6 +11,7 @@
 #include <list>
 #include <map>
 #include <openssl/md5.h>
+#include <openssl/sha.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -18,11 +19,16 @@
 class CContext;
 
 namespace utility {
-	typedef std::vector<unsigned char> md5sum;
+	typedef std::vector<unsigned char> hash_t;
+	typedef boost::shared_ptr<hash_t> hash_ptr;
+	typedef hash_t md5sum;
+	typedef hash_t sha512;
 	typedef boost::shared_ptr<md5sum> md5sum_ptr;
+	typedef boost::shared_ptr<sha512> sha512_ptr;
 	typedef std::vector<unsigned char> data_t;
 
 	enum class ECommand {
+		AUTHORIZE,
 		FEEDBACK,
 		GET_FILE,
 		GET_MD5,
@@ -40,23 +46,30 @@ namespace utility {
 		UNKNOWN_DATATYPE,
 		INTERNAL_ERROR,
 		CORRUPTED_MESSAGE,
+		DB_ERROR,
+		AUTH_ERROR,
 		UNKNOWN_ERROR,
 		MAX_VAL = UNKNOWN_ERROR
 	};
 
 	enum class EDataType {
+		ACCOUNT,
 		SHARES,
 		TWITTER,
 		ERROR_CODE,
 		MAX_VAL = ERROR_CODE
 	};
 
+	class CMessage;
+
 	std::string get_text_error(EError error);
 	std::string get_data_type_dir(EDataType type); 
 	std::string get_full_path(EDataType type, const std::string& filename);
+	sha512_ptr encrypt_string(const std::string& input);
 	md5sum_ptr calculate_md5(const std::string& full_path);
-	std::string md5sum_to_str(md5sum_ptr md5);
+	std::string hash_to_str(hash_ptr hash);
 	void str_to_data_t(const std::string& input, data_t& output);
+	EError check_message(const CMessage& msg);
 
 	class CSettings {
 		private:
