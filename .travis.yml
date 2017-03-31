@@ -22,4 +22,4 @@ install:
   - sudo ln /usr/bin/g++-5 /usr/bin/g++
 script:
   - "python3 -m flake8 src"
-  - "cd src && build.sh -t daemon && cd ../"
+  - "cd src && ./build.sh -t daemon && cd ../"
