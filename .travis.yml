@@ -1,3 +1,18 @@
+sudo: required
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - sourceline: 'deb https://packagecloud.io/chef/stable/ubuntu/precise main'
+      - deadsnakes
+    packages:
+      - g++-5
+      - python3.5
+      - libsqlite3-dev
+      - libboost-all-dev
+      - libssl-dev
+
 language: python
 python:
   - "3.5"
