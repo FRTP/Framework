@@ -70,7 +70,7 @@ namespace utility {
 	sha512_ptr encrypt_string(const std::string& input);
 	md5sum_ptr calculate_md5(const std::string& full_path);
 	std::string hash_to_str(hash_ptr hash);
-	void str_to_data_t(const std::string& input, data_t& output);
+	void str_to_data_t(const std::string& input, data_t& output, bool append);
 	EError check_message(const CMessage& msg);
 
 	class CSettings {

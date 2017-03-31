@@ -102,9 +102,10 @@ namespace utility {
 		return oss.str();
 	}
 
-	void str_to_data_t(const std::string& input, data_t& output) {
-		output.resize(input.size());
-		for (unsigned int i = 0; i < input.size(); ++i) {
+	void str_to_data_t(const std::string& input, data_t& output, bool append = false) {
+		output.resize(append ? output.size() + input.size() : input.size());
+		unsigned int i = append ? output.size() : 0;
+		for (; i < output.size(); ++i) {
 			output[i] = static_cast<unsigned char>(input[i]);
 		}
 	}
