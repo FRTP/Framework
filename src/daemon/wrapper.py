@@ -24,16 +24,26 @@ class IConverter(object):
 
 
 class CConvertFromDate(IConverter):
-    def __init__(self, date_from, date_to, data_type, subdirs):
+    def __init__(self, date_from, date_to, data_type, source, subdirs):
         self.filelist = []
         self.data_type = data_type
-        if data_type == 'SHARES':
+        if data_type == 'SHARES' and source == 'BCS':
             counter = date_from
             delta = datetime.timedelta(days=1)
             while counter <= date_to:
-                self.filelist.append(subdirs + "/" +
+                self.filelist.append("BCS\n" + subdirs + "/" +
                                      counter.strftime("%Y%m%d") + ".csv")
                 counter += delta
+        elif data_type == 'SHARES' and source == 'YAHOO':
+            s_date_from = 'a=' + str(date_from.month() - 1) + '&b=' +
+                          str(date_from.day()) + '&c=' +
+                          str(date_from.year()) + '&'
+            s_date_to = 'd=' + str(date_to.month() - 1) + '&e=' +
+                        str(date_to.day()) + '&f=' +
+                        str(date_to.year())
+            self.filelist.append("YAHOO\n" + subdirs + "/" + s_date_from +
+                                 s_date_to)
+
 
     def get_filenames(self):
         return self.filelist
