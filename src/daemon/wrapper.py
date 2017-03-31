@@ -8,6 +8,7 @@ class ExInvalidMD5(Exception):
     def __init__(self):
         Exception.__init__(self)
 
+
 DATA_TYPES = {'SHARES': 0, 'TWITTER': 1}
 
 
