@@ -13,9 +13,9 @@ void translate_no_file_error(const ExNoFile&);
 
 BOOST_PYTHON_MODULE(libfrtpsrv)
 {
-	class_<CClient>("LibClient", init<std::string, int, std::string>(args("server", "port", "workingdir")))
+	class_<CClient>("LibClient", init<std::string>(args("workingdir")))
 		.def("create_context", &CClient::create_context, return_value_policy<manage_new_object>())
-		.def("connect", &CClient::connect, args("context"))
+		.def("connect", &CClient::connect, args("context", "server", "port", "login", "password"))
 		.staticmethod("connect")
 		.def("invoke", &CClient::invoke, args("context", "command", "datatype"))
 		.staticmethod("invoke")
@@ -25,11 +25,15 @@ BOOST_PYTHON_MODULE(libfrtpsrv)
 		.staticmethod("check_integrity")
 	;
 	class_<CCommandFactory, boost::noncopyable>("LibCommandFactory", no_init)
-		.def("create_command", &CCommandFactory::create, args("cmd_id", "args"), return_value_policy<manage_new_object>())
+		.def("create_command", static_cast<ICommand* (*)(const std::string&, boost::python::list)>(&CCommandFactory::create),
+		     return_value_policy<manage_new_object>())
+		.def("create_command", static_cast<ICommand* (*)(const CMessage&)>(&CCommandFactory::create),
+		     return_value_policy<manage_new_object>())
 		.staticmethod("create_command")
 	;
 	class_<CContext, boost::noncopyable>("LibContext", no_init);
 	class_<ICommand, boost::noncopyable>("LibCommand", no_init);
+	class_<CMessage, boost::noncopyable>("LibMessage", no_init);
 
 	register_exception_translator<ExError>(translate_error);
 	register_exception_translator<ExInvalidArgs>(transtale_invalid_args_error);
@@ -56,7 +60,7 @@ void transtale_socket_problem_error(const ExSocketProblem& e) {
 }
 
 void translate_unknown_data_type_error(const ExUnknownDataType& e) {
-	PyErr_SetString(PyExc_RuntimeError, e.what());
+	PyErr_SetString(PyExc_TypeError, e.what());
 }
 
 void translate_no_file_error(const ExNoFile& e) {

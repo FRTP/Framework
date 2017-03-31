@@ -54,32 +54,33 @@ class CNoConversion(IConverter):
 
 
 class CClient(object):
-    def __init__(self, srv_address, srv_port, working_dir):
+    def __init__(self, srv_address, srv_port, srv_login, srv_password,
+                 working_dir):
         if working_dir[-1] != "/":
             working_dir += str("/")
-        self.client = lib.LibClient(server=srv_address, port=srv_port,
-                                    workingdir=working_dir)
+        self.client = lib.LibClient(workingdir=working_dir)
         self.context = self.client.create_context()
-        lib.LibClient.connect(context=self.context)
+        lib.LibClient.connect(server=srv_address, port=srv_port,
+                              login=srv_login, password=srv_password,
+                              context=self.context)
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
 
     def get_file(self, filename, newfilename, data_type, force=False):
         l_arg = [filename, newfilename, str(force)]
-        cmd = lib.LibCommandFactory.create_command(cmd_id="GetFile",
-                                                   args=l_arg)
-        return lib.LibClient.invoke(context=self.context, command=cmd,
-                                    datatype=DATA_TYPES[data_type])
+        cmd = lib.LibCommandFactory.create_command("GetFile", l_arg)
+        lib.LibClient.invoke(context=self.context, command=cmd,
+                             datatype=DATA_TYPES[data_type])
 
     def upload_file(self, filename, data_type):
-        cmd = lib.LibCommandFactory.create_command(cmd_id="UploadFile",
-                                                   args=[filename])
-        return lib.LibClient.invoke(connect=self.context, command=cmd,
-                                    datatype=DATA_TYPES[data_type])
+        cmd = lib.LibCommandFactory.create_command("UploadFile",
+                                                   [filename])
+        lib.LibClient.invoke(context=self.context, command=cmd,
+                             datatype=DATA_TYPES[data_type])
 
     def get_md5(self, srv_filename, data_type):
-        cmd = lib.LibCommandFactory.create_command(cmd_id="GetMD5",
-                                                   args=[srv_filename])
+        cmd = lib.LibCommandFactory.create_command("GetMD5",
+                                                   [srv_filename])
         lib.LibClient.invoke(context=self.context, command=cmd,
                              datatype=DATA_TYPES[data_type])
         return CClient.get_hash(cmd)
@@ -92,8 +93,12 @@ class CClient(object):
 
     def get_info(self, converter, check=True, force=False):
         for filename in converter.get_filenames():
-            ret = self.get_file(filename, filename, converter.get_datatype(),
-                                force)
+            try:
+                ret = self.get_file(filename, filename,
+                                    converter.get_datatype(),
+                                    force)
+            except RuntimeError:
+                pass
             if ret == 0 and check:
                 if not self.check_integrity(filename):
                     raise ExInvalidMD5()

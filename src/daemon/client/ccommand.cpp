@@ -1,7 +1,5 @@
 #include "ccommand.h"
 
-std::map<std::string, IAbstractCommandCreator*> CCommandFactory::m_factory;
-
 CCmdGetFile::CCmdGetFile(const std::list<std::string>& args) {
 	if (args.size() != EXPECTED_ARGS_NUM) {
 		throw ExInvalidArgs("Invalid number of arguments", "CCmdGetFile::CCmdGetFile()");
@@ -11,39 +9,35 @@ CCmdGetFile::CCmdGetFile(const std::list<std::string>& args) {
 	m_force_update = (*(std::next(args.begin(), 2)) == "True") ? true : false;
 }
 
+CCmdGetFile::CCmdGetFile(__attribute__((unused)) const CMessage& msg) {
+	//TODO
+}
+
 ECommand CCmdGetFile::type() const {
 	return ECommand::GET_FILE;
 }
 
 EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
-	std::string full_path = CSettings::working_dir() + get_data_type_dir(datatype) + 
-				"/" + m_newfilename;
-	if(!fs::exists(full_path) || m_force_update) {
-		fs::create_directories(CSettings::working_dir() + get_data_type_dir(datatype) + "/");
-
-		boost::array<int, 3> msg({ static_cast<int>(ECommand::GET_FILE),
-					   static_cast<int>(m_filename.size()),
-					   static_cast<int>(datatype) });
-
-		context->socket_write<boost::array<int, 3>>(msg);
-		context->socket_write<std::string>(m_filename);
-
-		streambuf receive_buffer;
-		context->socket_read(receive_buffer);
-		if (receive_buffer.size() == 1) {
-			const int* error_buff = buffer_cast<const int*>(receive_buffer.data());
-			if (error_buff[0] < 0 || error_buff[0] >= static_cast<int>(EError::MAX_VAL)) {
-				return EError::UNKNOWN_ERROR;
-			}
-			return static_cast<EError>(*error_buff);
+	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>{ m_newfilename });
+	if (datatype_instance == nullptr) {
+		return EError::INTERNAL_ERROR;
+	}
+	if (!fs::exists(datatype_instance->full_path()) || m_force_update) {
+		if (!fs::exists(datatype_instance->path())) {
+			fs::create_directories(datatype_instance->path());
 		}
-		const char* data = buffer_cast<const char*>(receive_buffer.data());
-		std::string full_path = CSettings::working_dir() + get_data_type_dir(datatype) + 
-					"/" + m_newfilename;
-		std::ofstream out(full_path, std::ios::binary);
-		out << data;
-
-		out.close();
+		CMessage msg(ECommand::GET_FILE, datatype, std::vector<char>(m_filename.begin(), m_filename.end()));
+		EError ret; ;
+		if ((ret = context->send_message(msg)) != EError::OK) {
+			return ret;
+		}
+		if ((ret = context->recv_message(msg)) != EError::OK) {
+			return ret;
+		}
+		if ((ret = check_message(msg)) != EError::OK) {
+			return ret;
+		}
+		return datatype_instance->write_data(msg.data_begin(), msg.data_end());
 	}
 	return EError::OK;
 }
@@ -53,6 +47,15 @@ CCmdGetMD5::CCmdGetMD5(const std::list<std::string>& args) {
 		throw ExInvalidArgs("Invalid number of arguments", "CCmdGetMD5::CCmdGetMD5()");
 	}
 	m_filename = args.front();
+
+	m_hash = md5sum_ptr(new md5sum);
+	m_hash->resize(MD5_DIGEST_LENGTH);
+}
+
+CCmdGetMD5::CCmdGetMD5(__attribute__((unused)) const CMessage& msg) {
+	m_hash = md5sum_ptr(new md5sum);
+	m_hash->resize(MD5_DIGEST_LENGTH);
+	//TODO
 }
 
 ECommand CCmdGetMD5::type() const {
@@ -60,34 +63,32 @@ ECommand CCmdGetMD5::type() const {
 }
 
 EError CCmdGetMD5::invoke(CContext* context, EDataType datatype) {
-	std::string full_path = CSettings::working_dir() + get_data_type_dir(datatype) + 
-				"/" + m_filename;
-	if (!fs::exists(full_path)) {
-		throw ExNoFile("Invalid path " + full_path, "CCmdGetMD5::invoke()");
+	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>{ m_filename });
+	if (datatype_instance == nullptr) {
+		return EError::INTERNAL_ERROR;
+	}
+	if (!fs::exists(datatype_instance->full_path())) {
+		throw ExNoFile("Invalid path " + datatype_instance->full_path(), "CCmdGetMD5::invoke()");
 	}
 
-	boost::array<int, 3> msg({ static_cast<int>(ECommand::GET_MD5),
-				   static_cast<int>(m_filename.size()),
-				   static_cast<int>(datatype) });
-
-	context->socket_write<boost::array<int, 3>>(msg);
-	context->socket_write<std::string>(m_filename);
-
-	streambuf receive_buffer;
-	context->socket_read(receive_buffer);
-	if (receive_buffer.size() == 1) {
-		const int* error_buff = buffer_cast<const int*>(receive_buffer.data());
-		if (error_buff[0] < 0 || error_buff[0] >= static_cast<int>(EError::MAX_VAL)) {
-			return EError::UNKNOWN_ERROR;
-		}
-		return static_cast<EError>(*error_buff);
+	//TODO: CMessage(ECommand, EDataType, const std::string&)
+	CMessage msg(ECommand::GET_MD5, datatype, std::vector<char>(m_filename.begin(), m_filename.end()));
+	EError ret;
+	if ((ret = context->send_message(msg)) != EError::OK) {
+		return ret;
 	}
-
-	const unsigned char* hash = buffer_cast<const unsigned char*>(receive_buffer.data());
-	for (size_t i = 0; i < receive_buffer.size(); ++i) {
-		(*m_hash)[i] = hash[i];
+	if ((ret = context->recv_message(msg)) != EError::OK) {
+		return ret;
 	}
-
+	if ((ret = check_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if (msg.data().size() != MD5_DIGEST_LENGTH) {
+		return EError::INTERNAL_ERROR;
+	}
+	for (size_t i = 0; i < MD5_DIGEST_LENGTH; ++i) {
+		(*m_hash)[i] = (msg.data())[i];
+	}
 	return EError::OK;
 }
 
@@ -102,25 +103,122 @@ CCmdUploadFile::CCmdUploadFile(const std::list<std::string>& args) {
 	m_filename = args.front();
 }
 
+CCmdUploadFile::CCmdUploadFile(__attribute__((unused)) const CMessage& msg) {
+	//TODO
+}
+
 ECommand CCmdUploadFile::type() const {
 	return ECommand::UPLOAD_FILE;
 }
 
 EError CCmdUploadFile::invoke(CContext* context, EDataType datatype) {
-	boost::array<int, 3> msg({ static_cast<int>(ECommand::UPLOAD_FILE),
-				   static_cast<int>(m_filename.size()),
-				   static_cast<int>(datatype) });
-
-	context->socket_write<boost::array<int, 3>>(msg);
-	context->socket_write<std::string>(m_filename);
-
-	std::vector<char> data_buf;
-	IDataType* datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ m_filename })); 
-	EError ret;
-	if ((ret = datatype_instance->get_data(data_buf)) != EError::OK) {
-		delete datatype_instance;
-		throw ExError(get_text_error(ret), "CCmdUploadFile::invoke()");
+	data_t data_buf;
+	str_to_data_t(m_filename, data_buf);
+	data_buf.push_back('\n');
+	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>{ m_filename }); 
+	if (datatype_instance == nullptr) {
+		return EError::INTERNAL_ERROR;
 	}
-	delete datatype_instance;
-	return context->socket_write<std::vector<char>>(data_buf);
+	EError ret;
+	if ((ret = datatype_instance->append_data(data_buf)) != EError::OK) {
+		return ret;
+	}
+	CMessage msg(ECommand::UPLOAD_FILE, datatype, data_buf);
+	if ((ret = context->send_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = context->recv_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = check_message(msg)) != EError::OK) {
+		return ret;
+	}
+	else if (msg.command() != ECommand::FEEDBACK) {
+		return EError::INTERNAL_ERROR;
+	}
+	return EError::OK;
+}
+
+CCmdAuthorize::CCmdAuthorize(const std::list<std::string>& args) {
+	if (args.size() != EXPECTED_ARGS_NUM) {
+		throw ExInvalidArgs("Invalid number of arguments", "CCmdAuthorize::CCmdAuthorize()");
+	}
+	m_login = args.front();
+	m_password = *(std::next(args.begin(), 1));
+}
+
+CCmdAuthorize::CCmdAuthorize(__attribute__((unused)) const CMessage& msg) {
+	//TODO
+}
+
+ECommand CCmdAuthorize::type() const {
+	return ECommand::AUTHORIZE;
+}
+
+EError CCmdAuthorize::invoke(CContext* context, EDataType datatype) {
+	data_t data_buf;
+	std::string s_data = m_login + "\n";
+	str_to_data_t(s_data, data_buf);
+	data_buf.reserve(data_buf.size() + SHA512_DIGEST_LENGTH);
+	auto sha_hash_ptr = encrypt_string(m_password);
+	for (auto i : *sha_hash_ptr) {
+		data_buf.push_back(i);
+	}
+	CMessage msg(ECommand::AUTHORIZE, datatype, data_buf);
+	EError ret;
+	if ((ret = context->send_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = context->recv_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = check_message(msg)) != EError::OK) {
+		return ret;
+	}
+	else if (msg.command() != ECommand::FEEDBACK) {
+		return EError::INTERNAL_ERROR;
+	}
+	return EError::OK;
+}
+
+CCmdRegister::CCmdRegister(const std::list<std::string>& args) {
+	if (args.size() != EXPECTED_ARGS_NUM) {
+		throw ExInvalidArgs("Invalid number of arguments", "CCmdRegister::CCmdRegister()");
+	}
+	m_login = args.front();
+	m_password = *(std::next(args.begin(), 1));
+}
+
+CCmdRegister::CCmdRegister(__attribute__((unused)) const CMessage& msg) {
+	//TODO
+}
+
+ECommand CCmdRegister::type() const {
+	return ECommand::REGISTER;
+}
+
+EError CCmdRegister::invoke(CContext* context, EDataType datatype) {
+	data_t data_buf;
+	std::string s_data = m_login + "\n";
+	str_to_data_t(s_data, data_buf);
+	data_buf.reserve(data_buf.size() + SHA512_DIGEST_LENGTH);
+	auto sha_hash_ptr = encrypt_string(m_password);
+	for (auto i : *sha_hash_ptr) {
+		data_buf.push_back(i);
+	}
+	CMessage msg(ECommand::REGISTER, datatype, data_buf);
+	EError ret;
+	if ((ret = context->send_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = context->recv_message(msg)) != EError::OK) {
+		return ret;
+	}
+	if ((ret = check_message(msg)) != EError::OK) {
+		return ret;
+	}
+	else if (msg.command() != ECommand::FEEDBACK) {
+		return EError::INTERNAL_ERROR;
+	}
+	return EError::OK;
 }

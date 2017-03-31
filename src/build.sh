@@ -20,7 +20,9 @@ function usage {
 
 TARGET=""
 ADDITIONAL_CFLAGS=""
+ADDITIONAL_LFLAGS=""
 JOBS=2
+DEFINES=""
 
 while getopts "t:j:sdh" opt;
 do
@@ -34,7 +36,8 @@ do
 					|| [ $OPTARG = "client" ] || [ $OPTARG = "clean" ] \
 					|| [ $OPTARG = "all" ]; then
 						TARGET="$OPTARG"
-						if [ $TARGET = "client" ] || [ $TARGET = "daemon" ] || [ $TARGET = "all" ]; then
+						if [ $TARGET = "client" ] || [ $TARGET = "daemon" ] \
+						|| [ $TARGET = "server" ] || [ $TARGET = "all" ]; then
 							PYTHON_PATH="$(find /usr/include -name pyconfig.h -printf "%h\n" | head -1)/"
 							echo Using python directory $PYTHON_PATH
 							ADDITIONAL_CFLAGS="-I$PYTHON_PATH"
@@ -50,8 +53,9 @@ do
 			JOBS=$OPTARG
 			;;
 		s)
-			echo Testing is not implemented yet
-			exit 127
+			ADDITIONAL_CFLAGS="-DTESTING $ADDITIONAL_CFLAGS"
+			ADDITIONAL_LFLAGS="-lboost_unit_test_framework"
+			echo Building with tests
 			;;
 		d)
 			ADDITIONAL_CFLAGS="-g $ADDITIONAL_CFLAGS"
@@ -67,4 +71,4 @@ do
 done
 
 
-make -j$JOBS $TARGET CFLAGS="$ADDITIONAL_CFLAGS"
+make -j$JOBS $TARGET CFLAGS="$ADDITIONAL_CFLAGS" LFLAGS="$ADDITIONAL_LFLAGS"
