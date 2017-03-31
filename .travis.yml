@@ -4,8 +4,8 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - sourceline: 'deb https://packagecloud.io/chef/stable/ubuntu/precise main'
       - deadsnakes
+      - sourceline: "deb http://01.archive.ubuntu.com/ubuntu/ precise main"
     packages:
       - g++-5
       - python3.5
@@ -18,5 +18,7 @@ python:
   - "3.5"
 install:
   - pip3 install --upgrade flake8
+  - sudo unlink /usr/bin/g++
+  - sudo ln /usr/bin/g++-5 /usr/bin/g++
 script:
   - "python3 -m flake8 src"
