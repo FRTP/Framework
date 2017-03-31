@@ -35,13 +35,13 @@ class CConvertFromDate(IConverter):
                                      counter.strftime("%Y%m%d") + ".csv")
                 counter += delta
         elif data_type == 'SHARES' and source == 'YAHOO':
-            s_date_from = 'a=' + str(date_from.month() - 1) + '&b=' +
-                          str(date_from.day()) + '&c=' +
+            s_date_from = 'a=' + str(date_from.month() - 1) + '&b=' +\
+                          str(date_from.day()) + '&c=' +\
                           str(date_from.year()) + '&'
-            s_date_to = 'd=' + str(date_to.month() - 1) + '&e=' +
-                        str(date_to.day()) + '&f=' +
+            s_date_to = 'd=' + str(date_to.month() - 1) + '&e=' +\
+                        str(date_to.day()) + '&f=' +\
                         str(date_to.year())
-            self.filelist.append("YAHOO\n" + subdirs + "/" + s_date_from +
+            self.filelist.append("YAHOO\n" + subdirs + "/" + s_date_from +\
                                  s_date_to)
 
 
