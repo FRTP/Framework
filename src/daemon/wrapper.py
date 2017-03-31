@@ -41,7 +41,7 @@ class CConvertFromDate(IConverter):
             s_date_to = 'd=' + str(date_to.month() - 1) + '&e=' +\
                         str(date_to.day()) + '&f=' +\
                         str(date_to.year())
-            self.filelist.append("YAHOO\n" + subdirs + "/" +\
+            self.filelist.append("YAHOO\n" + subdirs + "/" +
                                  s_date_from + s_date_to)
 
     def get_filenames(self):
