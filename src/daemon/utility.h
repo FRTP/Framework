@@ -69,13 +69,9 @@ namespace utility {
 	std::string get_full_path(EDataType type, const std::string& filename);
 	sha512_ptr encrypt_string(const std::string& input);
 	md5sum_ptr calculate_md5(const std::string& full_path);
-<<<<<<< HEAD
-	std::string md5sum_to_str(md5sum_ptr md5);
-=======
 	std::string hash_to_str(hash_ptr hash);
 	void str_to_data_t(const std::string& input, data_t& output);
 	EError check_message(const CMessage& msg);
->>>>>>> tests
 
 	class CSettings {
 		private:
