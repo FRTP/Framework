@@ -3,11 +3,21 @@
 using namespace server_command;
 
 CCmdGetFile::CCmdGetFile(const CMessage& msg) {
-	m_filename = std::string(reinterpret_cast<const char*>(&(msg.data())[0]), msg.data().size());
+	auto it = msg.data_begin();
+
+	while (*it != '\n') {
+		++it;
+	}
+	m_source = std::string(msg.data_begin(), it);
+	m_filename = std::string(++it, msg.data_end());
 }
 
-CCmdGetFile::CCmdGetFile(__attribute__ ((unused)) const std::list<std::string>& args) {
-	//TODO
+CCmdGetFile::CCmdGetFile(const std::list<std::string>& args) {
+	if (args.size() == EXPECTED_ARGS_NUM) {
+		m_source = args.front();
+		m_filename = *(std::next(args.begin(), 1));
+	}
+	//TODO: args.size() != EXPECTED_ARGS_NUM
 }
 
 ECommand CCmdGetFile::type() const {
@@ -15,7 +25,7 @@ ECommand CCmdGetFile::type() const {
 }
 
 EError CCmdGetFile::invoke(CContext* context, EDataType datatype) {
-	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ m_filename }));
+	auto datatype_instance = CDataTypeFactory::create(datatype, std::list<std::string>({ m_source, m_filename }));
 	if (!datatype_instance->success()) {
 		return EError::INTERNAL_ERROR;
 	}

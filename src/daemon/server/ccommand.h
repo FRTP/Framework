@@ -24,7 +24,10 @@ namespace server_command {
 
 	class CCmdGetFile : public IServerCommand {
 		private:
+			static constexpr int EXPECTED_ARGS_NUM = 2;
+
 			std::string m_filename;
+			std::string m_source;
 			CContext::callback_type m_callback;
 		public:
 			explicit CCmdGetFile(const CMessage& msg);
