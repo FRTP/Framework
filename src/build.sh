@@ -4,17 +4,17 @@ function usage {
 	echo "Usage: sh build.sh -t <target> [options]"
 	echo -e "\n"
 	echo "Targets:"
-	echo -e "all \t build all targets"
-	echo -e "daemon \t build server daemon and client lib"
-	echo -e "server \t build server part"
-	echo -e "client \t build client lib"
-	echo -e "clean \t clean build directory"
+	echo -e "all \t\t build all targets"
+	echo -e "daemon \t\t build server daemon and client lib"
+	echo -e "server \t\t build server part"
+	echo -e "client \t\t build client lib"
+	echo -e "clean \t\t clean build directory"
 	echo -e "\n"
 	echo "Options:"
-	echo -e "-s \t build with tests"
-	echo -e "-d \t build debug version"
+	echo -e "-s \t\t build with tests"
+	echo -e "-d \t\t build debug version"
 	echo -e "-j <number> \t determine the number of parallel jobs"
-	echo -e "-h \t show this help"
+	echo -e "-h \t\t show this help"
 	exit 1
 }
 
@@ -70,5 +70,9 @@ do
 	esac
 done
 
+if [ -z "$TARGET" ]; then
+	usage
+	exit 127
+fi
 
 make -j$JOBS $TARGET CFLAGS="$ADDITIONAL_CFLAGS" LFLAGS="$ADDITIONAL_LFLAGS"
