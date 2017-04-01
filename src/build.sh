@@ -23,6 +23,7 @@ ADDITIONAL_CFLAGS=""
 ADDITIONAL_LFLAGS=""
 JOBS=2
 DEFINES=""
+PYTHON_PATH=""
 
 while getopts "t:j:sdh" opt;
 do
@@ -53,8 +54,9 @@ do
 			JOBS=$OPTARG
 			;;
 		s)
+			PYTHON_VERSION="$(echo $PYTHON_PATH | egrep -oh '[0-9]{1}\.[0-9]{1}')"
 			ADDITIONAL_CFLAGS="-DTESTING $ADDITIONAL_CFLAGS"
-			ADDITIONAL_LFLAGS="-lboost_unit_test_framework"
+			ADDITIONAL_LFLAGS="-lboost_unit_test_framework -lpython$PYTHON_VERSION"
 			echo Building with tests
 			;;
 		d)
