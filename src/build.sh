@@ -39,9 +39,12 @@ do
 						TARGET="$OPTARG"
 						if [ $TARGET = "client" ] || [ $TARGET = "daemon" ] \
 						|| [ $TARGET = "server" ] || [ $TARGET = "all" ]; then
-							PYTHON_PATH="$(find /usr/include -name pyconfig.h -printf "%h\n" | head -1)/"
+							PYTHON_PATH="$(find /usr/include -name pyconfig.h | head -1)"
+							PYTHON_PATH=${PYTHON_PATH: : -10}
 							echo Using python directory $PYTHON_PATH
 							ADDITIONAL_CFLAGS="-I$PYTHON_PATH"
+							PYTHON_VERSION="$(echo $PYTHON_PATH | egrep -oh '[0-9]{1}\.[0-9]{1}')"
+							ADDITIONAL_LFLAGS="-lpython$PYTHON_VERSION"
 						fi
 					else
 						echo Unknown target, aborting
@@ -54,9 +57,8 @@ do
 			JOBS=$OPTARG
 			;;
 		s)
-			PYTHON_VERSION="$(echo $PYTHON_PATH | egrep -oh '[0-9]{1}\.[0-9]{1}')"
 			ADDITIONAL_CFLAGS="-DTESTING $ADDITIONAL_CFLAGS"
-			ADDITIONAL_LFLAGS="-lboost_unit_test_framework -lpython$PYTHON_VERSION"
+			ADDITIONAL_LFLAGS="-lboost_unit_test_framework $ADDITIONAL_LFLAGS"
 			echo Building with tests
 			;;
 		d)
