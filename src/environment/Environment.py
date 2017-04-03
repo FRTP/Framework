@@ -1,5 +1,8 @@
 from datetime import datetime
+from report_generator.ReportGenerator import generate_report
 import numpy as np
+
+import os
 
 
 class AssetsPortfolio:
@@ -299,4 +302,13 @@ class Environment:
     def get_current_portfolio(self):
         return self.portfolio_sequence[-1]
 
+    def generate_report(self, portfolio_sequence_functors, path=None):
+        # Use current working directory if no path provided.
+        if path is None:
+            path = os.getcwd()
+
+        generate_report(input_data=self.portfolio_sequence,
+                        functors=portfolio_sequence_functors,
+                        path=path)
+        return
 

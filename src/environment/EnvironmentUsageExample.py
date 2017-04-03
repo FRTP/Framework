@@ -3,8 +3,10 @@ import pandas as pd
 
 from src.environment.Environment import Environment
 
+path_to_data = '../temp/AAPL.csv'
+
 # Extract historical data.
-historical_data = pd.read_csv('20151106.csv')
+historical_data = pd.read_csv(path_to_data)
 
 
 # Generate some initials for environment.
@@ -27,7 +29,7 @@ our_environment = Environment(hist_data=historical_data,
                               names_list=assets_names,
                               initial_assets_count=initial_assets_count,
                               current_assets_prices=current_assets_prices,
-                              initial_date="05.11.1994 14:12:30",
+                              initial_date="2017-03-30",
                               initial_balance=initial_balance)
 
 

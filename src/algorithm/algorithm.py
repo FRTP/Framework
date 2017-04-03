@@ -6,9 +6,8 @@ class Algorithm:
         pass
 
     def fit(self, pd_frames_list, names_list):
-        # Here must be some clever training
+        # Here should be some clever training
         #   algorithm according to historical data.
-
         # todo : something clever.
         pass
 
@@ -22,3 +21,29 @@ class Algorithm:
         counts_to_buy = np.ones(len(names_list))
 
         return [assets_to_buy, counts_to_buy]
+
+    def load(self, path):
+        raise NotImplementedError
+
+    def save(self, path):
+        raise NotImplementedError
+
+
+# save model params to file
+
+# np.savez('model.npz', *lasagne.layers.get_all_param_values(network))
+# # load pretrained model params from file
+#
+# with np.load('model.npz') as f:
+#     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
+# lasagne.layers.set_all_param_values(network, param_values)
+
+
+class LasagneAlgo(Algorithm):
+
+    def compile_network(self):
+        raise NotImplementedError
+
+
+class TensorflowAlgo(Algorithm):
+    pass
