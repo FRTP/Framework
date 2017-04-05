@@ -33,26 +33,23 @@ namespace fs = boost::filesystem;
 namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
 namespace attrs = boost::log::attributes;
-using namespace boost::asio;
-using namespace datatypes;
-using namespace utility;
 
 class CServer {
 	private:
 		static constexpr int PORT = 34567;
 		static constexpr int MAX_CONNECTIONS = 5;
 
-		ip::tcp::acceptor m_acceptor;
+		boost::asio::ip::tcp::acceptor m_acceptor;
 
 		void _start_accept();
 		void _handle_accept(CTCPConnection::conn_ptr connection, const boost::system::error_code& ec);
 	public:
-		CServer(boost::shared_ptr<io_service> io_srvs);
+		explicit CServer(boost::shared_ptr<boost::asio::io_service> io_srvs);
 };
 
 class CDaemon {
 	private:
-		boost::shared_ptr<io_service> m_io_service;
+		boost::shared_ptr<boost::asio::io_service> m_io_service;
 	public:
 		explicit CDaemon(const CParser& parser);
 		int start();

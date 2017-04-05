@@ -8,7 +8,8 @@ class ExInvalidMD5(Exception):
     def __init__(self):
         Exception.__init__(self)
 
-DATA_TYPES = {'SHARES': 0, 'TWITTER': 1}
+
+DATA_TYPES = {'ASSETS': 0, 'TWITTER': 1}
 
 
 class IConverter(object):
@@ -27,7 +28,7 @@ class CConvertFromDate(IConverter):
     def __init__(self, date_from, date_to, data_type, source, subdirs):
         self.filelist = []
         self.data_type = data_type
-        if data_type == 'SHARES' and source == 'BCS':
+        if data_type == 'ASSETS' and source == 'BCS':
             counter = date_from
             delta = datetime.timedelta(days=1)
             while counter <= date_to:
@@ -64,10 +65,13 @@ class CNoConversion(IConverter):
 
 class CClient(object):
     def __init__(self, srv_address, srv_port, srv_login, srv_password,
-                 working_dir):
+                 working_dir, data_subdir):
         if working_dir[-1] != "/":
             working_dir += str("/")
-        self.client = lib.LibClient(workingdir=working_dir)
+        if data_subdir[-1] != "/":
+            data_subdir += str("/")
+        self.client = lib.LibClient(workingdir=working_dir,
+                                    datasubdir=data_subdir)
         self.context = self.client.create_context()
         lib.LibClient.connect(server=srv_address, port=srv_port,
                               login=srv_login, password=srv_password,

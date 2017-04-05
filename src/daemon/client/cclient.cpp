@@ -1,19 +1,19 @@
 #include "cclient.h"
 
-CClient::CClient(const std::string& working_dir) {
-	m_io_service = boost::shared_ptr<io_service>(new io_service());
+CClient::CClient(const std::string& working_dir, const std::string& data_subdir) {
+	m_io_service = boost::shared_ptr<boost::asio::io_service>(new boost::asio::io_service());
 
-	CCommandFactory::add<CCmdGetFile>("GetFile");
-	CCommandFactory::add<CCmdGetMD5>("GetMD5");
-	CCommandFactory::add<CCmdUploadFile>("UploadFile");
-	CCommandFactory::add<CCmdAuthorize>("Authorize");
-	CCommandFactory::add<CCmdRegister>("Register");
+	utility::CCommandFactory::add<CCmdGetFile>("GetFile");
+	utility::CCommandFactory::add<CCmdGetMD5>("GetMD5");
+	utility::CCommandFactory::add<CCmdUploadFile>("UploadFile");
+	utility::CCommandFactory::add<CCmdAuthorize>("Authorize");
+	utility::CCommandFactory::add<CCmdRegister>("Register");
 
-	CDataTypeFactory::register_type<CDataTypeShares>(EDataType::SHARES);
-	CDataTypeFactory::register_type<CDataTypeTwitter>(EDataType::TWITTER);
+	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeAssets>(utility::EDataType::ASSETS);
+	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeTwitter>(utility::EDataType::TWITTER);
 
-	CSettings::set_working_dir(working_dir);
-	CSettings::set_data_dir("data/");
+	utility::CSettings::set_working_dir(working_dir);
+	utility::CSettings::set_data_dir(data_subdir);
 }
 
 CContext* CClient::create_context() {
@@ -25,7 +25,10 @@ CContext* CClient::create_context() {
 void CClient::connect(CContext* context, const std::string& server, int port,
 		      const std::string& login, const std::string& password) {
 	boost::system::error_code error;
-	context->socket().connect(ip::tcp::endpoint(ip::address::from_string(server.c_str()), port), error);
+	context->socket().connect(boost::asio::ip::tcp::endpoint(
+				  boost::asio::ip::address::from_string(server.c_str()), port),
+				  error
+				  );
 	if (error) {
 		throw ExConnectionProblem("Connection error: " + error.message(), "CClient::connect()");
 	}
@@ -33,23 +36,24 @@ void CClient::connect(CContext* context, const std::string& server, int port,
 	boost::python::list args;
 	args.append(login);
 	args.append(password);
-	auto cmd = CCommandFactory::create("Authorize", args);
-	invoke(context, cmd, static_cast<int>(EDataType::ACCOUNT));
+	auto cmd = utility::CCommandFactory::create("Authorize", args);
+	invoke(context, cmd, static_cast<int>(utility::EDataType::ACCOUNT));
 }
 
-void CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
+void CClient::invoke(CContext* context, utility::ICommand* cmd, int datatype) {
 	if (context->socket_opened()) {
-		if (datatype < 0 || datatype > static_cast<int>(EError::MAX_VAL)) {
+		if (datatype < 0 || datatype > static_cast<int>(utility::EError::MAX_VAL)) {
 			throw ExUnknownDataType("Invalid data type", "CClient::invoke()");
 		}
 
-		EError ret;
-		if ((ret = cmd->invoke(context, static_cast<EDataType>(datatype))) != EError::OK) {
+		utility::EError ret;
+		if ((ret = cmd->invoke(context, static_cast<utility::EDataType>(datatype)))
+				!= utility::EError::OK) {
 			switch (ret) {
-				case EError::OPEN_ERROR:
+				case utility::EError::OPEN_ERROR:
 					throw ExNoFile("Invalid file name", "CClient::invoke()");
 				default:
-					throw ExError(get_text_error(ret), "CClient::invoke()");
+					throw ExError(utility::get_text_error(ret), "CClient::invoke()");
 				//TODO
 			}
 		}
@@ -60,7 +64,7 @@ void CClient::invoke(CContext* context, ICommand* cmd, int datatype) {
 }
 
 std::string CClient::get_hash(CCmdGetMD5* cmd) {
-	std::string res = hash_to_str(cmd->hash());
+	std::string res = utility::hash_to_str(cmd->hash());
 	return res;
 }
 
@@ -71,13 +75,13 @@ bool CClient::check_integrity(CContext* context, const std::string& srv_filename
 		throw ExError("Unable to create GetMD5 command", "CClient::check_integrity()");
 	}
 	invoke(context, cmd.get(), datatype);
-	md5sum_ptr srv_md5_hash = cmd->hash();
+	utility::md5sum_ptr srv_md5_hash = cmd->hash();
 	if (srv_md5_hash == nullptr) {
 		throw ExError("Unable to correctly obtain MD5 from server", "CClient::check_integrity()");
 	}
 
-	std::string full_path = get_full_path(static_cast<EDataType>(datatype), cli_filename);
-	md5sum_ptr cli_md5_hash = calculate_md5(full_path);
+	std::string full_path = utility::get_full_path(static_cast<utility::EDataType>(datatype), cli_filename);
+	utility::md5sum_ptr cli_md5_hash = utility::calculate_md5(full_path);
 	if (cli_md5_hash == nullptr) {
 		throw ExError("Unable to calculate MD5", "CClient::check_integrity()");
 	}

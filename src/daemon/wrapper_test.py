@@ -12,34 +12,34 @@ class TestFileOperations(unittest.TestCase):
 
     def test_getbyname(self):
         self.client.get_file('AFLT/test_data.csv', 'AFLT/test_data.csv',
-                             'SHARES', True)
+                             'ASSETS', True)
         all_ok = self.client.check_integrity('AFLT/test_data.csv',
                                              'AFLT/test_data.csv',
-                                             'SHARES')
+                                             'ASSETS')
         self.assertTrue(all_ok)
 
     def test_getnonexistent(self):
         with self.assertRaises(RuntimeError):
             self.client.get_file('AFLT/nonexistent.file',
                                  'AFLT/nonexistent.file',
-                                 'SHARES', True)
+                                 'ASSETS', True)
 
     def test_sendbyname(self):
-        self.client.upload_file('test_send', 'SHARES')
+        self.client.upload_file('test_send', 'ASSETS')
         all_ok = self.client.check_integrity('test_send',
                                              'test_send',
-                                             'SHARES')
+                                             'ASSETS')
         self.assertTrue(all_ok)
 
     def test_sendnonexistent(self):
         with self.assertRaises(RuntimeError):
             self.client.upload_file('AFLT/nonexistent.file',
-                                    'SHARES')
+                                    'ASSETS')
 
     def test_getperiod(self):
         converter = wrapper.CConvertFromDate(datetime.date(2015, 8, 7),
                                              datetime.date(2015, 8, 10),
-                                             'SHARES', 'AFLT')
+                                             'ASSETS', 'AFLT')
         try:
             self.client.get_info(converter, force=True)
         except wrapper.ExInvalidMD5:

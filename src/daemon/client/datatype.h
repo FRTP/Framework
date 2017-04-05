@@ -12,14 +12,12 @@
 #include "../idatatype.h"
 #include "../utility.h"
 
-using namespace utility;
-
 namespace datatypes {
 	EError read_binary(data_t& output, const std::string& full_path, bool append);
 	EError write_binary(const std::string& full_path, data_t::const_iterator begin,
 			    data_t::const_iterator end);
 
-	class CDataTypeShares : public : IDataType {
+	class CDataTypeAssets : public : IDataType {
 		private:
 			static constexpr int EXPECTED_ARGS_NUM = 1;
 			std::string m_filename;
@@ -27,13 +25,13 @@ namespace datatypes {
 			bool m_success;
 		public:
 			CDataTypeShares(const std::list<std::string>& args);
-			virtual EError get_data(data_t& output, bool append) const;
-			virtual EError write_data(data_t::const_iterator begin,
-						  data_t::const_iterator end) const;
-			virtual bool success() const;
-			virtual std::string full_path() const;
-			virtual std::string path() const;
-			virtual ~CDataTypeShares() {}
+			virtual utility::EError get_data(utility::data_t& output, bool append) const;
+			virtual utility::EError write_data(utility::data_t::const_iterator begin,
+							   utility::data_t::const_iterator end) const;
+			virtual bool is_success() const;
+			virtual std::string get_full_path() const;
+			virtual std::string get_path() const;
+			virtual ~CDataTypeAssets() {}
 	};
 
 	class CDataTypeTwitter : public : IDataType {
@@ -43,12 +41,12 @@ namespace datatypes {
 			bool m_success;
 		public:
 			CDataTypeTwitter(const std::list<std::string>& args);
-			virtual EError get_data(data_t& output, bool append) const;
-			virtual EError write_data(data_t::const_iterator begin,
-						  data_t::const_iterator end) const;
-			virtual bool success() const;
-			virtual std::string full_path() const;
-			virtual std::string path() const;
+			virtual utility::EError get_data(utility::data_t& output, bool append) const;
+			virtual utility::EError write_data(utility::data_t::const_iterator begin,
+							   utility::data_t::const_iterator end) const;
+			virtual bool is_success() const;
+			virtual std::string get_full_path() const;
+			virtual std::string get_path() const;
 			virtual ~CDataTypeTwitter() {}
 	};
 }

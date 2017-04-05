@@ -53,8 +53,8 @@ namespace utility {
 
 	std::string get_data_type_dir(EDataType type) {
 		switch (type) {
-			case EDataType::SHARES:
-				return std::string("shares/");
+			case EDataType::ASSETS:
+				return std::string("assets/");
 			case EDataType::TWITTER:
 				return std::string("twitter/");
 			default:
@@ -63,7 +63,7 @@ namespace utility {
 	}
 
 	std::string get_full_path(EDataType type, const std::string& filename) {
-		return CSettings::data_dir() + get_data_type_dir(type) + filename;
+		return CSettings::get_data_dir() + get_data_type_dir(type) + filename;
 	}
 
 	sha512_ptr encrypt_string(const std::string& input) {
@@ -88,7 +88,7 @@ namespace utility {
 		data_t content;
 		content.resize(size);
 		in.seekg(0);
-		in.read(reinterpret_cast<char*>(&content[0]), size);
+		in.read(reinterpret_cast<char*>(content.data()), size);
 
 		MD5(content.data(), content.size(), md5->data());
 		return md5;
@@ -111,7 +111,7 @@ namespace utility {
 	}
 
 	EError check_message(const CMessage& msg) {
-		if (msg.command() == ECommand::FEEDBACK && msg.datatype() == EDataType::ERROR_CODE) {
+		if (msg.get_command() == ECommand::FEEDBACK && msg.get_datatype() == EDataType::ERROR_CODE) {
 			int i_error_code = static_cast<int>((msg.data())[0]);
 			if (i_error_code < 0 || i_error_code >= static_cast<int>(EError::MAX_VAL)) {
 				return EError::UNKNOWN_ERROR;
@@ -123,17 +123,23 @@ namespace utility {
 
 	void CSettings::set_working_dir(const std::string& working_dir) {
 		m_working_dir = working_dir;
+		if (*(m_working_dir.end() - 1) != '/') {
+			m_working_dir += "/";
+		}
 	}
 
 	void CSettings::set_data_dir(const std::string& data_dir) {
 		m_data_dir = data_dir;
+		if (*(m_data_dir.end() - 1) != '/') {
+			m_data_dir += "/";
+		}
 	}
 
-	std::string CSettings::working_dir() {
+	std::string CSettings::get_working_dir() {
 		return m_working_dir;
 	}
 
-	std::string CSettings::data_dir(bool relative) {
+	std::string CSettings::get_data_dir(bool relative) {
 		std::string res = m_data_dir;
 		if (!relative) {
 			res = m_working_dir + res;
@@ -207,13 +213,13 @@ namespace utility {
 		in.ignore();
 		m_data.resize(datasize);
 
-		in.read(reinterpret_cast<char*>(&m_data[0]), datasize);
+		in.read(reinterpret_cast<char*>(m_data.data()), datasize);
 		_calculate_hash();
 
 		md5sum standart_hash;
 		standart_hash.resize(MD5_DIGEST_LENGTH);
 		in.ignore();
-		in.read(reinterpret_cast<char*>(&standart_hash[0]), MD5_DIGEST_LENGTH);
+		in.read(reinterpret_cast<char*>(standart_hash.data()), MD5_DIGEST_LENGTH);
 		for (unsigned int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
 			if (m_hash[i] != standart_hash[i]) {
 				return EError::CORRUPTED_MESSAGE;
@@ -222,11 +228,11 @@ namespace utility {
 		return EError::OK;
 	}
 
-	ECommand CMessage::command() const {
+	ECommand CMessage::get_command() const {
 		return m_cmd;
 	}
 
-	EDataType CMessage::datatype() const {
+	EDataType CMessage::get_datatype() const {
 		return m_datatype;
 	}
 
