@@ -1,161 +1,161 @@
 #include "datatype.h"
 
-using namespace datatypes;
+namespace datatypes {
+	std::map<utility::EDataType, boost::shared_ptr<IAbstractDataTypeCreator>> CDataTypeFactory::m_types;
 
-std::map<EDataType, boost::shared_ptr<IAbstractDataTypeCreator>> CDataTypeFactory::m_types;
-
-CDataTypeShares::CDataTypeShares(const std::list<std::string>& args) {
-	m_success = (args.size() == EXPECTED_ARGS_NUM);
-	if (m_success) {
-		m_filename = args.front();
-	}
-}
-
-EError CDataTypeShares::get_data(data_t& output) const {
-	std::string full_path = get_full_path(EDataType::SHARES, m_filename);
-	std::ifstream file(full_path, std::ios::binary);
-	if (!file) {
-		return EError::OPEN_ERROR;
+	CDataTypeShares::CDataTypeShares(const std::list<std::string>& args) {
+		m_success = (args.size() == EXPECTED_ARGS_NUM);
+		if (m_success) {
+			m_filename = args.front();
+		}
 	}
 
-	file.seekg(0, file.end);
-	int size = file.tellg();
-	file.seekg(0, file.beg);
-	output.resize(size);
+	utility::EError CDataTypeShares::get_data(utility::data_t& output) const {
+		std::string full_path = utility::get_full_path(utility::EDataType::SHARES, m_filename);
+		std::ifstream file(full_path, std::ios::binary);
+		if (!file) {
+			return utility::EError::OPEN_ERROR;
+		}
 
-	if (!file.read(reinterpret_cast<char*>(output.data()), size)) {
+		file.seekg(0, file.end);
+		int size = file.tellg();
+		file.seekg(0, file.beg);
+		output.resize(size);
+
+		if (!file.read(reinterpret_cast<char*>(output.data()), size)) {
+			file.close();
+			return utility::EError::READ_ERROR;
+		}
+
 		file.close();
-		return EError::READ_ERROR;
+		return utility::EError::OK;
 	}
 
-	file.close();
-	return EError::OK;
-}
+	utility::EError CDataTypeShares::append_data(utility::data_t& output) const {
+		std::string full_path = utility::get_full_path(utility::EDataType::SHARES, m_filename);
+		std::ifstream file(full_path, std::ios::binary);
+		if (!file) {
+			return utility::EError::OPEN_ERROR;
+		}
 
-EError CDataTypeShares::append_data(data_t& output) const {
-	std::string full_path = get_full_path(EDataType::SHARES, m_filename);
-	std::ifstream file(full_path, std::ios::binary);
-	if (!file) {
-		return EError::OPEN_ERROR;
-	}
+		file.seekg(0, file.end);
+		int size = file.tellg();
+		file.seekg(0, file.beg);
 
-	file.seekg(0, file.end);
-	int size = file.tellg();
-	file.seekg(0, file.beg);
-
-	int pre_size = output.size();
-	output.resize(pre_size + size);
-	if (!file.read(reinterpret_cast<char*>(output.data() + pre_size), size)) {
+		int pre_size = output.size();
+		output.resize(pre_size + size);
+		if (!file.read(reinterpret_cast<char*>(output.data() + pre_size), size)) {
+			file.close();
+			return utility::EError::READ_ERROR;
+		}
 		file.close();
-		return EError::READ_ERROR;
-	}
-	file.close();
 
-	return EError::OK;
-}
-
-bool CDataTypeShares::success() const {
-	return m_success;
-}
-
-EError CDataTypeShares::write_data(data_t::const_iterator begin,
-				   data_t::const_iterator end) const {
-	std::string full_path = get_full_path(EDataType::SHARES, m_filename);
-	std::ofstream file(full_path, std::ios::binary);
-	if (!file) {
-		return EError::OPEN_ERROR;
+		return utility::EError::OK;
 	}
 
-	while (begin != end) {
-		file << *begin++;
-	}
-	file.close();
-
-	return EError::OK;
-}
-
-std::string CDataTypeShares::full_path() const {
-	return get_full_path(EDataType::SHARES, m_filename);
-}
-
-std::string CDataTypeShares::path() const {
-	return (CSettings::data_dir() + get_data_type_dir(EDataType::SHARES));
-}
-
-CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
-	m_success = (args.size() == EXPECTED_ARGS_NUM);
-	if (m_success) {
-		m_filename = args.front();
-	}
-}
-
-EError CDataTypeTwitter::get_data(data_t& output) const {
-	std::string full_path = get_full_path(EDataType::TWITTER, m_filename);
-	std::ifstream file(full_path, std::ios::binary);
-	if (!file) {
-		return EError::OPEN_ERROR;
+	bool CDataTypeShares::is_success() const {
+		return m_success;
 	}
 
-	file.seekg(0, file.end);
-	int size = file.tellg();
-	file.seekg(0, file.beg);
-	output.resize(size);
+	utility::EError CDataTypeShares::write_data(utility::data_t::const_iterator begin,
+						    utility::data_t::const_iterator end) const {
+		std::string full_path = utility::get_full_path(utility::EDataType::SHARES, m_filename);
+		std::ofstream file(full_path, std::ios::binary);
+		if (!file) {
+			return utility::EError::OPEN_ERROR;
+		}
 
-	if (!file.read(reinterpret_cast<char*>(output.data()), size)) {
+		while (begin != end) {
+			file << *begin++;
+		}
 		file.close();
-		return EError::READ_ERROR;
+
+		return utility::EError::OK;
 	}
 
-	file.close();
-	return EError::OK;
-}
-
-EError CDataTypeTwitter::append_data(data_t& output) const {
-	std::string full_path = get_full_path(EDataType::TWITTER, m_filename);
-	std::ifstream file(full_path, std::ios::binary);
-	if (!file) {
-		return EError::OPEN_ERROR;
+	std::string CDataTypeShares::get_full_path() const {
+		return utility::get_full_path(utility::EDataType::SHARES, m_filename);
 	}
 
-	file.seekg(0, file.end);
-	int size = file.tellg();
-	file.seekg(0, file.beg);
+	std::string CDataTypeShares::get_path() const {
+		return (utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::SHARES));
+	}
 
-	int pre_size = output.size();
-	output.resize(pre_size + size);
-	if (!file.read(reinterpret_cast<char*>(output.data() + pre_size), size)) {
+	CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
+		m_success = (args.size() == EXPECTED_ARGS_NUM);
+		if (m_success) {
+			m_filename = args.front();
+		}
+	}
+
+	utility::EError CDataTypeTwitter::get_data(utility::data_t& output) const {
+		std::string full_path = utility::get_full_path(utility::EDataType::TWITTER, m_filename);
+		std::ifstream file(full_path, std::ios::binary);
+		if (!file) {
+			return utility::EError::OPEN_ERROR;
+		}
+
+		file.seekg(0, file.end);
+		int size = file.tellg();
+		file.seekg(0, file.beg);
+		output.resize(size);
+
+		if (!file.read(reinterpret_cast<char*>(output.data()), size)) {
+			file.close();
+			return utility::EError::READ_ERROR;
+		}
+
 		file.close();
-		return EError::READ_ERROR;
-	}
-	file.close();
-
-	return EError::OK;
-}
-
-bool CDataTypeTwitter::success() const {
-	return m_success;
-}
-
-EError CDataTypeTwitter::write_data(data_t::const_iterator begin,
-				    data_t::const_iterator end) const {
-	std::string full_path = get_full_path(EDataType::TWITTER, m_filename);
-	std::ofstream file(full_path, std::ios::binary);
-	if (!file) {
-		return EError::OPEN_ERROR;
+		return utility::EError::OK;
 	}
 
-	while (begin != end) {
-		file << *begin;
+	utility::EError CDataTypeTwitter::append_data(utility::data_t& output) const {
+		std::string full_path = utility::get_full_path(utility::EDataType::TWITTER, m_filename);
+		std::ifstream file(full_path, std::ios::binary);
+		if (!file) {
+			return utility::EError::OPEN_ERROR;
+		}
+
+		file.seekg(0, file.end);
+		int size = file.tellg();
+		file.seekg(0, file.beg);
+
+		int pre_size = output.size();
+		output.resize(pre_size + size);
+		if (!file.read(reinterpret_cast<char*>(output.data() + pre_size), size)) {
+			file.close();
+			return utility::EError::READ_ERROR;
+		}
+		file.close();
+
+		return utility::EError::OK;
 	}
-	file.close();
 
-	return EError::OK;
-}
+	bool CDataTypeTwitter::is_success() const {
+		return m_success;
+	}
 
-std::string CDataTypeTwitter::full_path() const {
-	return get_full_path(EDataType::TWITTER, m_filename);
-}
+	utility::EError CDataTypeTwitter::write_data(utility::data_t::const_iterator begin,
+						     utility::data_t::const_iterator end) const {
+		std::string full_path = utility::get_full_path(utility::EDataType::TWITTER, m_filename);
+		std::ofstream file(full_path, std::ios::binary);
+		if (!file) {
+			return utility::EError::OPEN_ERROR;
+		}
 
-std::string CDataTypeTwitter::path() const {
-	return (CSettings::data_dir() + get_data_type_dir(EDataType::TWITTER));
+		while (begin != end) {
+			file << *begin;
+		}
+		file.close();
+
+		return utility::EError::OK;
+	}
+
+	std::string CDataTypeTwitter::get_full_path() const {
+		return utility::get_full_path(utility::EDataType::TWITTER, m_filename);
+	}
+
+	std::string CDataTypeTwitter::get_path() const {
+		return (utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::TWITTER));
+	}
 }

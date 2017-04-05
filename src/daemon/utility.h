@@ -80,8 +80,8 @@ namespace utility {
 		public:
 			static void set_working_dir(const std::string& working_dir);
 			static void set_data_dir(const std::string& data_dir);
-			static std::string working_dir();
-			static std::string data_dir(bool relative = false);
+			static std::string get_working_dir();
+			static std::string get_data_dir(bool relative = false);
 	};
 
 	class CMessage {
@@ -99,8 +99,8 @@ namespace utility {
 			CMessage(ECommand cmd, EDataType datatype, const std::vector<char>& data);
 			void to_streambuf(boost::asio::streambuf& buffer) const;
 			EError from_streambuf(boost::asio::streambuf& buffer);
-			ECommand command() const;
-			EDataType datatype() const;
+			ECommand get_command() const;
+			EDataType get_datatype() const;
 			const data_t& data() const;
 			data_t::const_iterator data_begin() const;
 			data_t::const_iterator data_end() const;
@@ -184,15 +184,15 @@ namespace utility {
 					}
 					return it->second->create(arguments);
 				}
-				return NULL;
+				return nullptr;
 			}
 
 			static ICommand* create(const CMessage& msg) {
-				auto it = m_factory.find(_cmd_to_string(msg.command()));
+				auto it = m_factory.find(_cmd_to_string(msg.get_command()));
 				if (it != m_factory.end()) {
 					return it->second->create(msg);
 				}
-				return NULL;
+				return nullptr;
 			}
 
 			~CCommandFactory() {

@@ -47,7 +47,7 @@ class CServer {
 		void _start_accept();
 		void _handle_accept(CTCPConnection::conn_ptr connection, const boost::system::error_code& ec);
 	public:
-		CServer(boost::shared_ptr<io_service> io_srvs);
+		explicit CServer(boost::shared_ptr<io_service> io_srvs);
 };
 
 class CDaemon {

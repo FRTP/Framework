@@ -10,8 +10,9 @@ class ExError : public std::exception {
 		std::string m_details;
 	public:
 		ExError() : m_message(""), m_details("") {}
-		ExError(const std::string& message) : m_message(message), m_details("") {}
-		ExError(const std::string& message, const std::string& details) : m_message(message), m_details(details) {}
+		explicit ExError(const std::string& message) : m_message(message), m_details("") {}
+		explicit ExError(const std::string& message, const std::string& details)
+			: m_message(message), m_details(details) {}
 		virtual const char* what() const noexcept {
 			std::string res = m_message + " in " + m_details;
 			return res.c_str();
@@ -27,36 +28,41 @@ class ExError : public std::exception {
 class ExInvalidArgs : public ExError {
 	public:
 		ExInvalidArgs() : ExError() {}
-		ExInvalidArgs(const std::string& message) : ExError(message) {}
-		ExInvalidArgs(const std::string& message, const std::string& details) : ExError(message, details) {}
+		explicit ExInvalidArgs(const std::string& message) : ExError(message) {}
+		explicit ExInvalidArgs(const std::string& message, const std::string& details)
+			: ExError(message, details) {}
 };
 
 class ExConnectionProblem : public ExError {
 	public:
 		ExConnectionProblem() : ExError() {}
-		ExConnectionProblem(const std::string& message) : ExError(message) {}
-		ExConnectionProblem(const std::string& message, const std::string& details) : ExError(message, details) {}
+		explicit ExConnectionProblem(const std::string& message) : ExError(message) {}
+		explicit ExConnectionProblem(const std::string& message, const std::string& details)
+			: ExError(message, details) {}
 };
 
 class ExSocketProblem : public ExError {
 	public:
 		ExSocketProblem() : ExError() {}
-		ExSocketProblem(const std::string& message) : ExError(message) {}
-		ExSocketProblem(const std::string& message, const std::string& details) : ExError(message, details) {}
+		explicit ExSocketProblem(const std::string& message) : ExError(message) {}
+		explicit ExSocketProblem(const std::string& message, const std::string& details)
+			: ExError(message, details) {}
 };
 
 class ExUnknownDataType : public ExError {
 	public:
 		ExUnknownDataType() : ExError() {}
-		ExUnknownDataType(const std::string& message) : ExError(message) {}
-		ExUnknownDataType(const std::string& message, const std::string& details) : ExError(message, details) {}
+		explicit ExUnknownDataType(const std::string& message) : ExError(message) {}
+		explicit ExUnknownDataType(const std::string& message, const std::string& details)
+			: ExError(message, details) {}
 };
 
 class ExNoFile : public ExError {
 	public:
 		ExNoFile() : ExError() {}
-		ExNoFile(const std::string& message) : ExError(message) {}
-		ExNoFile(const std::string& message, const std::string& details) : ExError(message, details) {}
+		explicit ExNoFile(const std::string& message) : ExError(message) {}
+		explicit ExNoFile(const std::string& message, const std::string& details)
+			: ExError(message, details) {}
 };
 
 #endif //EXCEPTION_HPP

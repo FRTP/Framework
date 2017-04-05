@@ -6,17 +6,15 @@
 #include <sqlite3.h>
 #include <vector>
 
-#include "../ccontext.hpp"
+#include "../ccontext.h"
 #include "../datatype.h"
 #include "../utility.h"
-
-using namespace datatypes;
 
 namespace server_command {
 	int auth_callback(void* cmd, int col_num, char** fields, char** columns);
 	bool is_valid_login(const std::string& login);
 
-	class IServerCommand : public ICommand {
+	class IServerCommand : public utility::ICommand {
 		public:
 			virtual void set_callback(CContext::callback_type callback) = 0;
 			virtual ~IServerCommand() {}
@@ -27,10 +25,10 @@ namespace server_command {
 			std::string m_filename;
 			CContext::callback_type m_callback;
 		public:
-			explicit CCmdGetFile(const CMessage& msg);
+			explicit CCmdGetFile(const utility::CMessage& msg);
 			explicit CCmdGetFile(const std::list<std::string>& args);
-			virtual ECommand type() const;
-			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual utility::ECommand type() const;
+			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type  callback);
 			~CCmdGetFile() {}
 	};
@@ -40,10 +38,10 @@ namespace server_command {
 			std::string m_filename;
 			CContext::callback_type m_callback;
 		public:
-			explicit CCmdGetMD5(const CMessage& msg);
+			explicit CCmdGetMD5(const utility::CMessage& msg);
 			explicit CCmdGetMD5(const std::list<std::string>& args);
-			virtual ECommand type() const;
-			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual utility::ECommand type() const;
+			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 			~CCmdGetMD5() {}
 	};
@@ -51,14 +49,14 @@ namespace server_command {
 	class CCmdUploadFile : public IServerCommand {
 		private:
 			std::string m_filename;
-			data_t::const_iterator m_data_begin;
-			data_t::const_iterator m_data_end;
+			utility::data_t::const_iterator m_data_begin;
+			utility::data_t::const_iterator m_data_end;
 			CContext::callback_type m_callback;
 		public:
-			explicit CCmdUploadFile(const CMessage& msg);
+			explicit CCmdUploadFile(const utility::CMessage& msg);
 			explicit CCmdUploadFile(const std::list<std::string>& args);
-			virtual ECommand type() const;
-			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual utility::ECommand type() const;
+			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 			~CCmdUploadFile() {}
 	};
@@ -70,10 +68,10 @@ namespace server_command {
 			bool m_authorized;
 			CContext::callback_type m_callback;
 		public:
-			explicit CCmdAuthorize(const CMessage& msg);
+			explicit CCmdAuthorize(const utility::CMessage& msg);
 			explicit CCmdAuthorize(const std::list<std::string>& args);
-			virtual ECommand type() const;
-			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual utility::ECommand type() const;
+			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 			const std::string& login() const;
 			const std::string& password() const;
@@ -87,10 +85,10 @@ namespace server_command {
 			std::string m_password;
 			CContext::callback_type m_callback;
 		public:
-			explicit CCmdRegister(const CMessage& msg);
+			explicit CCmdRegister(const utility::CMessage& msg);
 			explicit CCmdRegister(const std::list<std::string>& args);
-			virtual ECommand type() const;
-			virtual EError invoke(CContext* context, EDataType datatype);
+			virtual utility::ECommand type() const;
+			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 	};
 }

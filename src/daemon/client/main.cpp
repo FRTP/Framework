@@ -2,8 +2,6 @@
 
 #include "cclient.h"
 
-using namespace boost::python;
-
 void translate_error(const ExError&);
 void transtale_invalid_args_error(const ExInvalidArgs&);
 void transtale_connection_problem_error(const ExConnectionProblem&);
@@ -13,34 +11,41 @@ void translate_no_file_error(const ExNoFile&);
 
 BOOST_PYTHON_MODULE(libfrtpsrv)
 {
-	class_<CClient>("LibClient", init<std::string>(args("workingdir")))
-		.def("create_context", &CClient::create_context, return_value_policy<manage_new_object>())
-		.def("connect", &CClient::connect, args("context", "server", "port", "login", "password"))
+	boost::python::class_<CClient>("LibClient",
+				       boost::python::init<std::string, std::string>(boost::python::args("workingdir",
+													 "datasubdir")))
+		.def("create_context", &CClient::create_context,
+		     boost::python::return_value_policy<boost::python::manage_new_object>())
+		.def("connect", &CClient::connect, boost::python::args("context", "server", "port", "login", "password"))
 		.staticmethod("connect")
-		.def("invoke", &CClient::invoke, args("context", "command", "datatype"))
+		.def("invoke", &CClient::invoke, boost::python::args("context", "command", "datatype"))
 		.staticmethod("invoke")
 		.def("get_hash", &CClient::get_hash)
 		.staticmethod("get_hash")
-		.def("check_integrity", &CClient::check_integrity, args("context", "server", "client", "datatype"))
+		.def("check_integrity", &CClient::check_integrity, boost::python::args("context", "server",
+										       "client", "datatype"))
 		.staticmethod("check_integrity")
 	;
-	class_<CCommandFactory, boost::noncopyable>("LibCommandFactory", no_init)
-		.def("create_command", static_cast<ICommand* (*)(const std::string&, boost::python::list)>(&CCommandFactory::create),
-		     return_value_policy<manage_new_object>())
-		.def("create_command", static_cast<ICommand* (*)(const CMessage&)>(&CCommandFactory::create),
-		     return_value_policy<manage_new_object>())
+	boost::python::class_<utility::CCommandFactory, boost::noncopyable>("LibCommandFactory", boost::python::no_init)
+		.def("create_command", static_cast<utility::ICommand* (*)(
+					const std::string&,
+					boost::python::list)>(&utility::CCommandFactory::create),
+		     boost::python::return_value_policy<boost::python::manage_new_object>())
+		.def("create_command", static_cast<utility::ICommand* (*)(
+					const utility::CMessage&)>(&utility::CCommandFactory::create),
+		     boost::python::return_value_policy<boost::python::manage_new_object>())
 		.staticmethod("create_command")
 	;
-	class_<CContext, boost::noncopyable>("LibContext", no_init);
-	class_<ICommand, boost::noncopyable>("LibCommand", no_init);
-	class_<CMessage, boost::noncopyable>("LibMessage", no_init);
+	boost::python::class_<CContext, boost::noncopyable>("LibContext", boost::python::no_init);
+	boost::python::class_<utility::ICommand, boost::noncopyable>("LibCommand", boost::python::no_init);
+	boost::python::class_<utility::CMessage, boost::noncopyable>("LibMessage", boost::python::no_init);
 
-	register_exception_translator<ExError>(translate_error);
-	register_exception_translator<ExInvalidArgs>(transtale_invalid_args_error);
-	register_exception_translator<ExConnectionProblem>(transtale_connection_problem_error);
-	register_exception_translator<ExSocketProblem>(transtale_socket_problem_error);
-	register_exception_translator<ExUnknownDataType>(translate_unknown_data_type_error);
-	register_exception_translator<ExNoFile>(translate_no_file_error);
+	boost::python::register_exception_translator<ExError>(translate_error);
+	boost::python::register_exception_translator<ExInvalidArgs>(transtale_invalid_args_error);
+	boost::python::register_exception_translator<ExConnectionProblem>(transtale_connection_problem_error);
+	boost::python::register_exception_translator<ExSocketProblem>(transtale_socket_problem_error);
+	boost::python::register_exception_translator<ExUnknownDataType>(translate_unknown_data_type_error);
+	boost::python::register_exception_translator<ExNoFile>(translate_no_file_error);
 }
 
 void translate_error(const ExError& e) {

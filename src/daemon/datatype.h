@@ -10,18 +10,16 @@
 
 #include "utility.h"
 
-using namespace utility;
-
 namespace datatypes {
 	class IDataType {
 		public:
-			virtual EError get_data(data_t& output) const = 0;
-			virtual EError append_data(data_t& output) const = 0;
-			virtual EError write_data(data_t::const_iterator begin,
-						  data_t::const_iterator end) const = 0;
-			virtual bool success() const = 0;
-			virtual std::string full_path() const = 0;
-			virtual std::string path() const = 0;
+			virtual utility::EError get_data(utility::data_t& output) const = 0;
+			virtual utility::EError append_data(utility::data_t& output) const = 0;
+			virtual utility::EError write_data(utility::data_t::const_iterator begin,
+							   utility::data_t::const_iterator end) const = 0;
+			virtual bool is_success() const = 0;
+			virtual std::string get_full_path() const = 0;
+			virtual std::string get_path() const = 0;
 			virtual ~IDataType() {}
 	};
 
@@ -31,14 +29,14 @@ namespace datatypes {
 			std::string m_filename;
 			bool m_success;
 		public:
-			CDataTypeShares(const std::list<std::string>& args);
-			virtual EError get_data(data_t& output) const;
-			virtual EError append_data(data_t& output) const;
-			virtual EError write_data(data_t::const_iterator begin,
-						  data_t::const_iterator end) const;
-			virtual bool success() const;
-			virtual std::string full_path() const;
-			virtual std::string path() const;
+			explicit CDataTypeShares(const std::list<std::string>& args);
+			virtual utility::EError get_data(utility::data_t& output) const;
+			virtual utility::EError append_data(utility::data_t& output) const;
+			virtual utility::EError write_data(utility::data_t::const_iterator begin,
+							   utility::data_t::const_iterator end) const;
+			virtual bool is_success() const;
+			virtual std::string get_full_path() const;
+			virtual std::string get_path() const;
 			virtual ~CDataTypeShares() {}
 	};
 
@@ -48,14 +46,14 @@ namespace datatypes {
 			std::string m_filename;
 			bool m_success;
 		public:
-			CDataTypeTwitter(const std::list<std::string>& args);
-			virtual EError get_data(data_t& output) const;
-			virtual EError append_data(data_t& output) const;
-			virtual EError write_data(data_t::const_iterator begin,
-						  data_t::const_iterator end) const;
-			virtual bool success() const;
-			virtual std::string full_path() const;
-			virtual std::string path() const;
+			explicit CDataTypeTwitter(const std::list<std::string>& args);
+			virtual utility::EError get_data(utility::data_t& output) const;
+			virtual utility::EError append_data(utility::data_t& output) const;
+			virtual utility::EError write_data(utility::data_t::const_iterator begin,
+							   utility::data_t::const_iterator end) const;
+			virtual bool is_success() const;
+			virtual std::string get_full_path() const;
+			virtual std::string get_path() const;
 			virtual ~CDataTypeTwitter() {}
 	};
 
@@ -76,25 +74,26 @@ namespace datatypes {
 
 	class CDataTypeFactory {
 		private:
-			typedef std::map<EDataType, boost::shared_ptr<IAbstractDataTypeCreator>> types_map;
+			typedef std::map<utility::EDataType, boost::shared_ptr<IAbstractDataTypeCreator>> types_map;
 			static types_map m_types;
 		public:
 			template<class DataType>
-			static void register_type(EDataType type) {
+			static void register_type(utility::EDataType type) {
 				auto it = m_types.find(type);
 				if (it == m_types.end()) {
 					m_types[type] = boost::shared_ptr<IAbstractDataTypeCreator>(new CDataTypeCreator<DataType>());
 				}
 			}
-			static boost::shared_ptr<IDataType> create(EDataType type, const std::list<std::string>& args) {
+			static boost::shared_ptr<IDataType> create(utility::EDataType type, const std::list<std::string>& args) {
 				auto it = m_types.find(type);
 				if (it != m_types.end()) {
 					return it->second->create(args);
 				}
-				return 0;
+				return nullptr;
 			}
 			~CDataTypeFactory() {}
 	};
 }
 
 #endif //DATATYPE_H
+

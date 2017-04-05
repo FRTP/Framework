@@ -56,10 +56,13 @@ class CNoConversion(IConverter):
 
 class CClient(object):
     def __init__(self, srv_address, srv_port, srv_login, srv_password,
-                 working_dir):
+                 working_dir, data_subdir):
         if working_dir[-1] != "/":
             working_dir += str("/")
-        self.client = lib.LibClient(workingdir=working_dir)
+        if data_subdir[-1] != "/":
+            data_subdir += str("/")
+        self.client = lib.LibClient(workingdir=working_dir,
+                                    datasubdir=data_subdir)
         self.context = self.client.create_context()
         lib.LibClient.connect(server=srv_address, port=srv_port,
                               login=srv_login, password=srv_password,
