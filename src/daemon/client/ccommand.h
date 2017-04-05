@@ -11,81 +11,78 @@
 #include <string>
 #include <vector>
 
-#include "../ccontext.hpp"
+#include "../ccontext.h"
 #include "../datatype.h"
 #include "exception.hpp"
 #include "../utility.h"
 
 namespace fs = boost::filesystem;
-using namespace boost::asio;
-using namespace datatypes;
-using namespace utility;
 
-class CCmdGetFile : public ICommand {
+class CCmdGetFile : public utility::ICommand {
 	private:
 		static constexpr int EXPECTED_ARGS_NUM = 3;
 		std::string m_filename;
 		std::string m_newfilename;
-		streambuf m_buffer;
+		boost::asio::streambuf m_buffer;
 		bool m_force_update;
 	public:
 		explicit CCmdGetFile(const std::list<std::string>& args);
-		explicit CCmdGetFile(const CMessage& msg);
-		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype);
-		~CCmdGetFile() {}
+		explicit CCmdGetFile(const utility::CMessage& msg);
+		virtual utility::ECommand type() const;
+		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual ~CCmdGetFile() {}
 };
 
-class CCmdGetMD5 : public ICommand {
+class CCmdGetMD5 : public utility::ICommand {
 	private:
 		static constexpr int EXPECTED_ARGS_NUM = 1;
 		std::string m_filename;
-		md5sum_ptr m_hash;
+		utility::md5sum_ptr m_hash;
 	public:
 		explicit CCmdGetMD5(const std::list<std::string>& args);
-		explicit CCmdGetMD5(const CMessage& msg);
-		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype);
-		md5sum_ptr hash() const;
-		~CCmdGetMD5() {}
+		explicit CCmdGetMD5(const utility::CMessage& msg);
+		virtual utility::ECommand type() const;
+		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		utility::md5sum_ptr hash() const;
+		virtual ~CCmdGetMD5() {}
 };
 
-class CCmdUploadFile : public ICommand {
+class CCmdUploadFile : public utility::ICommand {
 	private:
 		static constexpr int EXPECTED_ARGS_NUM = 1;
 		std::string m_filename;
 	public:
 		explicit CCmdUploadFile(const std::list<std::string>& args);
-		explicit CCmdUploadFile(const CMessage& msg);
-		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype);
-		~CCmdUploadFile() {}
+		explicit CCmdUploadFile(const utility::CMessage& msg);
+		virtual utility::ECommand type() const;
+		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual ~CCmdUploadFile() {}
 };
 
-class CCmdAuthorize : public ICommand {
+class CCmdAuthorize : public utility::ICommand {
 	private:
 		static constexpr int EXPECTED_ARGS_NUM = 2;
 		std::string m_login;
 		std::string m_password;
 	public:
 		explicit CCmdAuthorize(const std::list<std::string>& args);
-		explicit CCmdAuthorize(const CMessage& msg);
-		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype);
-		~CCmdAuthorize() {}
+		explicit CCmdAuthorize(const utility::CMessage& msg);
+		virtual utility::ECommand type() const;
+		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual ~CCmdAuthorize() {}
 };
 
-class CCmdRegister : public ICommand {
+class CCmdRegister : public utility::ICommand {
 	private:
 		static constexpr int EXPECTED_ARGS_NUM = 2;
 		std::string m_login;
 		std::string m_password;
 	public:
 		explicit CCmdRegister(const std::list<std::string>& args);
-		explicit CCmdRegister(const CMessage& msg);
-		virtual ECommand type() const;
-		virtual EError invoke(CContext* context, EDataType datatype);
-		~CCmdRegister() {}
+		explicit CCmdRegister(const utility::CMessage& msg);
+		virtual utility::ECommand type() const;
+		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual ~CCmdRegister() {}
 };
 
 #endif //CCOMMAND_H

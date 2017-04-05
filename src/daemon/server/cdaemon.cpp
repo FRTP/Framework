@@ -1,15 +1,15 @@
 #include "cdaemon.h"
 
-CServer::CServer(boost::shared_ptr<io_service> io_srvs)
-	: m_acceptor(*io_srvs, ip::tcp::endpoint(ip::tcp::v4(), PORT)) {
-	CDataTypeFactory::register_type<CDataTypeShares>(EDataType::SHARES);
-	CDataTypeFactory::register_type<CDataTypeTwitter>(EDataType::TWITTER);
+CServer::CServer(boost::shared_ptr<boost::asio::io_service> io_srvs)
+	: m_acceptor(*io_srvs, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), PORT)) {
+	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeAssets>(utility::EDataType::ASSETS);
+	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeTwitter>(utility::EDataType::TWITTER);
 
-	CCommandFactory::add<server_command::CCmdGetFile>(ECommand::GET_FILE);
-	CCommandFactory::add<server_command::CCmdGetMD5>(ECommand::GET_MD5);
-	CCommandFactory::add<server_command::CCmdUploadFile>(ECommand::UPLOAD_FILE);
-	CCommandFactory::add<server_command::CCmdAuthorize>(ECommand::AUTHORIZE);
-	CCommandFactory::add<server_command::CCmdRegister>(ECommand::REGISTER);
+	utility::CCommandFactory::add<server_command::CCmdGetFile>(utility::ECommand::GET_FILE);
+	utility::CCommandFactory::add<server_command::CCmdGetMD5>(utility::ECommand::GET_MD5);
+	utility::CCommandFactory::add<server_command::CCmdUploadFile>(utility::ECommand::UPLOAD_FILE);
+	utility::CCommandFactory::add<server_command::CCmdAuthorize>(utility::ECommand::AUTHORIZE);
+	utility::CCommandFactory::add<server_command::CCmdRegister>(utility::ECommand::REGISTER);
 
 	_start_accept();	
 }
@@ -19,7 +19,7 @@ void CServer::_start_accept() {
 
 	CTCPConnection::conn_ptr connection = CTCPConnection::conn_ptr(new CTCPConnection(m_acceptor.get_io_service()));
 	m_acceptor.async_accept(connection->context().socket(), boost::bind(&CServer::_handle_accept, this, connection,
-				placeholders::error));
+				boost::asio::placeholders::error));
 }
 
 void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::system::error_code& ec) {
@@ -27,7 +27,7 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 	if (!ec) {
 		BOOST_LOG_TRIVIAL(info) << "New client accepted";
 		connection->context().async_recv_message(boost::bind(&CTCPConnection::authorize, connection,
-							 placeholders::error));
+							 boost::asio::placeholders::error));
 	}
 	else {
 		BOOST_LOG_TRIVIAL(error) << "Unable to accept client: " + ec.message();
@@ -35,9 +35,9 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 	_start_accept();
 }
 
-CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
-	CSettings::set_working_dir("/var/frtp/");
-	CSettings::set_data_dir("data/");
+CDaemon::CDaemon(const CParser& parser) : m_io_service(new boost::asio::io_service()) {
+	utility::CSettings::set_working_dir("/var/frtp/");
+	utility::CSettings::set_data_dir("data/");
 
 	logging::register_simple_formatter_factory<logging::trivial::severity_level, char>("Severity");
 	logging::add_file_log(
@@ -51,9 +51,9 @@ CDaemon::CDaemon(const CParser& parser) : m_io_service(new io_service()) {
 }
 
 int CDaemon::start() {
-	signal_set signals(*(m_io_service.get()), SIGINT, SIGTERM);
-	signals.async_wait(boost::bind(&io_service::stop, m_io_service));
-	m_io_service->notify_fork(io_service::fork_prepare);
+	boost::asio::signal_set signals(*(m_io_service.get()), SIGINT, SIGTERM);
+	signals.async_wait(boost::bind(&boost::asio::io_service::stop, m_io_service));
+	m_io_service->notify_fork(boost::asio::io_service::fork_prepare);
 
 	if (pid_t pid = fork()) {
 		if (pid > 0) {
@@ -86,7 +86,7 @@ int CDaemon::start() {
 		return 1;
 	}
 
-	m_io_service->notify_fork(io_service::fork_child);
+	m_io_service->notify_fork(boost::asio::io_service::fork_child);
 
 	BOOST_LOG_TRIVIAL(info) << "CDaemon::start(): daemon started.";
 	CServer server(m_io_service);

@@ -55,7 +55,7 @@ namespace utility {
 	};
 
 	enum class EDataType {
-		SHARES,
+		ASSETS,
 		TWITTER,
 		ACCOUNT,
 		ERROR_CODE,

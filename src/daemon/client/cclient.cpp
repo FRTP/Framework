@@ -9,7 +9,7 @@ CClient::CClient(const std::string& working_dir, const std::string& data_subdir)
 	utility::CCommandFactory::add<CCmdAuthorize>("Authorize");
 	utility::CCommandFactory::add<CCmdRegister>("Register");
 
-	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeShares>(utility::EDataType::SHARES);
+	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeAssets>(utility::EDataType::ASSETS);
 	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeTwitter>(utility::EDataType::TWITTER);
 
 	utility::CSettings::set_working_dir(working_dir);

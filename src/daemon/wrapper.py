@@ -9,7 +9,7 @@ class ExInvalidMD5(Exception):
         Exception.__init__(self)
 
 
-DATA_TYPES = {'SHARES': 0, 'TWITTER': 1}
+DATA_TYPES = {'ASSETS': 0, 'TWITTER': 1}
 
 
 class IConverter(object):
@@ -28,7 +28,7 @@ class CConvertFromDate(IConverter):
     def __init__(self, date_from, date_to, data_type, subdirs):
         self.filelist = []
         self.data_type = data_type
-        if data_type == 'SHARES':
+        if data_type == 'ASSETS':
             counter = date_from
             delta = datetime.timedelta(days=1)
             while counter <= date_to:

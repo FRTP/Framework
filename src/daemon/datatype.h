@@ -23,13 +23,13 @@ namespace datatypes {
 			virtual ~IDataType() {}
 	};
 
-	class CDataTypeShares : public IDataType {
+	class CDataTypeAssets : public IDataType {
 		private:
 			static constexpr int EXPECTED_ARGS_NUM = 1;
 			std::string m_filename;
 			bool m_success;
 		public:
-			explicit CDataTypeShares(const std::list<std::string>& args);
+			explicit CDataTypeAssets(const std::list<std::string>& args);
 			virtual utility::EError get_data(utility::data_t& output) const;
 			virtual utility::EError append_data(utility::data_t& output) const;
 			virtual utility::EError write_data(utility::data_t::const_iterator begin,
@@ -37,7 +37,7 @@ namespace datatypes {
 			virtual bool is_success() const;
 			virtual std::string get_full_path() const;
 			virtual std::string get_path() const;
-			virtual ~CDataTypeShares() {}
+			virtual ~CDataTypeAssets() {}
 	};
 
 	class CDataTypeTwitter : public IDataType {

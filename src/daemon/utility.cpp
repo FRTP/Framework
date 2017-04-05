@@ -53,8 +53,8 @@ namespace utility {
 
 	std::string get_data_type_dir(EDataType type) {
 		switch (type) {
-			case EDataType::SHARES:
-				return std::string("shares/");
+			case EDataType::ASSETS:
+				return std::string("assets/");
 			case EDataType::TWITTER:
 				return std::string("twitter/");
 			default:
