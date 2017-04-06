@@ -41,12 +41,12 @@ namespace datatypes {
 		return utility::EError::OK;
 	}
 
-	CDataTypeShares::CDataTypeAssets(const std::list<std::string>& args) {
+	CDataTypeAssets::CDataTypeAssets(const std::list<std::string>& args) {
 		m_success = (args.size() == EXPECTED_ARGS_NUM);
 		if (m_success) {
 			auto delimiter_pos = args.front().find("\n");
 			m_source = args.front().substr(0, delimiter_pos);
-			m_filename = args.front().substr(++delimiter_pos, args.front().end());
+			m_filename = args.front().substr(++delimiter_pos);
 		}
 	}
 
@@ -71,7 +71,7 @@ namespace datatypes {
 	}
 
 	std::string CDataTypeAssets::get_path() const {
-		return (utility::CSettings::data_dir() + utility::get_data_type_dir(utility::EDataType::ASSETS));
+		return (utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::ASSETS));
 	}
 
 	CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
@@ -81,7 +81,7 @@ namespace datatypes {
 		}
 	}
 
-	utility::EError CDataTypeTwitter::get_data(data_t& output, bool append = false) const {
+	utility::EError CDataTypeTwitter::get_data(utility::data_t& output, bool append = false) const {
 		std::string full_path = utility::get_full_path(utility::EDataType::TWITTER, m_filename);
 		return read_binary(output, full_path, append);
 	}
@@ -101,7 +101,7 @@ namespace datatypes {
 	}
 
 	std::string CDataTypeTwitter::get_path() const {
-		return (utility::CSettings::data_dir() +
+		return (utility::CSettings::get_data_dir() +
 			utility::get_data_type_dir(utility::EDataType::TWITTER));
 	}
 }

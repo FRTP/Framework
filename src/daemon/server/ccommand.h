@@ -6,8 +6,8 @@
 #include <sqlite3.h>
 #include <vector>
 
+#include "datatype.h"
 #include "../ccontext.h"
-#include "../datatype.h"
 #include "../utility.h"
 
 namespace server_command {

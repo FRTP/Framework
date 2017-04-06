@@ -13,18 +13,18 @@
 #include "../utility.h"
 
 namespace datatypes {
-	EError read_binary(data_t& output, const std::string& full_path, bool append);
-	EError write_binary(const std::string& full_path, data_t::const_iterator begin,
-			    data_t::const_iterator end);
+	utility::EError read_binary(utility::data_t& output, const std::string& full_path, bool append);
+	utility::EError write_binary(const std::string& full_path, utility::data_t::const_iterator begin,
+				     utility::data_t::const_iterator end);
 
-	class CDataTypeAssets : public : IDataType {
+	class CDataTypeAssets : public IDataType {
 		private:
 			static constexpr int EXPECTED_ARGS_NUM = 1;
 			std::string m_filename;
 			std::string m_source;
 			bool m_success;
 		public:
-			CDataTypeShares(const std::list<std::string>& args);
+			CDataTypeAssets(const std::list<std::string>& args);
 			virtual utility::EError get_data(utility::data_t& output, bool append) const;
 			virtual utility::EError write_data(utility::data_t::const_iterator begin,
 							   utility::data_t::const_iterator end) const;
@@ -34,7 +34,7 @@ namespace datatypes {
 			virtual ~CDataTypeAssets() {}
 	};
 
-	class CDataTypeTwitter : public : IDataType {
+	class CDataTypeTwitter : public IDataType {
 		private:
 			static constexpr int EXPECTED_ARGS_NUM = 1;
 			std::string m_filename;

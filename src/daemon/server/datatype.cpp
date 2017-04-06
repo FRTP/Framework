@@ -26,8 +26,8 @@ namespace datatypes {
 		}
 	}
 
-	utility::EError CDataTypeAssets::_from_bcs(data_t& output, bool append) const {
-		std::string full_path = utility::get_full_path(utility::EDataType::SHARES, m_filename);
+	utility::EError CDataTypeAssets::_from_bcs(utility::data_t& output, bool append) const {
+		std::string full_path = utility::get_full_path(utility::EDataType::ASSETS, m_filename);
 		std::ifstream file(full_path, std::ios::binary);
 		if (!file) {
 			return utility::EError::OPEN_ERROR;
@@ -48,26 +48,28 @@ namespace datatypes {
 		return utility::EError::OK;
 	}
 
-	utility::EError CDataTypeShares::_from_yahoo(data_t& output, bool append) const {
+	utility::EError CDataTypeAssets::_from_yahoo(utility::data_t& output, bool append) const {
 		//TODO: add caching
 		std::string request = "http://ichart.finance.yahoo.com/table.csv?s=";
 		auto delimiter_pos = m_filename.find("/");
 		std::string shares = m_filename.substr(0, delimiter_pos);
-		std::string date_interval = m_filename.substr(++delimiter_pos, m_filename.end());
+		std::string date_interval = m_filename.substr(++delimiter_pos);
 		request += shares + "&" + date_interval + "&g=d&ignore=.csv";
 
 		std::ostringstream oss;
 		oss << curlpp::options::Url(std::string(request));
 		utility::str_to_data_t(oss.str(), output, append);
+
+		return utility::EError::OK;
 	}
 
-	utility::EError CDataTypeShares::_from_fast(__attribute__ ((unused)) data_t& output,
+	utility::EError CDataTypeAssets::_from_fast(__attribute__ ((unused)) utility::data_t& output,
 						    __attribute__ ((unused)) bool append) const {
 		//TODO
 		return utility::EError::INTERNAL_ERROR;
 	}
 
-	utility::EError CDataTypeShares::get_data(data_t& output, bool append = false) const {
+	utility::EError CDataTypeAssets::get_data(utility::data_t& output, bool append) const {
 		switch (m_source) {
 			case ESource::BCS:
 				return _from_bcs(output, append);
@@ -115,7 +117,7 @@ namespace datatypes {
 		}
 	}
 
-	utility::EError CDataTypeTwitter::get_data(data_t& output, bool append = false) const {
+	utility::EError CDataTypeTwitter::get_data(utility::data_t& output, bool append) const {
 		std::string full_path = utility::get_full_path(utility::EDataType::TWITTER, m_filename);
 		std::ifstream file(full_path, std::ios::binary);
 		if (!file) {

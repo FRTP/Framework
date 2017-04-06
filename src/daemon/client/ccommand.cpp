@@ -113,14 +113,14 @@ utility::ECommand CCmdUploadFile::type() const {
 
 utility::EError CCmdUploadFile::invoke(CContext* context, utility::EDataType datatype) {
 	utility::data_t data_buf;
-	utility::str_to_data_t(m_filename, data_buf);
+	utility::str_to_data_t(m_filename, data_buf, false);
 	data_buf.push_back('\n');
 	auto datatype_instance = datatypes::CDataTypeFactory::create(datatype, std::list<std::string>{ m_filename });
 	if (datatype_instance == nullptr) {
 		return utility::EError::INTERNAL_ERROR;
 	}
 	utility::EError ret;
-	if ((ret = datatype_instance->append_data(data_buf)) != utility::EError::OK) {
+	if ((ret = datatype_instance->get_data(data_buf, true)) != utility::EError::OK) {
 		return ret;
 	}
 	utility::CMessage msg(utility::ECommand::UPLOAD_FILE, datatype, data_buf);
@@ -158,7 +158,7 @@ utility::ECommand CCmdAuthorize::type() const {
 utility::EError CCmdAuthorize::invoke(CContext* context, utility::EDataType datatype) {
 	utility::data_t data_buf;
 	std::string s_data = m_login + "\n";
-	utility::str_to_data_t(s_data, data_buf);
+	utility::str_to_data_t(s_data, data_buf, false);
 	data_buf.reserve(data_buf.size() + SHA512_DIGEST_LENGTH);
 	auto sha_hash_ptr = utility::encrypt_string(m_password);
 	for (auto i : *sha_hash_ptr) {
@@ -200,7 +200,7 @@ utility::ECommand CCmdRegister::type() const {
 utility::EError CCmdRegister::invoke(CContext* context, utility::EDataType datatype) {
 	utility::data_t data_buf;
 	std::string s_data = m_login + "\n";
-	utility::str_to_data_t(s_data, data_buf);
+	utility::str_to_data_t(s_data, data_buf, false);
 	data_buf.reserve(data_buf.size() + SHA512_DIGEST_LENGTH);
 	auto sha_hash_ptr = utility::encrypt_string(m_password);
 	for (auto i : *sha_hash_ptr) {

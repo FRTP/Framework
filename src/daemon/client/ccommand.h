@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "../ccontext.h"
-#include "../datatype.h"
+#include "datatype.h"
 #include "exception.hpp"
 #include "../utility.h"
 

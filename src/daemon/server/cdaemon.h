@@ -24,7 +24,7 @@
 #include <openssl/md5.h>
 #include <string>
 
-#include "../datatype.h"
+#include "datatype.h"
 #include "cparser.hpp"
 #include "ctcpconnection.hpp"
 #include "../utility.h"

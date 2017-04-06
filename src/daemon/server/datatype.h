@@ -17,7 +17,7 @@
 using namespace utility;
 
 namespace datatypes {
-	class CDataTypeShares : public IDataType {
+	class CDataTypeAssets : public IDataType {
 		private:
 			enum class ESource {
 				YAHOO,
@@ -33,18 +33,18 @@ namespace datatypes {
 
 			void _arg_to_esource(const std::string& input);
 
-			EError _from_bcs(data_t& output, bool append) const;
-			EError _from_yahoo(data_t& output, bool append) const;
-			EError _from_fast(data_t& output. bool append) const;
+			utility::EError _from_bcs(utility::data_t& output, bool append) const;
+			utility::EError _from_yahoo(utility::data_t& output, bool append) const;
+			utility::EError _from_fast(utility::data_t& output, bool append) const;
 		public:
-			CDataTypeShares(const std::list<std::string>& args);
-			virtual EError get_data(data_t& output, bool append) const;
-			virtual EError write_data(data_t::const_iterator begin,
-						  data_t::const_iterator end) const;
-			virtual bool success() const;
-			virtual std::string full_path() const;
-			virtual std::string path() const;
-			virtual ~CDataTypeShares() {}
+			CDataTypeAssets(const std::list<std::string>& args);
+			virtual utility::EError get_data(utility::data_t& output, bool append = false) const;
+			virtual utility::EError write_data(utility::data_t::const_iterator begin,
+							   utility::data_t::const_iterator end) const;
+			virtual bool is_success() const;
+			virtual std::string get_full_path() const;
+			virtual std::string get_path() const;
+			virtual ~CDataTypeAssets() {}
 	};
 
 	class CDataTypeTwitter : public IDataType {
@@ -54,12 +54,12 @@ namespace datatypes {
 			bool m_success;
 		public:
 			CDataTypeTwitter(const std::list<std::string>& args);
-			virtual EError get_data(data_t& output, bool append) const;
-			virtual EError write_data(data_t::const_iterator begin,
-						  data_t::const_iterator end) const;
-			virtual bool success() const;
-			virtual std::string full_path() const;
-			virtual std::string path() const;
+			virtual utility::EError get_data(utility::data_t& output, bool append = false) const;
+			virtual utility::EError write_data(utility::data_t::const_iterator begin,
+							   utility::data_t::const_iterator end) const;
+			virtual bool is_success() const;
+			virtual std::string get_full_path() const;
+			virtual std::string get_path() const;
 			virtual ~CDataTypeTwitter() {}
 	};
 }
