@@ -35,13 +35,13 @@ class CConvertFromDate(IConverter):
                 self.filelist.append("BCS\n" + subdirs + "/" +
                                      counter.strftime("%Y%m%d") + ".csv")
                 counter += delta
-        elif data_type == 'SHARES' and source == 'YAHOO':
-            s_date_from = 'a=' + str(date_from.month() - 1) + '&b=' +\
-                          str(date_from.day()) + '&c=' +\
-                          str(date_from.year()) + '&'
-            s_date_to = 'd=' + str(date_to.month() - 1) + '&e=' +\
-                        str(date_to.day()) + '&f=' +\
-                        str(date_to.year())
+        elif data_type == 'ASSETS' and source == 'YAHOO':
+            s_date_from = 'a=' + str(date_from.month - 1) + '&b=' +\
+                          str(date_from.day) + '&c=' +\
+                          str(date_from.year) + '&'
+            s_date_to = 'd=' + str(date_to.month - 1) + '&e=' +\
+                        str(date_to.day) + '&f=' +\
+                        str(date_to.year)
             self.filelist.append("YAHOO\n" + subdirs + "/" +
                                  s_date_from + s_date_to)
 
@@ -106,6 +106,7 @@ class CClient(object):
 
     def get_info(self, converter, check=True, force=False):
         for filename in converter.get_filenames():
+            ret = 0
             try:
                 ret = self.get_file(filename, filename,
                                     converter.get_datatype(),
@@ -113,5 +114,6 @@ class CClient(object):
             except RuntimeError:
                 pass
             if ret == 0 and check:
-                if not self.check_integrity(filename):
+                if not self.check_integrity(filename, filename,
+                                            converter.get_datatype()):
                     raise ExInvalidMD5()
