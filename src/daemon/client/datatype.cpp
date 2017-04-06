@@ -38,6 +38,10 @@ namespace datatypes {
 		}
 		file.close();
 
+		if (file.fail()) {
+			return utility::EError::WRITE_ERROR;
+		}
+
 		return utility::EError::OK;
 	}
 
