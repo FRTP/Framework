@@ -1,145 +1,66 @@
 #include "cdaemon.h"
 
-CServer::CServer(boost::asio::io_service& io_service, const boost::shared_ptr<CLog>& log)
-	: m_acceptor(io_service, ip::tcp::endpoint(ip::tcp::v4(), PORT)) {
-	m_log = log;
+CServer::CServer(boost::shared_ptr<boost::asio::io_service> io_srvs)
+	: m_acceptor(*io_srvs, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), PORT)) {
+	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeAssets>(utility::EDataType::ASSETS);
+	datatypes::CDataTypeFactory::register_type<datatypes::CDataTypeTwitter>(utility::EDataType::TWITTER);
+
+	utility::CCommandFactory::add<server_command::CCmdGetFile>(utility::ECommand::GET_FILE);
+	utility::CCommandFactory::add<server_command::CCmdGetMD5>(utility::ECommand::GET_MD5);
+	utility::CCommandFactory::add<server_command::CCmdUploadFile>(utility::ECommand::UPLOAD_FILE);
+	utility::CCommandFactory::add<server_command::CCmdAuthorize>(utility::ECommand::AUTHORIZE);
+	utility::CCommandFactory::add<server_command::CCmdRegister>(utility::ECommand::REGISTER);
+
 	_start_accept();	
 }
 
 void CServer::_start_accept() {
-	CTCPConnection::conn_ptr connection = CTCPConnection::create(m_acceptor.get_io_service());
-	m_acceptor.async_accept(connection->socket(), boost::bind(&CServer::_handle_accept, this, connection, 
+	BOOST_LOG_TRIVIAL(info) << "Waiting for client...";
+
+	CTCPConnection::conn_ptr connection = CTCPConnection::conn_ptr(new CTCPConnection(m_acceptor.get_io_service()));
+	m_acceptor.async_accept(connection->context().socket(), boost::bind(&CServer::_handle_accept, this, connection,
 				boost::asio::placeholders::error));
 }
 
 void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::system::error_code& ec) {
+	BOOST_LOG_TRIVIAL(info) << "Accepting client...";
 	if (!ec) {
-		boost::shared_ptr<std::array<int, 2>> command(new std::array<int, 2>);
-		boost::asio::async_read(connection->socket(), boost::asio::buffer(*command), 
-				boost::bind(&CTCPConnection::handle_read_command, connection, m_log, command, 
-				boost::asio::placeholders::error));
-		_start_accept();
-	}
-}
-
-void CTCPConnection::handle_read_command(boost::shared_ptr<CLog> log, boost::shared_ptr<std::array<int, 2>> command, 
-		const boost::system::error_code& ec) {
-	if (!ec) {
-		log->write("[II]: New client accepted; reading command...");
-		if (static_cast<CServer::ECommand>((*command)[0]) == CServer::ECommand::GET_FILE) {
-			if ((*command)[1] < 0) {
-				log->write("[EE] handle_read_command: Invalid buffer size");
-				return;
-			}
-			boost::shared_ptr<std::string> filename(new std::string);
-			filename->resize((*command)[1]);
-			boost::asio::async_read(m_socket, boost::asio::buffer(&(*filename)[0], filename->size()), 
-				boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(), log, filename,
-				static_cast<int>(CServer::ECommand::GET_FILE), boost::asio::placeholders::error));
-		}
-		else if (static_cast<CServer::ECommand>((*command)[0]) == CServer::ECommand::GET_MD5) {
-			if ((*command)[1] < 0) {
-				log->write("[EE] handle_read_command: Invalid buffer size");
-				return;
-			}
-			boost::shared_ptr<std::string> filename(new std::string);
-			filename->resize((*command)[1]);
-			boost::asio::async_read(m_socket, boost::asio::buffer(&(*filename)[0], filename->size()),
-				boost::bind(&CTCPConnection::handle_read_filename, shared_from_this(), log, filename,
-				static_cast<int>(CServer::ECommand::GET_MD5), boost::asio::placeholders::error));
-		}
+		BOOST_LOG_TRIVIAL(info) << "New client accepted";
+		connection->context().async_recv_message(boost::bind(&CTCPConnection::authorize, connection,
+							 boost::asio::placeholders::error));
 	}
 	else {
-		log->write("[EE]: handle_read_command: " + ec.message());
+		BOOST_LOG_TRIVIAL(error) << "Unable to accept client: " + ec.message();
 	}
+	_start_accept();
 }
 
-void CTCPConnection::handle_read_filename(boost::shared_ptr<CLog>& log, boost::shared_ptr<std::string> filename, 
-		int command, const boost::system::error_code& ec) {
-	if (ec) {
-		log->write("[EE]: " + ec.message());
-		return;
-	}
+CDaemon::CDaemon(const CParser& parser) : m_io_service(new boost::asio::io_service()) {
+	utility::CSettings::set_working_dir("/var/frtp/");
+	utility::CSettings::set_data_dir("data/");
 
-	std::string s_filename("/var/frtp/data/" + *filename);
-	std::ifstream file(s_filename, std::ios::binary);
-	if (!file) {
-		log->write("[EE]: Unable to open file " + s_filename + ": " + strerror(errno));
-		int error_buf[1] = { CServer::EError::NO_FILE };
-		boost::asio::async_write(m_socket, boost::asio::buffer(error_buf), 
-				boost::bind(&CTCPConnection::handle_write_response, shared_from_this(), log,
-				boost::asio::placeholders::error));
-		return;
-	}
-
-	file.seekg(0, file.end);
-	int size = file.tellg();
-	file.seekg(0, file.beg);
-	std::vector<char> buffer(size);
-
-	if (!file.read(buffer.data(), size)) {
-		log->write("[EE]: Unable to read file " + s_filename);
-		file.close();
-		return;
-	}
-
-	if (static_cast<CServer::ECommand>(command) == CServer::ECommand::GET_FILE) {
-		boost::asio::async_write(m_socket, boost::asio::buffer(buffer), 
-				boost::bind(&CTCPConnection::handle_write_response, shared_from_this(), log,
-				boost::asio::placeholders::error));
-	}
-	else if (static_cast<CServer::ECommand>(command) == CServer::ECommand::GET_MD5) {
-		unsigned char md5sum[MD5_DIGEST_LENGTH];
-		MD5((unsigned char*)buffer.data(), size, md5sum);
-		boost::asio::async_write(m_socket, boost::asio::buffer(buffer),
-				boost::bind(&CTCPConnection::handle_write_response, shared_from_this(), log,
-				boost::asio::placeholders::error));
-	}
-
-	file.close();
-}
-
-void CTCPConnection::handle_write_response(boost::shared_ptr<CLog>& log, const boost::system::error_code& ec) {
-	if (!ec) { 
-		log->write("[II]: Response transmitted successfully");
-	}
-	else {
-		log->write("[EE]: " + ec.message());
-	}
-}
-
-CTCPConnection::conn_ptr CTCPConnection::create(boost::asio::io_service& io_service) {
-	return conn_ptr(new CTCPConnection(io_service));
-}
-
-ip::tcp::socket& CTCPConnection::socket() {
-	return m_socket;
-}
-
-CDaemon::CDaemon(const CParser& parser) {
-	m_log = boost::shared_ptr<CLog>(new CLog(parser.logname()));
-
-	/*
-	std::string config_name = parser.configname();
-	if (!_load_config(config_name)) {
-		m_log->write("[EE]: Config file " + config_name + " not found.");
-	}
-	*/
+	logging::register_simple_formatter_factory<logging::trivial::severity_level, char>("Severity");
+	logging::add_file_log(
+			keywords::file_name = parser.logname(),
+			keywords::auto_flush = true,
+			keywords::open_mode = (std::ios::out | std::ios::app),
+			keywords::format = "%TimeStamp% [%Uptime%] (%LineID%) <%Severity%>: %Message%"
+			);
+	logging::add_common_attributes();
+	logging::core::get()->add_global_attribute("Uptime", attrs::timer());
 }
 
 int CDaemon::start() {
-	boost::asio::io_service io_service;
-	CServer server(io_service, m_log);
-	boost::asio::signal_set signals(io_service, SIGINT, SIGTERM);
-	signals.async_wait(boost::bind(&boost::asio::io_service::stop, &io_service));
-	io_service.notify_fork(boost::asio::io_service::fork_prepare);
+	boost::asio::signal_set signals(*(m_io_service.get()), SIGINT, SIGTERM);
+	signals.async_wait(boost::bind(&boost::asio::io_service::stop, m_io_service));
+	m_io_service->notify_fork(boost::asio::io_service::fork_prepare);
 
 	if (pid_t pid = fork()) {
 		if (pid > 0) {
 			exit(0);
 		}
 		else {
-			m_log->write("[EE]: First fork failed.");
+			BOOST_LOG_TRIVIAL(error) << "CDaemon::start(): first fork failed.";
 			return 1;
 		}
 	}
@@ -152,7 +73,7 @@ int CDaemon::start() {
 			exit(0);
 		}
 		else {
-			m_log->write("[EE]: Second fork failed.");
+			BOOST_LOG_TRIVIAL(error) << "CDaemon::start(): second fork failed.";
 			return 1;
 		}
 	}
@@ -161,14 +82,16 @@ int CDaemon::start() {
 	close(2);
 
 	if (open("/dev/null", O_RDONLY) < 0) {
-		m_log->write("[EE]: Unable to open /dev/null.");
+		BOOST_LOG_TRIVIAL(error) << "CDaemon::start(): unable to open /dev/null.";
 		return 1;
 	}
 
-	io_service.notify_fork(boost::asio::io_service::fork_child);
-	m_log->write("[II]: Daemon started.");
-	io_service.run();
-	m_log->write("[II]: Daemon stopped.");
+	m_io_service->notify_fork(boost::asio::io_service::fork_child);
+
+	BOOST_LOG_TRIVIAL(info) << "CDaemon::start(): daemon started.";
+	CServer server(m_io_service);
+	m_io_service->run();
+	BOOST_LOG_TRIVIAL(info) << "CDaemon::start(): daemon stopped.";
 
 	return 0;
 }

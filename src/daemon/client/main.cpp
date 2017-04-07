@@ -1,37 +1,73 @@
+#include <boost/python.hpp>
+
 #include "cclient.h"
 
-extern "C" {
-	CClient* create_instance(char* server, int port) {
-		boost::asio::io_service io_service;
-		CClient* client = new CClient(io_service, server, port);
-		io_service.run();
-		return client;
-	}
+void translate_error(const ExError&);
+void transtale_invalid_args_error(const ExInvalidArgs&);
+void transtale_connection_problem_error(const ExConnectionProblem&);
+void transtale_socket_problem_error(const ExSocketProblem&);
+void translate_unknown_data_type_error(const ExUnknownDataType&);
+void translate_no_file_error(const ExNoFile&);
 
-	int get_file(CClient* obj, char* filename, const char* newfile) {
-		if (!obj) {
-			return -1;
-		}
-		CCmdGetFile* cmd = new CCmdGetFile(std::string(filename), std::string(newfile));
-		obj->invoke(cmd);
-		delete cmd;
-		return 0;
-	}
+BOOST_PYTHON_MODULE(libfrtpsrv)
+{
+	boost::python::class_<CClient>("LibClient",
+				       boost::python::init<std::string, std::string>(boost::python::args("workingdir",
+													 "datasubdir")))
+		.def("create_context", &CClient::create_context,
+		     boost::python::return_value_policy<boost::python::manage_new_object>())
+		.def("connect", &CClient::connect, boost::python::args("context", "server", "port", "login", "password"))
+		.staticmethod("connect")
+		.def("invoke", &CClient::invoke, boost::python::args("context", "command", "datatype"))
+		.staticmethod("invoke")
+		.def("get_hash", &CClient::get_hash)
+		.staticmethod("get_hash")
+		.def("check_integrity", &CClient::check_integrity, boost::python::args("context", "server",
+										       "client", "datatype"))
+		.staticmethod("check_integrity")
+	;
+	boost::python::class_<utility::CCommandFactory, boost::noncopyable>("LibCommandFactory", boost::python::no_init)
+		.def("create_command", static_cast<utility::ICommand* (*)(
+					const std::string&,
+					boost::python::list)>(&utility::CCommandFactory::create),
+		     boost::python::return_value_policy<boost::python::manage_new_object>())
+		.def("create_command", static_cast<utility::ICommand* (*)(
+					const utility::CMessage&)>(&utility::CCommandFactory::create),
+		     boost::python::return_value_policy<boost::python::manage_new_object>())
+		.staticmethod("create_command")
+	;
+	boost::python::class_<CContext, boost::noncopyable>("LibContext", boost::python::no_init);
+	boost::python::class_<utility::ICommand, boost::noncopyable>("LibCommand", boost::python::no_init);
+	boost::python::class_<utility::CMessage, boost::noncopyable>("LibMessage", boost::python::no_init);
 
-	const unsigned char* get_md5(CClient* obj, char* filename) {
-		if (!obj) {
-			return NULL;
-		}
-		CCmdGetMD5* cmd = new CCmdGetMD5(std::string(filename));
-		obj->invoke(cmd);
-		const unsigned char* res = cmd->hash();
-		delete cmd;
-		return res;
-	}
+	boost::python::register_exception_translator<ExError>(translate_error);
+	boost::python::register_exception_translator<ExInvalidArgs>(transtale_invalid_args_error);
+	boost::python::register_exception_translator<ExConnectionProblem>(transtale_connection_problem_error);
+	boost::python::register_exception_translator<ExSocketProblem>(transtale_socket_problem_error);
+	boost::python::register_exception_translator<ExUnknownDataType>(translate_unknown_data_type_error);
+	boost::python::register_exception_translator<ExNoFile>(translate_no_file_error);
+}
 
-	void clear(CClient* obj) {
-		if (obj) {
-			delete obj;
-		}
-	}
+void translate_error(const ExError& e) {
+	PyErr_SetString(PyExc_Exception, e.what());
+}
+
+void transtale_invalid_args_error(const ExInvalidArgs& e) {
+	PyErr_SetString(PyExc_RuntimeError, e.what());
+}
+
+void transtale_connection_problem_error(const ExConnectionProblem& e) {
+	PyErr_SetString(PyExc_RuntimeError, e.what());
+}
+
+void transtale_socket_problem_error(const ExSocketProblem& e) {
+	PyErr_SetString(PyExc_RuntimeError, e.what());
+}
+
+void translate_unknown_data_type_error(const ExUnknownDataType& e) {
+	PyErr_SetString(PyExc_TypeError, e.what());
+}
+
+void translate_no_file_error(const ExNoFile& e) {
+	PyErr_SetString(PyExc_RuntimeError, e.what());
 }
