@@ -7,7 +7,7 @@ class TestServerAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.client = wrapper.CClient('127.0.0.1', 34567,
-                                     'user', # 'password here',
+                                     'user',  # 'password here',
                                      '/home/maked0n/frtp/',
                                      'data/')
 
@@ -51,6 +51,7 @@ class TestServerAPI(unittest.TestCase):
         converter = wrapper.CConvertFromDate(datetime.date(2010, 8, 7),
                                              datetime.date(2015, 8, 10),
                                              'ASSETS', 'YAHOO', 'YHOO')
+        self.client.get_info(converter, force=True)
 
     def test_invalidlogin(self):
         with self.assertRaises(Exception):
