@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import numpy as np
 
 from reportlab.lib.pagesizes import A4, landscape
