@@ -26,7 +26,8 @@ utility::EError CCmdGetFile::invoke(CContext* context, utility::EDataType dataty
 		if (!fs::exists(datatype_instance->get_path())) {
 			fs::create_directories(datatype_instance->get_path());
 		}
-		utility::CMessage msg(utility::ECommand::GET_FILE, datatype, std::vector<char>(m_filename.begin(), m_filename.end()));
+		utility::CMessage msg(utility::ECommand::GET_FILE, datatype, std::vector<char>(m_filename.begin(),
+											       m_filename.end()));
 		utility::EError ret;
 		if ((ret = context->send_message(msg)) != utility::EError::OK) {
 			return ret;
