@@ -32,7 +32,7 @@ class CConvertFromDate(IConverter):
             counter = date_from
             delta = datetime.timedelta(days=1)
             while counter <= date_to:
-                self.filelist.append("BCS\n" + subdirs + "/" +
+                self.filelist.append("BCS\t" + subdirs + "/" +
                                      counter.strftime("%Y%m%d") + ".csv")
                 counter += delta
         elif data_type == 'ASSETS' and source == 'YAHOO':
@@ -42,7 +42,7 @@ class CConvertFromDate(IConverter):
             s_date_to = 'd=' + str(date_to.month - 1) + '&e=' +\
                         str(date_to.day) + '&f=' +\
                         str(date_to.year)
-            self.filelist.append("YAHOO\n" + subdirs + "/" +
+            self.filelist.append("YAHOO\t" + subdirs + "/" +
                                  s_date_from + s_date_to)
 
     def get_filenames(self):
@@ -114,6 +114,7 @@ class CClient(object):
             except RuntimeError:
                 pass
             if ret == 0 and check:
-                if not self.check_integrity(filename, filename,
-                                            converter.get_datatype()):
-                    raise ExInvalidMD5()
+                if os.path.isfile(filename):
+                    if not self.check_integrity(filename, filename,
+                                                converter.get_datatype()):
+                        raise ExInvalidMD5()

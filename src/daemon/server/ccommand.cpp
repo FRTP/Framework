@@ -2,21 +2,11 @@
 
 namespace server_command {
 	CCmdGetFile::CCmdGetFile(const utility::CMessage& msg) {
-		auto it = msg.data_begin();
-
-		while (*it != '\n') {
-			++it;
-		}
-		m_source = std::string(msg.data_begin(), it);
-		m_filename = std::string(++it, msg.data_end());
+		m_filename = std::string(reinterpret_cast<const char*>(&(msg.data())[0]), msg.data().size());
 	}
 
-	CCmdGetFile::CCmdGetFile(const std::list<std::string>& args) {
-		if (args.size() == EXPECTED_ARGS_NUM) {
-			m_source = args.front();
-			m_filename = *(std::next(args.begin(), 1));
-		}
-		//TODO: args.size() != EXPECTED_ARGS_NUM
+	CCmdGetFile::CCmdGetFile(__attribute__ ((unused)) const std::list<std::string>& args) {
+		//TODO
 	}
 
 	utility::ECommand CCmdGetFile::type() const {
@@ -26,7 +16,7 @@ namespace server_command {
 	utility::EError CCmdGetFile::invoke(CContext* context, utility::EDataType datatype) {
 		auto datatype_instance = datatypes::CDataTypeFactory::create(
 				datatype,
-				std::list<std::string>({ m_source, m_filename })
+				std::list<std::string>({ m_filename })
 				);
 		if (!datatype_instance->is_success()) {
 			return utility::EError::INTERNAL_ERROR;
@@ -60,14 +50,21 @@ namespace server_command {
 	}
 
 	utility::EError CCmdGetMD5::invoke(CContext* context, utility::EDataType datatype) {
-		utility::md5sum_ptr md5 = utility::calculate_md5(utility::get_full_path(datatype, m_filename));
-		if (md5 == nullptr) {
-			return utility::EError::INTERNAL_ERROR;
-		}
-		utility::CMessage msg_md5(utility::ECommand::GET_MD5, datatype, *md5);
-		context->async_send_message(msg_md5, m_callback);
+		if (datatype == utility::EDataType::ASSETS) {
+			utility::md5sum_ptr md5 = utility::calculate_md5(utility::get_full_path(datatype,
+												m_filename));
+			if (md5 == nullptr) {
+				return utility::EError::INTERNAL_ERROR;
+			}
+			utility::CMessage msg_md5(utility::ECommand::GET_MD5, datatype, *md5);
+			context->async_send_message(msg_md5, m_callback);
 
-		return utility::EError::OK;
+			return utility::EError::OK;
+		}
+		else {
+			//TODO
+			return utility::EError::OK;
+		}
 	}
 
 	void CCmdGetMD5::set_callback(CContext::callback_type callback) {

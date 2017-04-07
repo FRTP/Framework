@@ -3,31 +3,33 @@ import wrapper
 import unittest
 
 
-class TestFileOperations(unittest.TestCase):
+class TestServerAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.client = wrapper.CClient('127.0.0.1', 34567,
-                                     'user',  # 'password here',
-                                     '/home/maked0n/frtp/')
+                                     'user', # 'password here',
+                                     '/home/maked0n/frtp/',
+                                     'data/')
 
     def test_getbyname(self):
-        self.client.get_file('AFLT/test_data.csv', 'AFLT/test_data.csv',
+        self.client.get_file('BCS\tAFLT/test_data.csv',
+                             'BCS\tAFLT/test_data.csv',
                              'ASSETS', True)
-        all_ok = self.client.check_integrity('AFLT/test_data.csv',
-                                             'AFLT/test_data.csv',
+        all_ok = self.client.check_integrity('BCS\tAFLT/test_data.csv',
+                                             'BCS\tAFLT/test_data.csv',
                                              'ASSETS')
         self.assertTrue(all_ok)
 
     def test_getnonexistent(self):
         with self.assertRaises(RuntimeError):
-            self.client.get_file('AFLT/nonexistent.file',
-                                 'AFLT/nonexistent.file',
+            self.client.get_file('BCS\tAFLT/nonexistent.file',
+                                 'BCS\tAFLT/nonexistent.file',
                                  'ASSETS', True)
 
     def test_sendbyname(self):
-        self.client.upload_file('test_send', 'ASSETS')
-        all_ok = self.client.check_integrity('test_send',
-                                             'test_send',
+        self.client.upload_file('BCS\tAFLT/test_send', 'ASSETS')
+        all_ok = self.client.check_integrity('BCS\tAFLT/test_send',
+                                             'BCS\tAFLT/test_send',
                                              'ASSETS')
         self.assertTrue(all_ok)
 
@@ -39,11 +41,16 @@ class TestFileOperations(unittest.TestCase):
     def test_getperiod(self):
         converter = wrapper.CConvertFromDate(datetime.date(2015, 8, 7),
                                              datetime.date(2015, 8, 10),
-                                             'ASSETS', 'AFLT')
+                                             'ASSETS', 'BCS', 'AFLT')
         try:
             self.client.get_info(converter, force=True)
         except wrapper.ExInvalidMD5:
             self.fail("Invalid MD5")
+
+    def test_getfromyahoo(self):
+        converter = wrapper.CConvertFromDate(datetime.date(2010, 8, 7),
+                                             datetime.date(2015, 8, 10),
+                                             'ASSETS', 'YAHOO', 'YHOO')
 
     def test_invalidlogin(self):
         with self.assertRaises(Exception):

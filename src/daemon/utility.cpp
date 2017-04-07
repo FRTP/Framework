@@ -63,7 +63,19 @@ namespace utility {
 	}
 
 	std::string get_full_path(EDataType type, const std::string& filename) {
-		return CSettings::get_data_dir() + get_data_type_dir(type) + filename;
+		if (type == EDataType::ASSETS) {
+			auto delimiter_pos = filename.find("\t");
+			if (delimiter_pos == std::string::npos) {
+				return "";
+			}
+			std::string source = filename.substr(0, delimiter_pos++);
+			std::string name = filename.substr(delimiter_pos);
+			return CSettings::get_data_dir() + get_data_type_dir(type) +
+			       source + "/" + name;
+		}
+		else {
+			return CSettings::get_data_dir() + get_data_type_dir(type) + filename;
+		}
 	}
 
 	sha512_ptr encrypt_string(const std::string& input) {

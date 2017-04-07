@@ -6,29 +6,29 @@ namespace datatypes {
 	CDataTypeAssets::CDataTypeAssets(const std::list<std::string>& args) {
 		m_success = (args.size() == EXPECTED_ARGS_NUM);
 		if (m_success) {
-			_arg_to_esource(args.front());
-			m_filename = *(std::next(args.begin(), 1));
+			auto delimiter_pos = args.front().find("\t");
+			m_source = args.front().substr(0, delimiter_pos);
+			m_filename = args.front().substr(++delimiter_pos);
 		}
 	}
 
-	void CDataTypeAssets::_arg_to_esource(const std::string& input) {
+	CDataTypeAssets::ESource CDataTypeAssets::_arg_to_esource(const std::string& input) const {
 		if (input == "YAHOO") {
-			m_source = ESource::YAHOO;
+			return ESource::YAHOO;
 		}
-		else if (input == "BSC") {
-			m_source = ESource::BCS;
+		else if (input == "BCS") {
+			return ESource::BCS;
 		}
 		else if (input == "FAST") {
-			m_source = ESource::FAST;
+			return ESource::FAST;
 		}
 		else {
-			m_source = ESource::NO_SOURCE;
+			return ESource::NO_SOURCE;
 		}
 	}
 
 	utility::EError CDataTypeAssets::_from_bcs(utility::data_t& output, bool append) const {
-		std::string full_path = utility::get_full_path(utility::EDataType::ASSETS, m_filename);
-		std::ifstream file(full_path, std::ios::binary);
+		std::ifstream file(get_full_path(), std::ios::binary);
 		if (!file) {
 			return utility::EError::OPEN_ERROR;
 		}
@@ -37,12 +37,13 @@ namespace datatypes {
 		int file_size = file.tellg();
 		file.seekg(0, file.beg);
 		int prev_size = output.size();
-		output.resize(append ? prev_size + file_size : prev_size);
+		output.resize(append ? prev_size + file_size : file_size);
 
-		auto begin_write_prt = append ? output.data() : output.data() + prev_size;
-		if (!file.read(reinterpret_cast<char*>(begin_write_prt), file_size)) {
-			file.close();
-			return utility::EError::OK;
+		auto begin_write_ptr = append ? output.data() + prev_size : output.data();
+		file.read(reinterpret_cast<char*>(begin_write_ptr), file_size);
+		file.close();
+		if (file.fail()) {
+			return utility::EError::READ_ERROR;
 		}
 
 		return utility::EError::OK;
@@ -70,7 +71,7 @@ namespace datatypes {
 	}
 
 	utility::EError CDataTypeAssets::get_data(utility::data_t& output, bool append) const {
-		switch (m_source) {
+		switch (_arg_to_esource(m_source)) {
 			case ESource::BCS:
 				return _from_bcs(output, append);
 			case ESource::YAHOO:
@@ -88,8 +89,7 @@ namespace datatypes {
 
 	utility::EError CDataTypeAssets::write_data(utility::data_t::const_iterator begin,
 						    utility::data_t::const_iterator end) const {
-		std::string full_path = utility::get_full_path(utility::EDataType::ASSETS, m_filename);
-		std::ofstream file(full_path, std::ios::binary);
+		std::ofstream file(get_full_path(), std::ios::binary);
 		if (!file) {
 			return utility::EError::OPEN_ERROR;
 		}
@@ -103,11 +103,16 @@ namespace datatypes {
 	}
 
 	std::string CDataTypeAssets::get_full_path() const {
-		return utility::get_full_path(utility::EDataType::ASSETS, m_filename);
+		return utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::ASSETS) +
+		       m_source + "/" + m_filename;
 	}
 
 	std::string CDataTypeAssets::get_path() const {
-		return (utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::ASSETS));
+		auto delimiter_pos = m_filename.find("/");
+		std::string subdir = m_filename.substr(0, delimiter_pos);
+
+		return (utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::ASSETS) +
+			m_source + "/" + subdir);
 	}
 
 	CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {

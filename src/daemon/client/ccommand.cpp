@@ -34,7 +34,7 @@ utility::EError CCmdGetFile::invoke(CContext* context, utility::EDataType dataty
 		if ((ret = context->recv_message(msg)) != utility::EError::OK) {
 			return ret;
 		}
-		if ((ret = check_message(msg)) != utility::EError::OK) {
+		if ((ret = utility::check_message(msg)) != utility::EError::OK) {
 			return ret;
 		}
 		return datatype_instance->write_data(msg.data_begin(), msg.data_end());
@@ -80,7 +80,7 @@ utility::EError CCmdGetMD5::invoke(CContext* context, utility::EDataType datatyp
 	if ((ret = context->recv_message(msg)) != utility::EError::OK) {
 		return ret;
 	}
-	if ((ret = check_message(msg)) != utility::EError::OK) {
+	if ((ret = utility::check_message(msg)) != utility::EError::OK) {
 		return ret;
 	}
 	if (msg.data().size() != MD5_DIGEST_LENGTH) {

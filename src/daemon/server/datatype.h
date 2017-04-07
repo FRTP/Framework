@@ -26,12 +26,12 @@ namespace datatypes {
 				NO_SOURCE
 			};
 
-			static constexpr int EXPECTED_ARGS_NUM = 2;
+			static constexpr int EXPECTED_ARGS_NUM = 1;
 			std::string m_filename;
-			ESource m_source;
+			std::string m_source;
 			bool m_success;
 
-			void _arg_to_esource(const std::string& input);
+			ESource _arg_to_esource(const std::string& input) const;
 
 			utility::EError _from_bcs(utility::data_t& output, bool append) const;
 			utility::EError _from_yahoo(utility::data_t& output, bool append) const;

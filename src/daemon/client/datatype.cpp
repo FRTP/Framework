@@ -15,8 +15,8 @@ namespace datatypes {
 		int prev_size = output.size();
 		output.resize(append ? prev_size + file_size : prev_size);
 
-		auto begin_write_prt = append ? output.data() : output.data() + prev_size;
-		if (!file.read(reinterpret_cast<char*>(begin_write_prt), file_size)) {
+		auto begin_write_ptr = append ? output.data() + prev_size : output.data();
+		if (!file.read(reinterpret_cast<char*>(begin_write_ptr), file_size)) {
 			file.close();
 			return utility::EError::READ_ERROR;
 		}
@@ -48,16 +48,14 @@ namespace datatypes {
 	CDataTypeAssets::CDataTypeAssets(const std::list<std::string>& args) {
 		m_success = (args.size() == EXPECTED_ARGS_NUM);
 		if (m_success) {
-			auto delimiter_pos = args.front().find("\n");
+			auto delimiter_pos = args.front().find("\t");
 			m_source = args.front().substr(0, delimiter_pos);
 			m_filename = args.front().substr(++delimiter_pos);
 		}
 	}
 
 	utility::EError CDataTypeAssets::get_data(utility::data_t& output, bool append = false) const {
-		std::string full_path = utility::get_full_path(utility::EDataType::ASSETS,
-							       m_source + "/" + m_filename);
-		return read_binary(output, full_path, append);
+		return read_binary(output, get_full_path(), append);
 	}
 
 	bool CDataTypeAssets::is_success() const {
@@ -66,16 +64,19 @@ namespace datatypes {
 
 	utility::EError CDataTypeAssets::write_data(utility::data_t::const_iterator begin,
 						    utility::data_t::const_iterator end) const {
-		std::string full_path = utility::get_full_path(utility::EDataType::ASSETS, m_filename);
-		return write_binary(full_path, begin, end);
+		return write_binary(get_full_path(), begin, end);
 	}
 
 	std::string CDataTypeAssets::get_full_path() const {
-		return utility::get_full_path(utility::EDataType::ASSETS, m_source + "/" + m_filename);
+		return utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::ASSETS) +
+		       m_source + "/" + m_filename;
 	}
 
 	std::string CDataTypeAssets::get_path() const {
-		return (utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::ASSETS));
+		auto delimiter_pos = m_filename.find("/");
+		std::string subdir = m_filename.substr(0, ++delimiter_pos);
+		return (utility::CSettings::get_data_dir() + utility::get_data_type_dir(utility::EDataType::ASSETS) +
+			m_source + "/" + subdir);
 	}
 
 	CDataTypeTwitter::CDataTypeTwitter(const std::list<std::string>& args) {
@@ -86,8 +87,7 @@ namespace datatypes {
 	}
 
 	utility::EError CDataTypeTwitter::get_data(utility::data_t& output, bool append = false) const {
-		std::string full_path = utility::get_full_path(utility::EDataType::TWITTER, m_filename);
-		return read_binary(output, full_path, append);
+		return read_binary(output, get_full_path(), append);
 	}
 
 	bool CDataTypeTwitter::is_success() const {
@@ -95,9 +95,8 @@ namespace datatypes {
 	}
 
 	utility::EError CDataTypeTwitter::write_data(utility::data_t::const_iterator begin,
-					    utility::data_t::const_iterator end) const {
-		std::string full_path = utility::get_full_path(utility::EDataType::TWITTER, m_filename);
-		return write_binary(full_path, begin, end);
+						     utility::data_t::const_iterator end) const {
+		return write_binary(get_full_path(), begin, end);
 	}
 
 	std::string CDataTypeTwitter::get_full_path() const {
