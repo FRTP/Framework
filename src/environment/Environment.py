@@ -270,7 +270,8 @@ class Environment:
     # Gives rows in the asset_hist_data
     #   which are appropriate to the start_date and length of the period.
     # @staticmethod
-    # def get_train_period(asset_hist_data, start_date=None, length=0, ratio=0.):
+    # def get_train_period(asset_hist_data, start_date=None,
+    #                                       length=0, ratio=0.):
     #     if length == 0 and ratio == 0:
     #         return None
     #
@@ -311,4 +312,3 @@ class Environment:
                         functors=portfolio_sequence_functors,
                         path=path)
         return
-
