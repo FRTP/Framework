@@ -3,3 +3,4 @@ __pycache__
 report.pdf
 env
 src/temp/
+*.o
