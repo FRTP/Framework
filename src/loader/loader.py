@@ -18,7 +18,8 @@ def _download_data(period, working_dir, assets_list, srv_ip, srv_port,
     chdir(working_dir)
     client = CClient(srv_ip, srv_port, srv_login, srv_password, '.', '.')
     for asset in assets_list:
-        converter = CConvertFromDate(period[0], period[1], 'ASSETS', 'YAHOO', asset)
+        converter = CConvertFromDate(period[0], period[1], 'ASSETS', 'YAHOO',
+                                     asset)
         client.get_info(converter)
     chdir('..')
 
@@ -76,11 +77,11 @@ class Loader:
         trading_len = len(test_dataframes[0])
         for i in range(trading_len - 1, -1, -1):
             cur_date = datetime.strptime(test_dataframes[0].iloc[i]['Date'],
-                                        '%Y-%m-%d')
+                                         '%Y-%m-%d')
             print('cur_date = ' + str(cur_date))
             to_buy_list = alg.step([x.iloc[i] for x in test_dataframes],
                                    assets_list, env.get_current_balance())
-            #env.buy(assets_list, to_buy_list, cur_date)
+            env.buy(assets_list, to_buy_list, cur_date)
             sleep(1)
 
 
