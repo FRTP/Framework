@@ -43,7 +43,7 @@ class Config:
         return self.assets
 
     def get_start_money(self):
-        return self.start_money
+        return int(self.start_money)
 
     def get_srv_ip(self):
         return self.srv_ip
