@@ -18,7 +18,7 @@ void CServer::_start_accept() {
 	BOOST_LOG_TRIVIAL(info) << "Waiting for client...";
 
 	CTCPConnection::conn_ptr connection = CTCPConnection::conn_ptr(new CTCPConnection(m_acceptor.get_io_service()));
-	m_acceptor.async_accept(connection->context().socket(), boost::bind(&CServer::_handle_accept, this, connection,
+	m_acceptor.async_accept(connection->get_context()->socket(), boost::bind(&CServer::_handle_accept, this, connection,
 				boost::asio::placeholders::error));
 }
 
@@ -26,8 +26,8 @@ void CServer::_handle_accept(CTCPConnection::conn_ptr connection, const boost::s
 	BOOST_LOG_TRIVIAL(info) << "Accepting client...";
 	if (!ec) {
 		BOOST_LOG_TRIVIAL(info) << "New client accepted";
-		connection->context().async_recv_message(boost::bind(&CTCPConnection::authorize, connection,
-							 boost::asio::placeholders::error));
+		connection->get_context()->async_recv_message(boost::bind(&CTCPConnection::authorize, connection,
+							      boost::asio::placeholders::error));
 	}
 	else {
 		BOOST_LOG_TRIVIAL(error) << "Unable to accept client: " + ec.message();

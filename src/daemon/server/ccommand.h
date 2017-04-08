@@ -31,7 +31,7 @@ namespace server_command {
 			explicit CCmdGetFile(const utility::CMessage& msg);
 			explicit CCmdGetFile(const std::list<std::string>& args);
 			virtual utility::ECommand type() const;
-			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+			virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type  callback);
 			~CCmdGetFile() {}
 	};
@@ -44,7 +44,7 @@ namespace server_command {
 			explicit CCmdGetMD5(const utility::CMessage& msg);
 			explicit CCmdGetMD5(const std::list<std::string>& args);
 			virtual utility::ECommand type() const;
-			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+			virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 			~CCmdGetMD5() {}
 	};
@@ -59,7 +59,7 @@ namespace server_command {
 			explicit CCmdUploadFile(const utility::CMessage& msg);
 			explicit CCmdUploadFile(const std::list<std::string>& args);
 			virtual utility::ECommand type() const;
-			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+			virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 			~CCmdUploadFile() {}
 	};
@@ -74,7 +74,7 @@ namespace server_command {
 			explicit CCmdAuthorize(const utility::CMessage& msg);
 			explicit CCmdAuthorize(const std::list<std::string>& args);
 			virtual utility::ECommand type() const;
-			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+			virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 			const std::string& login() const;
 			const std::string& password() const;
@@ -91,7 +91,7 @@ namespace server_command {
 			explicit CCmdRegister(const utility::CMessage& msg);
 			explicit CCmdRegister(const std::list<std::string>& args);
 			virtual utility::ECommand type() const;
-			virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+			virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 			virtual void set_callback(CContext::callback_type callback);
 	};
 }

@@ -29,7 +29,7 @@ class CCmdGetFile : public utility::ICommand {
 		explicit CCmdGetFile(const std::list<std::string>& args);
 		explicit CCmdGetFile(const utility::CMessage& msg);
 		virtual utility::ECommand type() const;
-		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 		virtual ~CCmdGetFile() {}
 };
 
@@ -42,7 +42,7 @@ class CCmdGetMD5 : public utility::ICommand {
 		explicit CCmdGetMD5(const std::list<std::string>& args);
 		explicit CCmdGetMD5(const utility::CMessage& msg);
 		virtual utility::ECommand type() const;
-		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 		utility::md5sum_ptr hash() const;
 		virtual ~CCmdGetMD5() {}
 };
@@ -55,7 +55,7 @@ class CCmdUploadFile : public utility::ICommand {
 		explicit CCmdUploadFile(const std::list<std::string>& args);
 		explicit CCmdUploadFile(const utility::CMessage& msg);
 		virtual utility::ECommand type() const;
-		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 		virtual ~CCmdUploadFile() {}
 };
 
@@ -68,7 +68,7 @@ class CCmdAuthorize : public utility::ICommand {
 		explicit CCmdAuthorize(const std::list<std::string>& args);
 		explicit CCmdAuthorize(const utility::CMessage& msg);
 		virtual utility::ECommand type() const;
-		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 		virtual ~CCmdAuthorize() {}
 };
 
@@ -81,7 +81,7 @@ class CCmdRegister : public utility::ICommand {
 		explicit CCmdRegister(const std::list<std::string>& args);
 		explicit CCmdRegister(const utility::CMessage& msg);
 		virtual utility::ECommand type() const;
-		virtual utility::EError invoke(CContext* context, utility::EDataType datatype);
+		virtual utility::EError invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype);
 		virtual ~CCmdRegister() {}
 };
 

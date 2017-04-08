@@ -75,48 +75,41 @@ class CClient(object):
             data_subdir += str("/")
         self.client = lib.LibClient(workingdir=working_dir,
                                     datasubdir=data_subdir)
-        self.context = self.client.create_context()
-        lib.LibClient.connect(server=srv_address, port=srv_port,
-                              login=srv_login, password=srv_password,
-                              context=self.context)
+        self.client.connect(server=srv_address, port=srv_port,
+                            login=srv_login, password=srv_password)
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
 
     def get_file(self, filename, newfilename, data_type, force=False):
         l_arg = [filename, newfilename, str(force)]
         cmd = lib.LibCommandFactory.create_command("GetFile", l_arg)
-        lib.LibClient.invoke(context=self.context, command=cmd,
-                             datatype=DATA_TYPES[data_type])
+        self.client.invoke(command=cmd, datatype=DATA_TYPES[data_type])
 
     def upload_file(self, filename, data_type):
         cmd = lib.LibCommandFactory.create_command("UploadFile",
                                                    [filename])
-        lib.LibClient.invoke(context=self.context, command=cmd,
-                             datatype=DATA_TYPES[data_type])
+        self.client.invoke(command=cmd, datatype=DATA_TYPES[data_type])
 
     def get_md5(self, srv_filename, data_type):
         cmd = lib.LibCommandFactory.create_command("GetMD5",
                                                    [srv_filename])
-        lib.LibClient.invoke(context=self.context, command=cmd,
-                             datatype=DATA_TYPES[data_type])
+        self.client.invoke(command=cmd, datatype=DATA_TYPES[data_type])
         return CClient.get_hash(cmd)
 
     def check_integrity(self, srv_filename, cli_filename, data_type):
-        return lib.LibClient.check_integrity(context=self.context,
-                                             server=srv_filename,
-                                             client=cli_filename,
-                                             datatype=DATA_TYPES[data_type])
+        return self.client.check_integrity(server=srv_filename,
+                                           client=cli_filename,
+                                           datatype=DATA_TYPES[data_type])
 
     def get_info(self, converter, check=True, force=False):
         for filenames in converter.get_filenames():
-            ret = 0
             try:
-                ret = self.get_file(filenames[0], filenames[1],
-                                    converter.get_datatype(),
-                                    force)
+                self.get_file(filenames[0], filenames[1],
+                              converter.get_datatype(),
+                              force)
             except RuntimeError:
                 pass
-            if ret == 0 and check:
+            if check:
                 if os.path.isfile(filenames[1]):
                     if not self.check_integrity(filenames[0], filenames[1],
                                                 converter.get_datatype()):

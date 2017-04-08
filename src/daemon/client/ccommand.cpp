@@ -17,7 +17,7 @@ utility::ECommand CCmdGetFile::type() const {
 	return utility::ECommand::GET_FILE;
 }
 
-utility::EError CCmdGetFile::invoke(CContext* context, utility::EDataType datatype) {
+utility::EError CCmdGetFile::invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype) {
 	auto datatype_instance = datatypes::CDataTypeFactory::create(datatype, std::list<std::string>{ m_newfilename });
 	if (datatype_instance == nullptr) {
 		return utility::EError::INTERNAL_ERROR;
@@ -63,7 +63,7 @@ utility::ECommand CCmdGetMD5::type() const {
 	return utility::ECommand::GET_MD5;
 }
 
-utility::EError CCmdGetMD5::invoke(CContext* context, utility::EDataType datatype) {
+utility::EError CCmdGetMD5::invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype) {
 	auto datatype_instance = datatypes::CDataTypeFactory::create(datatype, std::list<std::string>{ m_filename });
 	if (datatype_instance == nullptr) {
 		return utility::EError::INTERNAL_ERROR;
@@ -112,7 +112,7 @@ utility::ECommand CCmdUploadFile::type() const {
 	return utility::ECommand::UPLOAD_FILE;
 }
 
-utility::EError CCmdUploadFile::invoke(CContext* context, utility::EDataType datatype) {
+utility::EError CCmdUploadFile::invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype) {
 	utility::data_t data_buf;
 	utility::str_to_data_t(m_filename, data_buf, false);
 	data_buf.push_back('\n');
@@ -156,7 +156,7 @@ utility::ECommand CCmdAuthorize::type() const {
 	return utility::ECommand::AUTHORIZE;
 }
 
-utility::EError CCmdAuthorize::invoke(CContext* context, utility::EDataType datatype) {
+utility::EError CCmdAuthorize::invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype) {
 	utility::data_t data_buf;
 	std::string s_data = m_login + "\n";
 	utility::str_to_data_t(s_data, data_buf, false);
@@ -198,7 +198,7 @@ utility::ECommand CCmdRegister::type() const {
 	return utility::ECommand::REGISTER;
 }
 
-utility::EError CCmdRegister::invoke(CContext* context, utility::EDataType datatype) {
+utility::EError CCmdRegister::invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype) {
 	utility::data_t data_buf;
 	std::string s_data = m_login + "\n";
 	utility::str_to_data_t(s_data, data_buf, false);
