@@ -254,26 +254,6 @@ class Environment:
                 return i
         return None
 
-    @staticmethod
-    def get_train_period(hist_data, start_date=None, length=0, ratio=0.):
-        if length == 0 and ratio == 0:
-            return None
-
-        if start_date is None:
-            first_idx = 0
-        else:
-            start_date = AssetsPortfolio.to_datetime(start_date)
-            first_idx = Environment.__find__row__by__date__(hist_data,
-                                                            start_date)
-            if first_idx is None:
-                raise ValueError("No such start_date in hist_data.")
-
-        if length == 0:
-            length = len(hist_data) * ratio
-        last_idx = min(len(hist_data), first_idx + length)
-
-        return hist_data[first_idx:last_idx]
-
     def get_assets_names(self):
         return self.names
 
@@ -282,3 +262,23 @@ class Environment:
 
     def get_current_portfolio(self):
         return self.portfolio_sequence[-1]
+
+
+def get_train_period(hist_data, start_date=None, length=0, ratio=0.):
+    if length == 0 and ratio == 0:
+        return None
+
+    if start_date is None:
+        first_idx = 0
+    else:
+        start_date = AssetsPortfolio.to_datetime(start_date)
+        first_idx = Environment.__find__row__by__date__(hist_data,
+                                                        start_date)
+        if first_idx is None:
+            raise ValueError("No such start_date in hist_data.")
+
+    if length == 0:
+        length = len(hist_data) * ratio
+    last_idx = min(len(hist_data), first_idx + length)
+
+    return hist_data[first_idx:last_idx]
