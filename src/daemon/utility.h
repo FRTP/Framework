@@ -109,7 +109,7 @@ namespace utility {
 	class ICommand {
 		public:
 			virtual ECommand type() const = 0;
-			virtual EError invoke(CContext* context, EDataType datatype) = 0;
+			virtual EError invoke(boost::shared_ptr<CContext>& context, EDataType datatype) = 0;
 			virtual ~ICommand() {}
 	};
 
