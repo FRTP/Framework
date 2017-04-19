@@ -1,4 +1,3 @@
-from time import sleep
 from config_parser import Config
 from pandas import read_csv
 from Environment import Environment
