@@ -1,5 +1,4 @@
 from datetime import datetime
-from report_generator.ReportGenerator import generate_report
 import numpy as np
 
 import os
@@ -308,7 +307,4 @@ class Environment:
         if path is None:
             path = os.getcwd()
 
-        generate_report(input_data=self.portfolio_sequence,
-                        functors=portfolio_sequence_functors,
-                        path=path)
         return
