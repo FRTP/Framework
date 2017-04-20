@@ -16,9 +16,14 @@ def draw_text(input_canvas, text, x_margin, y_margin):
 
 
 # Returns Drawing instance which will be written to output pdf.
-def get_figure_drawing(input_data, x_margin, y_margin, width, height):
-    time = np.arange(len(input_data))
-    prefix_sums = np.cumsum(input_data)
+def get_figure_drawing(input_data, x_margin, y_margin, width, height, time = None, do_prefix_sums = False):
+    if time is None:
+        time = np.arange(len(input_data))
+    prefix_sums = []
+    if do_prefix_sums:
+        prefix_sums = np.cumsum(input_data)
+    else:
+        prefix_sums = input_data
 
     # Data in needed for Drawing format (pairs array)
     data = [np.column_stack((time, prefix_sums))]
