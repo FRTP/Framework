@@ -50,8 +50,7 @@ namespace datatypes {
 	}
 
 	utility::EError CDataTypeAssets::_from_yahoo(utility::data_t& output, bool append) const {
-		//TODO: add caching
-		std::string request = "http://ichart.finance.yahoo.com/table.csv?s=";
+		std::string request = "https://ichart.finance.yahoo.com/table.csv?s=";
 		auto delimiter_pos = m_filename.find("/");
 		std::string shares = m_filename.substr(0, delimiter_pos);
 		std::string date_interval = m_filename.substr(++delimiter_pos);
