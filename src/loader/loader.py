@@ -8,8 +8,6 @@ from os import chdir, mkdir
 from os.path import exists
 from wrapper import CClient, CConvertFromDate
 
-config_file = 'config.cfg'
-
 
 def _download_data(period, working_dir, assets_list, srv_ip, srv_port,
                    srv_login, srv_password):
@@ -41,8 +39,8 @@ def _import_algorithm(algo_path, algo_name):
 
 class Loader:
 
-    def __init__(self):
-        config = Config('config.cfg')
+    def __init__(self, config_filename='config.cfg'):
+        config = Config(config_filename)
 
         # importing algorithm module
         # class name == file name
@@ -82,7 +80,3 @@ class Loader:
             to_buy_list = alg.step([x.iloc[i] for x in test_dataframes],
                                    assets_list, env.get_current_balance())
             env.buy(assets_list, to_buy_list, cur_date)
-            sleep(1)
-
-
-l = Loader()
