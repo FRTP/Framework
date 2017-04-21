@@ -2,8 +2,6 @@ from datetime import datetime
 from report_generator.ReportGenerator import generate_report
 import numpy as np
 
-import os
-
 
 class AssetsPortfolio:
     # @throws ValueError
@@ -118,6 +116,7 @@ class Environment:
         assets_count = np.array(initial_assets_count)
         self.portfolio_sequence = [AssetsPortfolio(assets_count, initial_date)]
         self.history_limit = history_limit
+        self.balance_history = [initial_balance]
 
     # @brief
     #   Computing balancing coefficients
@@ -173,6 +172,7 @@ class Environment:
                 given_count[i] * current_coef
             self.current_balance -= \
                 self.prices[current_asset_idx] * given_count[i] * current_coef
+            self.balance_history.append(self.current_balance)
 
         new_portfolio = AssetsPortfolio(new_assets_count, purchase_date)
         self.portfolio_sequence.append(new_portfolio)
@@ -247,9 +247,8 @@ class Environment:
 
     # Gives rows in the asset_hist_data
     #   which are appropriate to the start_date and length of the period.
-    # @staticmethod
-    # def get_train_period(asset_hist_data, start_date=None,
-    #                                       length=0, ratio=0.):
+    # def get_train_period(self, asset_name, start_date=None, length=0,
+    # ratio=0.):
     #     if length == 0 and ratio == 0:
     #         return None
     #
@@ -288,10 +287,6 @@ class Environment:
         return self.portfolio_sequence[-1]
 
     def generate_report(self, functors, path=None):
-        # Use current working directory if no path provided.
-        if path is None:
-            path = os.getcwd()
-
         assets_count = len(self.assets_names)
         portfolio_count = len(self.portfolio_sequence)
 
@@ -321,4 +316,5 @@ class Environment:
             graph_data[asset] = value
 
         generate_report(x_values=x_val, path=path,
-                        dict_of_lists_of_y_values=graph_data)
+                        dict_of_lists_of_y_values=graph_data,
+                        balance_history=self.balance_history)

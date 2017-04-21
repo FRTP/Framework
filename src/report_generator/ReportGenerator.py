@@ -6,6 +6,8 @@ from reportlab.pdfgen import canvas
 from reportlab.graphics import renderPDF
 from reportlab.graphics.charts.lineplots import LinePlot
 
+import os
+
 
 # Returns given canvas with text on it.
 def draw_text(input_canvas, text, x_margin, y_margin):
@@ -40,7 +42,12 @@ def get_figure_drawing(input_data, x_margin, y_margin, width, height):
     return drawing
 
 
-def generate_report(x_values, dict_of_lists_of_y_values, path):
+def generate_report(x_values, dict_of_lists_of_y_values,
+                    path, balance_history=None):
+    # Use current working directory if no path provided.
+    if path is None:
+        path = os.getcwd()
+
     # the_canvas = canvas.Canvas(path, pagesize=landscape(A4))
 
     # Draw graph to output pdf.
