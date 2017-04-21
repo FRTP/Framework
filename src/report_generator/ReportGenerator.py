@@ -1,9 +1,9 @@
 import numpy as np
 
-from reportlab.lib.pagesizes import A4, landscape
+# from reportlab.lib.pagesizes import A4, landscape
 from reportlab.graphics.shapes import Drawing
-from reportlab.pdfgen import canvas
-from reportlab.graphics import renderPDF
+# from reportlab.pdfgen import canvas
+# from reportlab.graphics import renderPDF
 from reportlab.graphics.charts.lineplots import LinePlot
 
 import os

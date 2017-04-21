@@ -9,12 +9,5 @@ src/daemon/server/build
 src/daemon/client/build
 src/daemon/build
 
-# Added symbolic links temporarily
-#src/loader/Environment.py
-#src/loader/wrapper.py
-#src/daemon/libfrtpsrv.so
-
-src/loader/Algorithm
 src/loader/test/
 src/loader/train/
-linear_train.txt
