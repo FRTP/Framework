@@ -55,27 +55,30 @@ class Loader:
                        srv_ip, srv_port, srv_login, srv_pwd)
         _download_data(config.get_train_period(), 'train', assets_list,
                        srv_ip, srv_port, srv_login, srv_pwd)
-        print('downloaded data')
+        # print('downloaded data')
         train_dataframes = _create_dataframes('train', assets_list)
         test_dataframes = _create_dataframes('test', assets_list)
-        print('created dataframes')
+        # print('created dataframes')
 
         # initializing Environment
         env = Environment(train_dataframes, assets_list,
                           initial_balance=config.get_start_money())
-        print('created Environment')
+        # print('created Environment')
 
         # training
         alg.fit(train_dataframes, assets_list)
-        print('finished fitting')
+        # print('finished fitting')
 
         # trading
-        print(test_dataframes[0].head(5))
+        # print(test_dataframes[0].head(5))
         trading_len = len(test_dataframes[0])
         for i in range(trading_len - 1, -1, -1):
             cur_date = datetime.strptime(test_dataframes[0].iloc[i]['Date'],
                                          '%Y-%m-%d')
-            print('cur_date = ' + str(cur_date))
+            # print('cur_date = ' + str(cur_date))
             to_buy_list = alg.step([x.iloc[i] for x in test_dataframes],
                                    assets_list, env.get_current_balance())
             env.buy(assets_list, to_buy_list, cur_date)
+        env.generate_report([], None)
+
+Loader()

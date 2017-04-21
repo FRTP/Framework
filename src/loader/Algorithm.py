@@ -6,5 +6,5 @@ class Algorithm:
         pass
 
     def step(self, pd_frame_row_list, names_list, current_balance):
-        print('step')
+        # print('step')
         return [0] * len(names_list)

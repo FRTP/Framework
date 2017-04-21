@@ -40,20 +40,23 @@ def get_figure_drawing(input_data, x_margin, y_margin, width, height):
     return drawing
 
 
-def generate_report(input_data, functors, path):
-    the_canvas = canvas.Canvas(path, pagesize=landscape(A4))
+def generate_report(x_values, dict_of_lists_of_y_values, path):
+    # the_canvas = canvas.Canvas(path, pagesize=landscape(A4))
 
     # Draw graph to output pdf.
-    figure_drawing = get_figure_drawing(input_data, 125, 300, 600, 250)
-    renderPDF.draw(figure_drawing, the_canvas, 0, 0)
+    # figure_drawing = get_figure_drawing(input_data, 125, 300, 600, 250)
+    # renderPDF.draw(figure_drawing, the_canvas, 0, 0)
 
     # Writing functors values to pdf file.
-    shift_down = 0
-    for functor in functors:
-        name = functor.get_name()
-        value = functor.apply(input_data)
-        the_canvas = draw_text(the_canvas, '{} : {}'.format(name, value),
-                               50, 250 - shift_down)
-        shift_down += 20
+    # shift_down = 0
+    # for functor in functors:
+    #     name = functor.get_name()
+    #     value = functor.apply(input_data)
+    #     the_canvas = draw_text(the_canvas, '{} : {}'.format(name, value),
+    #                            50, 250 - shift_down)
+    #     shift_down += 20
 
-    the_canvas.save()
+    # the_canvas.save()
+
+    print("something was generated mfk")
+    pass

@@ -17,3 +17,4 @@ src/daemon/build
 src/loader/Algorithm
 src/loader/test/
 src/loader/train/
+linear_train.txt
