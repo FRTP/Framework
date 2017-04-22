@@ -41,6 +41,9 @@ class CTCPConnection : public boost::enable_shared_from_this<CTCPConnection> {
 			if (!ec || ec == boost::asio::error::eof) {
 				boost::shared_ptr<utility::CMessage> msg(new utility::CMessage);
 				m_context->read_buffer(*msg);
+				if (msg->data().empty()) {
+					return;
+				}
 				auto cmd = boost::dynamic_pointer_cast<server_command::IServerCommand>(
 						utility::CCommandFactory::create(*msg)
 						);
