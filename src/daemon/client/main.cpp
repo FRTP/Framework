@@ -14,17 +14,11 @@ BOOST_PYTHON_MODULE(libfrtpsrv)
 	boost::python::class_<CClient>("LibClient",
 				       boost::python::init<std::string, std::string>(boost::python::args("workingdir",
 													 "datasubdir")))
-		.def("create_context", &CClient::create_context,
-		     boost::python::return_value_policy<boost::python::manage_new_object>())
-		.def("connect", &CClient::connect, boost::python::args("context", "server", "port", "login", "password"))
-		.staticmethod("connect")
-		.def("invoke", &CClient::invoke, boost::python::args("context", "command", "datatype"))
-		.staticmethod("invoke")
+		.def("connect", &CClient::connect, boost::python::args("server", "port", "login", "password"))
+		.def("invoke", &CClient::invoke, boost::python::args("command", "datatype"))
 		.def("get_hash", &CClient::get_hash)
 		.staticmethod("get_hash")
-		.def("check_integrity", &CClient::check_integrity, boost::python::args("context", "server",
-										       "client", "datatype"))
-		.staticmethod("check_integrity")
+		.def("check_integrity", &CClient::check_integrity, boost::python::args("server", "client", "datatype"))
 	;
 	boost::python::class_<utility::CCommandFactory, boost::noncopyable>("LibCommandFactory", boost::python::no_init)
 		.def("create_command", static_cast<utility::ICommand* (*)(
@@ -36,7 +30,6 @@ BOOST_PYTHON_MODULE(libfrtpsrv)
 		     boost::python::return_value_policy<boost::python::manage_new_object>())
 		.staticmethod("create_command")
 	;
-	boost::python::class_<CContext, boost::noncopyable>("LibContext", boost::python::no_init);
 	boost::python::class_<utility::ICommand, boost::noncopyable>("LibCommand", boost::python::no_init);
 	boost::python::class_<utility::CMessage, boost::noncopyable>("LibMessage", boost::python::no_init);
 

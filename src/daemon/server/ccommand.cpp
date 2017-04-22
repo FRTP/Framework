@@ -13,7 +13,7 @@ namespace server_command {
 		return utility::ECommand::GET_FILE;
 	}
 
-	utility::EError CCmdGetFile::invoke(CContext* context, utility::EDataType datatype) {
+	utility::EError CCmdGetFile::invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype) {
 		auto datatype_instance = datatypes::CDataTypeFactory::create(
 				datatype,
 				std::list<std::string>({ m_filename })
@@ -49,7 +49,7 @@ namespace server_command {
 		return utility::ECommand::GET_MD5;
 	}
 
-	utility::EError CCmdGetMD5::invoke(CContext* context, utility::EDataType datatype) {
+	utility::EError CCmdGetMD5::invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype) {
 		if (datatype == utility::EDataType::ASSETS) {
 			utility::md5sum_ptr md5 = utility::calculate_md5(utility::get_full_path(datatype,
 												m_filename));
@@ -92,7 +92,7 @@ namespace server_command {
 		return utility::ECommand::UPLOAD_FILE;
 	}
 
-	utility::EError CCmdUploadFile::invoke(CContext* context, utility::EDataType datatype) {
+	utility::EError CCmdUploadFile::invoke(boost::shared_ptr<CContext>& context, utility::EDataType datatype) {
 		auto datatype_instance = datatypes::CDataTypeFactory::create(datatype, std::list<std::string>({ m_filename }));
 		if (!datatype_instance->is_success()) {
 			return utility::EError::INTERNAL_ERROR;
@@ -129,7 +129,7 @@ namespace server_command {
 		return utility::ECommand::AUTHORIZE;
 	}
 
-	utility::EError CCmdAuthorize::invoke(__attribute__ ((unused)) CContext* context,
+	utility::EError CCmdAuthorize::invoke(__attribute__ ((unused)) boost::shared_ptr<CContext>& context,
 					      __attribute__ ((unused)) utility::EDataType datatype) {
 		if (!is_valid_login(m_login)) {
 			return utility::EError::AUTH_ERROR;
@@ -186,7 +186,8 @@ namespace server_command {
 		return utility::ECommand::REGISTER;
 	}
 
-	utility::EError CCmdRegister::invoke(CContext* context, __attribute__ ((unused)) utility::EDataType datatype) {
+	utility::EError CCmdRegister::invoke(boost::shared_ptr<CContext>& context,
+					     __attribute__ ((unused)) utility::EDataType datatype) {
 		if (!is_valid_login(m_login)) {
 			return utility::EError::INVALID_LOGIN;
 		}

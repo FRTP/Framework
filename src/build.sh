@@ -43,7 +43,7 @@ do
 							PYTHON_PATH=${PYTHON_PATH: : -10}
 							echo Using python directory $PYTHON_PATH
 							ADDITIONAL_CFLAGS="-I$PYTHON_PATH"
-							PYTHON_VERSION="$(echo $PYTHON_PATH | egrep -oh '[0-9]{1}\.[0-9]{1}')"
+							PYTHON_VERSION="$(echo $PYTHON_PATH | egrep -oh '[0-9]{1}\.[0-9]{1}(m){0,1}')"
 							ADDITIONAL_LFLAGS="-lpython$PYTHON_VERSION"
 						fi
 					else
