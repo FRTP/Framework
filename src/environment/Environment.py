@@ -95,7 +95,7 @@ class Environment:
     #
     def __init__(self, hist_data, names_list, current_assets_prices=None,
                  initial_assets_count=None, initial_date=None,
-                 initial_balance=0, history_limit=np.inf):
+                 initial_balance=0, history_limit=np.inf, initial_cash = None):
 
         if len(hist_data) != len(names_list):
             raise ValueError("hist data and names_list "
@@ -109,6 +109,8 @@ class Environment:
             initial_date = datetime.now()
         if hist_data is None:
             hist_data = [None] * len(names_list)
+        if initial_cash is None:
+            initial_cash = 100000
 
         self.history_data = hist_data
         self.assets_names = names_list
@@ -120,6 +122,7 @@ class Environment:
         self.portfolio_sequence = [AssetsPortfolio(assets_count, initial_date)]
         self.history_limit = history_limit
         self.balance_history = [initial_balance]
+        self.init_cash = initial_cash
 
     # @brief
     #   Computing balancing coefficients
@@ -330,13 +333,13 @@ class Environment:
                     portfolio.count[self.get_asset_index(asset)]
 
         x_val = map(lambda p: p.date.strftime(AssetsPortfolio.TIME_FORMAT),
-                    self.portfolio_sequence)
+                    self.portfolio_sequence)[1:]
 
         graph_data = prices_and_counts
         for asset in self.assets_names:
             prices_and_counts_of_one_asset = prices_and_counts[asset]
-            value = [(functor.apply_graph(prices_and_counts_of_one_asset),
-                      functor.apply_value(prices_and_counts_of_one_asset))
+            value = [(functor.apply_graph(prices_and_counts_of_one_asset, self.init_cash),
+                      functor.apply_value(prices_and_counts_of_one_asset, self.init_cash))
                      for functor in functors]
             graph_data[asset] = value
 

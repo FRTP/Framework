@@ -7,14 +7,22 @@ _epsilon_ = 1e-20
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/src')
 
 
-def make_functor_from_function(function_name, function_method):
+def make_functor_from_function(function_name, function_graph_method = None, function_value_method = None):
     class SomeFunctor:
         def __init__(self):
             self.name = function_name
             self.function = function_method
 
-        def apply(self, data_array):
-            return self.function(data_array)
+        def apply_graph(self, data_array):
+            if function_graph_method is not None:
+                return self.function_graph_method(data_array)
+            else:
+                return None
+        def apply_value(self, data_array):
+            if function_value_method is not None:
+                return self.function_value_method(data_array)
+            else:
+                return None
 
         def get_name(self):
             return self.name
@@ -22,11 +30,8 @@ def make_functor_from_function(function_name, function_method):
     return SomeFunctor
 
 
-def make_functor_when_returns_not_given(function_name,
-                                        function_method_on_returns):
-    return make_functor_from_function(
-        function_name,
-        lambda x: function_method_on_returns(get_instant_returns(x)))
+def make_function_when_returns_not_given(function_method_on_returns):
+    return (lambda x: function_method_on_returns(get_instant_returns(x)))
 
 
 def get_sharpe_value(ar):
@@ -35,6 +40,8 @@ def get_sharpe_value(ar):
     else:
         return np.mean(ar) / (np.std(ar, ddof=1) + _epsilon_)
 
+def get_sharpe_value_array_like(ar):
+    return np.array([get_sharpe_value(ar[:i]) for i in np.arange(ar.shape[0]) + 1])
 
 def get_instant_returns_helper(data):
     prices = np.array(data).T[0]
@@ -56,8 +63,11 @@ def get_strange_returns(data, start_cash):
     return our_cash / start_cash - 1
 
 
-def get_cumulative_returns(instant_returns):
+def get_cumulative_returns_ar_like(instant_returns):
     return np.cumprod(instant_returns + 1) - 1
+
+def get_cum_returns_final(instant_returns):
+    return get_cumulative_returns_ar_like(instant_returns)[-1]
 
 
 def upside_potential_ratio(returns):
@@ -67,10 +77,18 @@ def upside_potential_ratio(returns):
         / (np.std(nonpositive_returns) + _epsilon_)
 
 
-FunctorsList = [make_functor_from_function('sharpe_ratio',
-                                           get_sharpe_value)(),
+def get_upside_potential_array_like(ar):
+    return np.array([upside_potential_ratio(ar[:i]) for i in np.arange(ar.shape[0]) + 1])
+
+def get_default_functor_list():
+    FunctorsList = [make_functor_from_function('sharpe_ratio',
+                                           make_function_when_returns_not_given(get_sharpe_value_array_like),
+                                           make_function_when_returns_not_given(get_sharpe_value))(),
                 make_functor_from_function('cumulative_returns',
-                                           get_cumulative_returns)(),
+                                           make_function_when_returns_not_given(get_cumulative_returns_ar_like),
+                                           make_function_when_returns_not_given(get_cum_returns_final))(),
                 make_functor_from_function('upside_potential',
-                                           upside_potential_ratio)()
+                                           make_function_when_returns_not_given(upside_potential_ratio),
+                                           make_function_when_returns_not_given(get_upside_potential_array_like))()
                 ]
+    return FunctorsList
