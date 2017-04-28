@@ -1,7 +1,7 @@
 from datetime import datetime
 from report_generator.ReportGenerator import generate_report
 import numpy as np
-
+import pandas as pd
 
 class AssetsPortfolio:
     # @throws ValueError
@@ -46,6 +46,7 @@ class AssetsPortfolio:
 
 
 class Environment:
+    unconstrained_volume = 1e20
     # VARIABLES
     #
     # @var names
@@ -106,6 +107,8 @@ class Environment:
             current_assets_prices = np.zeros(len(hist_data))
         if initial_date is None:
             initial_date = datetime.now()
+        if hist_data is None:
+            hist_data = [None] * len(names_list)
 
         self.history_data = hist_data
         self.assets_names = names_list
@@ -176,6 +179,9 @@ class Environment:
 
         new_portfolio = AssetsPortfolio(new_assets_count, purchase_date)
         self.portfolio_sequence.append(new_portfolio)
+        #self.update_prices(given_names,
+        #                  self.prices[np.array([self.get_asset_index(asset_name) for asset_name in given_names])],
+        #                   purchase_date)
 
         return new_portfolio
 
@@ -222,12 +228,31 @@ class Environment:
     # @throws Exception
     #   If len(assets_names) != len(new_prices) throws an Exception.s
     #
-    def update_prices(self, assets_names, new_prices):
+    def update_prices(self, assets_names, new_prices, current_date):
         if len(assets_names) != len(new_prices):
             raise Exception("assets_names & new_prices "
                             "must have the same size")
         for i in range(len(assets_names)):
             self.update_price(assets_names[i], new_prices[i])
+            self.history_data[i] = Environment.add_historical_data(self.history_data[i],
+                                                                   new_prices[i], current_date)
+
+    @staticmethod
+    def add_historical_data(history_dataframe, current_price, current_date):
+        current_date = AssetsPortfolio.to_datetime(current_date)
+        to_add = [current_date] + [current_price] * 4 + \
+                 [Environment.unconstrained_volume] + [current_price]
+        to_add = np.array(to_add)
+        to_add = pd.DataFrame(to_add, columns= np.array(['Date',
+                                                         'Open',
+                                                         'High',
+                                                         'Low',
+                                                         'Close',
+                                                         'Volume',
+                                                         'Adj close']))
+        if history_dataframe is None:
+            return to_add
+        return history_dataframe.append(to_add, ignore_index = True)
 
     def get_prices_by_date(self, asset_name=None, date=None):
         if date is None or asset_name is None:
