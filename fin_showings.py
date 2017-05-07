@@ -11,16 +11,17 @@ def make_functor_from_function(function_name, function_graph_method = None, func
     class SomeFunctor:
         def __init__(self):
             self.name = function_name
-            self.function = function_method
+            self.function_graph_method = function_graph_method
+            self.function_value_method = function_value_method
 
-        def apply_graph(self, data_array):
+        def apply_graph(self, *args):
             if function_graph_method is not None:
-                return self.function_graph_method(data_array)
+                return self.function_graph_method(*args)
             else:
                 return None
-        def apply_value(self, data_array):
+        def apply_value(self, *args):
             if function_value_method is not None:
-                return self.function_value_method(data_array)
+                return self.function_value_method(*args)
             else:
                 return None
 
@@ -31,7 +32,7 @@ def make_functor_from_function(function_name, function_graph_method = None, func
 
 
 def make_function_when_returns_not_given(function_method_on_returns):
-    return (lambda x: function_method_on_returns(get_instant_returns(x)))
+    return (lambda x, y: function_method_on_returns(get_instant_returns(x, y)))
 
 
 def get_sharpe_value(ar):
@@ -41,11 +42,12 @@ def get_sharpe_value(ar):
         return np.mean(ar) / (np.std(ar, ddof=1) + _epsilon_)
 
 def get_sharpe_value_array_like(ar):
+    #print ar.shape, 'kuku'
     return np.array([get_sharpe_value(ar[:i]) for i in np.arange(ar.shape[0]) + 1])
 
 def get_instant_returns_helper(data):
-    prices = np.array(data).T[0]
-    assets_number = np.array(data).T[1]
+    prices = np.array(data)[0]
+    assets_number = np.array(data)[1]
     shift_prices = np.array(prices[:-1])
     our_prices = np.array(prices[1:])
     assets_number_shifted = np.array(assets_number[1:])
@@ -53,6 +55,7 @@ def get_instant_returns_helper(data):
 
 
 def get_instant_returns(data, start_cash):
+    #print get_instant_returns_helper(data)
     our_cash = get_instant_returns_helper(data) + start_cash
     help_ar = np.hstack((np.array([start_cash]), our_cash[:-1]))
     return our_cash / help_ar - 1
@@ -88,7 +91,7 @@ def get_default_functor_list():
                                            make_function_when_returns_not_given(get_cumulative_returns_ar_like),
                                            make_function_when_returns_not_given(get_cum_returns_final))(),
                 make_functor_from_function('upside_potential',
-                                           make_function_when_returns_not_given(upside_potential_ratio),
-                                           make_function_when_returns_not_given(get_upside_potential_array_like))()
+                                           make_function_when_returns_not_given(get_upside_potential_array_like),
+                                           make_function_when_returns_not_given(upside_potential_ratio))()
                 ]
     return FunctorsList

@@ -343,6 +343,8 @@ class Environment:
                      for functor in functors]
             graph_data[asset] = value
 
+        functor_names = [functor.get_name() for functor in functors]
         generate_report(x_values=x_val, path=path,
                         dict_of_lists_of_y_values=graph_data,
-                        balance_history=self.balance_history)
+                        balance_history=self.balance_history,
+                        graph_names = functor_names)
