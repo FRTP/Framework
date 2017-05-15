@@ -1,59 +1,21 @@
 import numpy as np
-
-# from reportlab.lib.pagesizes import A4, landscape
-from reportlab.graphics.shapes import Drawing
-# from reportlab.pdfgen import canvas
-# from reportlab.graphics import renderPDF
-from reportlab.graphics.charts.lineplots import LinePlot
 import matplotlib.pyplot as plt
-from fin_showings import get_default_functor_list
 import os
 import datetime
 
-# Returns given canvas with text on it.
-def draw_text(input_canvas, text, x_margin, y_margin):
-    input_canvas.drawString(x_margin, y_margin, text)
-    return input_canvas
-
-
-# Returns Drawing instance which will be written to output pdf.
-def get_figure_drawing(input_data, x_margin, y_margin, width, height):
-    time = np.arange(len(input_data))
-    prefix_sums = np.cumsum(input_data)
-
-    # Data in needed for Drawing format (pairs array)
-    data = [np.column_stack((time, prefix_sums))]
-    data = [tuple(map(tuple, data[0]))]
-
-    # Create drawing.
-    drawing = Drawing()
-
-    # Create graph.
-    our_graph = LinePlot()
-    our_graph.data = data
-
-    our_graph.x = x_margin
-    our_graph.y = y_margin
-
-    our_graph.height = height
-    our_graph.width = width
-
-    drawing.add(our_graph)
-
-    return drawing
 
 def save_graph(arg_tuple):
-    filename, x_vals, y_vals_list, labels_list, color_list = arg_tuple
+    filename, x_vals, y_vals_list, labels_list, color_list, some_title = arg_tuple
     import matplotlib.dates as mdates
     if type(x_vals[0]) is not datetime.date:
         x_vals = [given_date.date() for given_date in x_vals]
     x_vals = np.array(x_vals)
-    #NUM_COLORS = len(color_list)
-    #cm = plt.get_cmap('gist_rainbow')
     plt.figure(figsize = (20, 12))
     for y_vals, col, cur_label in zip(y_vals_list, color_list, labels_list):
-        #print y_vals, col, cur_label
         mean_val = np.mean(y_vals)
+        bad_indices = np.where(np.abs(y_vals) >= np.abs(mean_val) * 5 )[0]
+        good_indices = np.where(np.abs(y_vals) < np.abs(mean_val) * 5 )[0]
+        mean_val = np.mean(y_vals[good_indices])
         bad_indices = np.where(np.abs(y_vals) >= np.abs(mean_val) * 5 )[0]
         max_bad = -1
         if len(bad_indices) > 0:
@@ -61,151 +23,142 @@ def save_graph(arg_tuple):
         plt.plot(x_vals[max_bad + 1:], y_vals[max_bad + 1:], label = cur_label, c = col)
 
     fig_ax = plt.gcf().get_axes()[0]
-    #fig_ax.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
     yearsFmt = mdates.DateFormatter('%m-%d')
     fig_ax.xaxis.set_major_formatter(yearsFmt)
-    days_loc = mdates.DayLocator()  # every month
+    days_loc = mdates.DayLocator()
     fig_ax.xaxis.set_minor_locator(days_loc)
 
-    plt.legend(loc = 1)
-    plt.xlabel('date')
-    plt.ylabel('functor_value')
+    for ticks in fig_ax.xaxis.get_major_ticks():
+            ticks.label.set_fontsize(18)
+
+    for ticks in fig_ax.yaxis.get_major_ticks():
+        ticks.label.set_fontsize(18)
+
+    plt.legend(loc = 1, prop={'size':20}, fontsize = 'large')
+    fig_ax.xaxis.set_label_text('date', fontsize=20)
+    fig_ax.yaxis.set_label_text('functor_value', fontsize=20)
+    plt.title(some_title, fontsize = 'x-large')
     plt.gcf().savefig(filename, bbox_inches='tight')
     plt.close(plt.gcf())
 
+
 def get_list_to_output(x_values, dict_of_lists_of_y_values, functor_names):
-    #print dict_of_lists_of_y_values
     from randomcolor import RandomColor
     graph_colors = RandomColor().generate(count=len(dict_of_lists_of_y_values))
     assets_names = list(dict_of_lists_of_y_values.keys())
     to_draw = [list() for _ in range(len(dict_of_lists_of_y_values) + 1)]
     for i in range(len(functor_names)):
         y_vals_list = map(lambda x: x[i][0], dict_of_lists_of_y_values.values())
-        #print len(x_values), len(y_vals_list[0])
-        save_graph(('all_values of ' + functor_names[i], x_values, y_vals_list, assets_names, graph_colors))
-        to_draw[0].append(('all_values of ' + functor_names[i], None))
+        save_graph(('all_values_of_' + functor_names[i], x_values, y_vals_list, assets_names, graph_colors,
+                    functor_names[i] + ' for all assets'))
+        to_draw[0].append(('all_values_of_' + functor_names[i], None,
+                           'Values of ' + functor_names[i] + ' for all traded assets',
+                           None))
 
-        list_of_args_for_separate_pictures = [('graph for ' + functor_names[i] + ' for ' + cur_asset_name,
+        list_of_args_for_separate_pictures = [('graph_for_' + functor_names[i] + '_for_' + cur_asset_name,
                                                x_values, [cur_y_values[i][0]], [cur_asset_name], [cur_color],
-                                               cur_y_values[i][1])
+                                               functor_names[i] + ' for ' + cur_asset_name, cur_y_values[i][1])
                                               for cur_asset_name, cur_y_values, cur_color in
                                               zip(dict_of_lists_of_y_values.keys(),
                                                   dict_of_lists_of_y_values.values(),
                                                   graph_colors)]
-        for ind, cur_asset_data in enumerate(list_of_args_for_separate_pictures):
-            #print cur_asset_data[:-1]
+        for ind, cur_asset_data in enumerate(list_of_args_for_separate_pictures, start=0):
             save_graph(cur_asset_data[:-1])
-            #print 'kuku'
-            to_draw[ind + 1].append((cur_asset_data[0], cur_asset_data[-1]))
+            to_draw[ind + 1].append((cur_asset_data[0], cur_asset_data[-1],
+                                     'Values of ' + functor_names[i] + ' for ' + cur_asset_name,
+                                     'Overall value of ' + functor_names[i] + ' for ' +
+                                     cur_asset_name + ' is equal to '))
     return to_draw
 
 
+def add_single_page(doc, values_to_add):
+    from pylatex import Figure, SubFigure, NoEscape, StandAloneGraphic, VerticalSpace
+    subfigures_num = len(values_to_add)/2
+    subfigures = [list() for _ in range(subfigures_num)]
+    for ind in range(subfigures_num):
+        subfigures[ind].append(values_to_add[2*ind])
+        subfigures[ind].append(values_to_add[2*ind + 1])
+    if len(values_to_add) %2 == 1:
+        subfigures.append([values_to_add[-1]])
+    for cur_im in subfigures:
+        if len(cur_im) == 2:
+            for img in cur_im:
+                with doc.create(Figure(position='h!')) as some_figure:
+                        if img[1] is not None:
+                            some_figure.append(VerticalSpace(size=NoEscape("-1cm")))
+                        with doc.create(SubFigure(scale=0.27)) as cur_subfigure:
+                            if img[0] is not None:
+                                img_name = os.path.join(os.path.dirname(__file__), img[0] + '.png')
+                                cur_subfigure.append(StandAloneGraphic(image_options=["scale=0.4"],
+                                                          filename=img_name))
+                            if img[2] is not None:
+                                cur_subfigure.add_caption(img[2])
+                        if img[1] is not None:
+                            some_figure.add_caption(img[3] + str(img[1]))
+        if len(cur_im) == 1:
+            for img in cur_im:
+                with doc.create(Figure(position='h!')) as some_figure:
+                        if img[1] is not None:
+                            some_figure.append(VerticalSpace(size=NoEscape("-1cm")))
+                        with doc.create(SubFigure(scale=0.38)) as cur_subfigure:
+                            if img[0] is not None:
+                                img_name = os.path.join(os.path.dirname(__file__), img[0] + '.png')
+                                cur_subfigure.append(StandAloneGraphic(image_options=["scale=0.5"],
+                                                          filename=img_name))
+                            #if img[2] is not None:
+                            #    cur_subfigure.add_caption(img[2])
+                        if img[1] is not None:
+                            some_figure.add_caption(img[3] + str(img[1]))
 
-def main(fname, width, *args, **kwargs):
-    geometry_options = {"right": "2cm", "left": "2cm"}
-    doc = Document(fname, geometry_options=geometry_options)
 
-    doc.append('Introduction.')
+def add_pages(doc, values_to_add, is_last = False):
+    from pylatex import NewPage
+    start_index = 0
+    step = 4
+    while start_index < len(values_to_add):
+        add_single_page(doc, values_to_add[start_index : min(len(values_to_add), start_index + step)])
+        if not is_last or start_index+step < len(values_to_add):
+            doc.append(NewPage())
+        start_index += step
 
-    with doc.create(Section('I am a section')):
-        doc.append('Take a look at this beautiful plot:')
 
-        with doc.create(Figure(position='htbp')) as plot:
-            plot.add_plot(width=NoEscape(width), *args, **kwargs)
-            plot.add_caption('I am a caption.')
-
-        doc.append('Created using matplotlib.')
-
-    doc.append('Conclusion.')
-
-    doc.generate_pdf(clean_tex=False)
-
-def print_everything(x_values, dict_of_lists_of_y_values, functor_names):
+def print_everything(x_values, dict_of_lists_of_y_values, functor_names, is_colored = False):
     to_output_list = get_list_to_output(x_values, dict_of_lists_of_y_values, functor_names)
+    from pylatex import Document, Command
+    from pylatex.package import Package
+    from pylatex import PageStyle, Head, NoEscape, HorizontalSpace
+    from pylatex import MiniPage,StandAloneGraphic
+    geometry_options = {"top":"1.3cm", "right": "0.5cm", "left": "0.5cm"}
+    doc = Document('try', documentclass='article',
+                   geometry_options=geometry_options)
+    if is_colored:
+        doc.append(Command('pagecolor', 'LightGoldenrodYellow',
+                       packages=[Package('xcolor', options = 'svgnames')]))
+    header = PageStyle("header")
+    with header.create(Head("L")):
+        header.append(HorizontalSpace(size=NoEscape("-3cm")))
+        with header.create(MiniPage(width=NoEscape("24.5cm"),
+                                             pos='c')) as logo_wrapper:
+            logo_file = os.path.join(os.path.dirname(__file__),
+                                         'logo.jpg')
+            logo_wrapper.append(StandAloneGraphic(image_options=["width=24.5cm", "height=1cm"],
+                                                      filename=logo_file))
+    doc.preamble.append(header)
+    doc.change_document_style("header")
+
+    for containments_num, cur_page_containments in enumerate(to_output_list, start=1):
+        is_last_page = False
+        if containments_num == len(to_output_list):
+            is_last_page = True
+        add_pages(doc, cur_page_containments, is_last_page)
+    try:
+        doc.generate_pdf(clean_tex=True, clean=True, compiler='pdflatex')
+    except:
+        pass
+
     return 4422
 
-'''def generate_report(x_values, dict_of_lists_of_y_values,
-                    path, balance_history=None, graph_names):
-    # Use current working directory if no path provided.
-    if path is None:
-        path = os.getcwd()
-
-    # the_canvas = canvas.Canvas(path, pagesize=landscape(A4))
-
-    # Draw graph to output pdf.
-    # figure_drawing = get_figure_drawing(input_data, 125, 300, 600, 250)
-    # renderPDF.draw(figure_drawing, the_canvas, 0, 0)
-
-    # Writing functors values to pdf file.
-    # shift_down = 0
-    # for functor in functors:
-    #     name = functor.get_name()
-    #     value = functor.apply(input_data)
-    #     the_canvas = draw_text(the_canvas, '{} : {}'.format(name, value),
-    #                            50, 250 - shift_down)
-    #     shift_down += 20
-
-    # the_canvas.save()
-
-    print("something was generated mfk")
-    pass'''
 
 def generate_report(x_values, dict_of_lists_of_y_values, graph_names,
-                    path, balance_history=None):
-    print_everything(x_values, dict_of_lists_of_y_values, graph_names)
-
-def some_rand_value(some_length):
-    start_price = list(np.random.randint(low = 10, high = 200, size = 1) * 1.0 /40)[0]
-    start_num_of_assets = 0
-    prices = [start_price]
-    assets_num = [start_num_of_assets]
-    for i in range(1, some_length):
-        cur_prices_step = np.random.normal(loc= 3, scale=1.0, size = 1)
-        cur_assets_step = np.random.randint(low = -40, high = 80, size = 1)
-        prices.append(prices[-1] + cur_prices_step)
-        assets_num.append(assets_num[-1] + cur_assets_step)
-    prices = np.array(prices)
-    assets_num = np.array(assets_num)
-    return np.stack((prices, assets_num))
-
-def some_random_data():
-    import datetime
-    import matplotlib.dates as mdates
-    numdays = 100
-    base = datetime.datetime.today()
-    date_list = [base - datetime.timedelta(days=x) for x in range(1, numdays)]
-    date_list = np.sort(np.array(date_list))
-    #print map(lambda x: str(x), date_list)
-    date_list = np.array([given_date.date() for given_date in date_list])
-    assets_names = ['AAPL', 'JAZHKA']
-    prices_and_counts = {}
-    graph_data = {}
-    functors = get_default_functor_list()
-    functor_names = [functor.get_name() for functor in functors]
-    for asset in assets_names:
-        prices_and_counts[asset] = some_rand_value(len(date_list) + 1)
-        prices_and_counts_of_one_asset = prices_and_counts[asset]
-        value = [(functor.apply_graph(prices_and_counts_of_one_asset, 200000),
-                  functor.apply_value(prices_and_counts_of_one_asset, 200000))
-                 for functor in functors]
-        graph_data[asset] = value
-
-    generate_report(x_values=date_list, path=None,
-                    dict_of_lists_of_y_values=graph_data,
-                    balance_history=None,
-                    graph_names=functor_names)
-    '''print date_list
-    plt.plot(date_list, [1] * date_list.shape[0])
-    ax_list = plt.gcf().get_axes()[0]
-
-    years = mdates.YearLocator()  # every year
-    yearsFmt = mdates.DateFormatter('%m-%d')
-    #ax_list.xaxis.set_major_locator(years)
-    ax_list.xaxis.set_major_formatter(yearsFmt)
-    months = mdates.DayLocator()  # every month
-    ax_list.xaxis.set_minor_locator(months)
-    plt.show()'''
-
-
-
-some_random_data()
+                    path, is_colored = False, balance_history=None):
+    print_everything(x_values, dict_of_lists_of_y_values, graph_names, is_colored)
