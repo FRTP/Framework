@@ -37,7 +37,7 @@ def save_graph(arg_tuple):
     plt.legend(loc = 1, prop={'size':20}, fontsize = 'large')
     fig_ax.xaxis.set_label_text('date', fontsize=20)
     fig_ax.yaxis.set_label_text('functor_value', fontsize=20)
-    plt.title(some_title, fontsize = 'x-large')
+    plt.title(some_title, fontsize = 'xx-large')
     plt.gcf().savefig(filename, bbox_inches='tight')
     plt.close(plt.gcf())
 
@@ -136,11 +136,11 @@ def print_everything(x_values, dict_of_lists_of_y_values, functor_names, is_colo
                        packages=[Package('xcolor', options = 'svgnames')]))
     header = PageStyle("header")
     with header.create(Head("L")):
-        header.append(HorizontalSpace(size=NoEscape("-3cm")))
-        with header.create(MiniPage(width=NoEscape("24.5cm"),
+        header.append(HorizontalSpace(size=NoEscape("-3.35cm")))
+        with header.create(MiniPage(width=NoEscape("25.6cm"),
                                              pos='c')) as logo_wrapper:
             logo_file = os.path.join(os.path.dirname(__file__),
-                                         'logo.jpg')
+                                         'pdf_header_fin.png')
             logo_wrapper.append(StandAloneGraphic(image_options=["width=24.5cm", "height=1cm"],
                                                       filename=logo_file))
     doc.preamble.append(header)

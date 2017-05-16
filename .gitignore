@@ -3,6 +3,7 @@ __pycache__
 report.pdf
 *.pdf
 *.log
-*.png
+a*.png
+g*.png
 *.tex
 *.aux

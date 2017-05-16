@@ -12,8 +12,8 @@ def some_rand_value(some_length):
     prices = [start_price]
     assets_num = [start_num_of_assets]
     for i in range(1, some_length):
-        cur_prices_step = np.random.normal(loc= 3, scale=1.0, size = 1)
-        cur_assets_step = np.random.randint(low = -40, high = 80, size = 1)
+        cur_prices_step = np.random.normal(loc= 100, scale=7.0, size = 1)
+        cur_assets_step = np.random.randint(low = -100, high = 200, size = 1)
         prices.append(prices[-1] + cur_prices_step)
         assets_num.append(assets_num[-1] + cur_assets_step)
     prices = np.array(prices)
@@ -29,7 +29,7 @@ def some_random_data_report():
     date_list = np.sort(np.array(date_list))
     #print map(lambda x: str(x), date_list)
     date_list = np.array([given_date.date() for given_date in date_list])
-    assets_names = ['AAPL', 'JAZHKA']
+    assets_names = ['ROSN', 'MTSS', 'SBER', 'GAZP', 'AFLT', 'MOEX']
     prices_and_counts = {}
     graph_data = {}
     functors = get_default_functor_list()
