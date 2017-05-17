@@ -2,3 +2,6 @@ reportlab
 numpy
 pandas
 datetime
+matplotlib
+randomcolor
+pylatex
