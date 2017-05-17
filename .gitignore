@@ -1,6 +1,7 @@
 *.idea
 __pycache__
 report.pdf
+
 env
 src/temp/
 *.o
@@ -11,3 +12,10 @@ src/daemon/build
 
 src/loader/test/
 src/loader/train/
+
+*.pdf
+*.log
+a*.png
+g*.png
+*.tex
+*.aux
